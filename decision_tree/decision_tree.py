@@ -1,3 +1,7 @@
+import numpy as np
+import operator
+import math
+
 def calc_entropy(samples):
     """Computer entropy, which is defied as the expected value of information, first we need to define inforamtion, if 
        we classify something that can take on mulitiple values, the information for Xi is: l(Xi)=log2 p(Xi), p(Xi) is prob
