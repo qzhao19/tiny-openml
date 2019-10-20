@@ -54,6 +54,6 @@ def plot_regression(X, y, ws):
     plt.show()
     
 if __name__ == "__main__":
-    data, label = load_data('./linear_regression/dataset.txt') 
+    data, label = load_data('./dataset1.txt') 
     coefs = linear_regression(data, label)       
     plot_regression(data, label, coefs)
