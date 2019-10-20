@@ -34,13 +34,26 @@ def plot_dataset(X, y):
     """
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(X[:, 1], y, s=20, c='blue', alpha=0.5) # 描绘样本
+    ax.scatter(X[:, 1], y, s=20, c='blue', alpha=0.5)
     plt.title('DataSet')
     plt.xlabel("X")
+    plt.xlabel("y")
     plt.show()
     
-
-plot_dataset(data, label)    
-linear_regression(data, label)       
-
-data, label = load_data('./linear_regression/dataset.txt')  
+def plot_regression(X, y, ws):
+    """plot linear regression equation
+    
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(X[:,1], np.dot(X, ws), c = 'red') 
+    ax.scatter(X[:,1], y, s = 20, c = 'blue', alpha = .5)
+    plt.title('DataSet')
+    plt.xlabel("X")
+    plt.ylabel("y")
+    plt.show()
+    
+if __name__ == "__main__":
+    data, label = load_data('./linear_regression/dataset.txt') 
+    coefs = linear_regression(data, label)       
+    plot_regression(data, label, coefs)
