@@ -1,2 +1,2 @@
-# Machine-Learning-algorithms-practices
+# Machine-Learning-algorithms (ing...)
 Implements of common machine learning algorithms
