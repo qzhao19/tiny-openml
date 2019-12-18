@@ -1,21 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from numpy import *
-import matplotlib
+import numpy as np 
 import matplotlib.pyplot as plt
-
-def loadData():
-    file=open('dataSet2.txt')
-    arrayOfLines=file.readlines()
-    numLines=len(arrayOfLines)
-    dataSet=zeros((numLines, 2), dtype=float)
-    index=0
-    for line in arrayOfLines:
-        line=line.strip()
-        listFromLine=line.split('\t')
-        dataSet[index,:]=listFromLine[0:2]
-        index+=1
-    return dataSet
 
 class KMeans(object):
     """K-Means clustering
