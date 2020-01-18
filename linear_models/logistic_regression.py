@@ -1,5 +1,4 @@
 import numpy as np
-import operator
 import matplotlib.pyplot as plt
 
 def load_data(file_path):
@@ -29,11 +28,9 @@ def load_data(file_path):
 
 class LogisticRegressionClassifier(object):
     """Logistic Regression classifier.
-
     """
     def __init__(self):
-        # self._alpha = None
-
+        pass
 
     def _sigmoid(self, x):
         """Compute sigmoid function. Here, we must be careful of overflow in exp
@@ -56,15 +53,15 @@ class LogisticRegressionClassifier(object):
             raise ValueError('Data or label shoule be array type')
         
         # get the number of sample to define ths shape of weights and biases
-        sample_nums, feature_nums = data.shape
+        n_samples, n_features = data.shape
         # init weights as 1
-        weights = np.ones((feature_nums, 1), dtype=data.dtype)
+        weights = np.ones((n_features, 1), dtype=data.dtype)
 
-        label = label.reshape((sample_nums, 1))
+        label = label.reshape((n_samples, 1))
         for step in range(max_steps):
             # forcast predict vals from updated weighted data
-            sigmoid_vals = sigmoid(np.dot(data, weights))
-            error = label - sigmoid_vals
+            sigmoid = self._sigmoid(np.dot(data, weights))
+            error = label - sigmoid
             # update weights, if is '-', it will compute gradient descent 
             weights = weights + alpha * np.transpose(data).dot(error)
         return weights
@@ -72,10 +69,31 @@ class LogisticRegressionClassifier(object):
     def fit(self, train_X, train_y, alpha=1e-3, max_steps=500):
         return self._compute_gradient_descent(train_X, train_y, alpha, max_steps)
 
-    def predict(self, test_X, test_y, weight):
+    def predict(self, test_X, test_y, weights):
+        """Predict test data
         """
-        """
+        if (not isinstance(test_X, np.ndarray)) or (not isinstance(test_y, np.ndarray)):
+            raise ValueError('Data or label shoule be array type')
         
+        # get the number of sample to define ths shape of weights and biases
+        n_samples, n_features = test_X.shape
+        sigmoid = self._sigmoid(np.dot(test_X, weights))
+        error = 0.0
+        label = test_y
+
+        for i in range(n_samples):
+            if sigmoid[i] > 0.5:
+                print(str(i+1)+'-th sample ', int(label[i]), 'is classfied as: 1') 
+                if label[i] != 1:
+                    error += 1
+            else:
+                print(str(i+1)+'-th sample ', int(label[i]), 'is classfied as: 0')
+                if label[i] != 0:
+                    error += 1
+        error_rate = error/n_samples
+        print ("error rate is:", "%.4f" %error_rate)
+        return error_rate
+
 
 
 
