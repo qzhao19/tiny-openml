@@ -46,7 +46,7 @@ class LinearRegression(object):
             x_norm[:, i] = (X[:, i] - mu[i])/sigma[i]
 
         return x_norm
-    
+
     def _compute_cost(self, X, y, theta):
         """compute cost function, e.g. f(x) = (1/N)*{(wx-y)'(wx_y)}
         """
