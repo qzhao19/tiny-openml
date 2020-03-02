@@ -1,22 +1,5 @@
 import numpy as np
 
-def load_data(path):
-    """load dataset
-    Args:
-        path: txt file path
-    """
-    data, label = [], []
-    with open(path, 'r') as file:
-        num_features = len(file.readline().split('\t')) - 1
-        lines = [line.strip().split('\t') for line in file.readlines()]
-    data, label = [], []
-    for i in range(len(lines)):
-        data.append(lines[i][0:num_features])
-        label.append(lines[i][-1])
-    
-    return np.array(data, dtype=np.float), np.array(label, dtype=np.float)
-
-
 class LinearRegression(object):
     """LinearRegression fits a linear model with coefficients w = (w1, ..., wp)
     to minimize the residual sum of squares between the observed targets in
@@ -63,7 +46,7 @@ class LinearRegression(object):
             max_steps: int, max iterations to update weight
         
         Returns:
-            theta and cost of object function J_history
+            model weights theta and cost of object function J_history
 
         """
         n_samples = len(y)
@@ -83,7 +66,9 @@ class LinearRegression(object):
             J_history = self._compute_cost(X, y, theta)
             print('.', end=' ')      
         return theta, J_history 
-
+    
+    def fit(self, X, y):
+        
 
 
 
