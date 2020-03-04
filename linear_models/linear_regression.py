@@ -11,7 +11,7 @@ class LinearRegression(object):
 
     """
     def __init__(self, normalize=True):
-        self.normalize = normalize
+        self._normalize = normalize
 
     def _feature_normalize(self, X):
         """normalize data by substracting the mean and dividing sigma
@@ -36,7 +36,7 @@ class LinearRegression(object):
         n_samples = len(y)
         return (np.transpose(X*theta-y))*(X*theta-y)/(2*n_samples)
     
-    def _compute_gradient_descent(self, X, y, theta, alpha, n_iters=100):
+    def _compute_gradient_descent(self, X, y, theta, alpha, n_iters):
         """Compute gradient descent to optimize vals of function
         Args:
             X: ndarray-like data, input data
@@ -67,7 +67,25 @@ class LinearRegression(object):
             print('.', end=' ')      
         return theta, J_history 
     
-    def fit(self, X, y):
+    def fit(self, X, y, alpha, n_iters=100):
+        """
+        """
+        
+        n_samples, n_features = X.shape
+        
+        if self._normalize:
+            X = self._feature_normalize(X)
+            
+        X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
+        
+        theta = np.zeros((n_features, 1), dtype=float)
+        
+        y = y.reshape(-1,1)
+        
+        theta,J_history = self._compute_gradient_descent(X, y, theta, alpha, n_iters)
+        
+        return theta
+            
         
 
 
