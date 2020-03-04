@@ -34,7 +34,7 @@ class LinearRegression(object):
         """compute cost function, e.g. f(x) = (1/N)*{(wx-y)'(wx_y)}
         """
         n_samples = len(y)
-        return (np.transpose(X*theta-y))*(X*theta-y)/(2*n_samples)
+        return (np.transpose(X * theta - y)) * (X * theta - y)/(2 * n_samples)
     
     def _compute_gradient_descent(self, X, y, theta, alpha, n_iters):
         """Compute gradient descent to optimize vals of function
@@ -60,7 +60,7 @@ class LinearRegression(object):
             # compute the product of X and weights
             h = np.dot(X, theta)
             # compute gradients
-            temps[:, i] = theta - (alpha/n_samples)*(np.dot(np.transpose(X), h-y))
+            temps[:, i] = theta - (alpha / n_samples) * (np.dot(np.transpose(X), h - y))
             theta = temps[:, i]
             # call object cost function 
             J_history = self._compute_cost(X, y, theta)
@@ -86,13 +86,7 @@ class LinearRegression(object):
         
         return theta
             
-        
-
-
-
-
-
-
+    
 
 
     def test(self, X):
