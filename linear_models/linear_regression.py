@@ -6,8 +6,9 @@ class LinearRegression(object):
     the dataset, and the targets predicted by the linear approximation.
 
     Args:
-        normalize : bool, optional, default False. If True, the regressors X will be normalized 
-        before regression by subtracting the mean and dividing by the l2-norm
+        normalize : bool, optional, default False. If True, the regressors X 
+        will be normalized before regression by subtracting the mean and 
+        dividing by the l2-norm
 
     """
     def __init__(self, normalize=True):
@@ -86,7 +87,7 @@ class LinearRegression(object):
         
         return theta
             
-    
+        
 
 
     def test(self, X):
