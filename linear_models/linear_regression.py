@@ -1,3 +1,4 @@
+from utils import load_data
 import numpy as np
 
 class LinearRegression(object):
@@ -11,7 +12,7 @@ class LinearRegression(object):
         dividing by the l2-norm
 
     """
-    def __init__(self, normalize=True):
+    def __init__(self, normalize=False):
         self._normalize = normalize
 
     def _feature_normalize(self, X):
@@ -65,7 +66,6 @@ class LinearRegression(object):
             theta = temps[:, i]
             # call object cost function 
             J_history = self._compute_cost(X, y, theta)
-            print('.', end=' ')      
         return theta, J_history 
     
     def fit(self, X, y, alpha, n_iters=100):
@@ -79,7 +79,7 @@ class LinearRegression(object):
             
         X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
         
-        theta = np.zeros((n_features, 1), dtype=float)
+        theta = np.zeros((n_features + 1, 1), dtype=float)
         
         y = y.reshape(-1,1)
         
@@ -87,10 +87,73 @@ class LinearRegression(object):
         
         return theta
             
+    def predict(self, X, sample_weight):
+        if self._normalize:
+            X = self._feature_normalize(X)
+            
+        n_samples, n_features = X.shape
+        
+        X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
+
+        return np.dot(X, sample_weight)
+        
+    
+    def score(self, y_true, y_pred, sample_weight):
+        """
+        Return the coefficient of determination R^2 of the prediction. 
+        The coefficient R^2 is defined as (1 - u/v), where u is the 
+        residual sum of squares ((y_true - y_pred) ** 2).sum() and 
+        v is the total sum of squares ((y_true - y_true.mean()) ** 2).sum(). 
+        The best possible score is 1.0 and it can be negative (because 
+        the model can be arbitrarily worse).
+
+        Parameters
+        ----------
+            y_true : float
+                true value
+            y_pred : float
+                prediected value from model
+            sample_weight : float
+                sample weight of training data.
+
+        Returns
+        -------
+            R^2 of self.predict(X) wrt. y..
+        """
+        u = ((y_true - y_pred) ** 2).sum()
+        v = ((y_true - y_true.mean()) ** 2).sum()
+        
+        return 1- u/v      
+        
+    
+    def test(self, X, y, sample_weight):
+        # return self._feature_normalize(X)
+        
+        return self.predict(X, sample_weight)
+        # return self.fit(X, y, alpha=0.01)
+        
         
 
 
-    def test(self, X):
-        return self._feature_normalize(X)
+
+if __name__ == "__main__":
+    path = './dataset/abalone.txt'
+    data, label = load_data(path)
+    
+    print(len(data[:4000, :]))
+    print(len(label[:4000]))
+    
+    lr = LinearRegression()
+    
+    coefs = lr.fit(data[:4000, :], label[:4000], 0.01)
+    
+    result = lr.test(data[4001:, :], label[4001:], coefs)
+    
+    
+    print(result)
+
+
+
+
 
 
