@@ -1,4 +1,4 @@
-from utils import load_data
+# from utils import load_data
 import numpy as np
 
 class LinearRegression(object):
@@ -12,10 +12,10 @@ class LinearRegression(object):
         dividing by the l2-norm
 
     """
-    def __init__(self, normalize=False):
-        self._normalize = normalize
+    def __init__(self, standard=False):
+        self._standard = standard
 
-    def _feature_normalize(self, X):
+    def _feature_standard_scaler(self, X):
         """normalize data by substracting the mean and dividing sigma
         """
         if not isinstance(X, np.ndarray):
@@ -38,7 +38,7 @@ class LinearRegression(object):
         n_samples = len(y)
         return (np.transpose(X * theta - y)) * (X * theta - y)/(2 * n_samples)
     
-    def _compute_gradient_descent(self, X, y, theta, alpha, n_iters):
+    def _compute_gradient(self, X, y, theta, alpha, n_iters):
         """Compute gradient descent to optimize vals of function
         Args:
             X: ndarray-like data, input data
@@ -74,8 +74,8 @@ class LinearRegression(object):
         
         n_samples, n_features = X.shape
         
-        if self._normalize:
-            X = self._feature_normalize(X)
+        if self._standard:
+            X = self._feature_standard_scaler(X)
             
         X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
         
@@ -83,13 +83,13 @@ class LinearRegression(object):
         
         y = y.reshape(-1,1)
         
-        theta,J_history = self._compute_gradient_descent(X, y, theta, alpha, n_iters)
+        theta,J_history = self._compute_gradient(X, y, theta, alpha, n_iters)
         
         return theta
             
     def predict(self, X, sample_weight):
-        if self._normalize:
-            X = self._feature_normalize(X)
+        if self._standard:
+            X = self._feature_standard_scaler(X)
             
         n_samples, n_features = X.shape
         
@@ -126,31 +126,29 @@ class LinearRegression(object):
         return 1- u/v      
         
     
-    def test(self, X, y, sample_weight):
-        # return self._feature_normalize(X)
+#     def test(self, X, y, sample_weight):
+#         # return self._feature_normalize(X)
         
-        return self.predict(X, sample_weight)
-        # return self.fit(X, y, alpha=0.01)
+#         return self.predict(X, sample_weight)
+#         # return self.fit(X, y, alpha=0.01)
         
         
-
-
-
-if __name__ == "__main__":
-    path = './dataset/abalone.txt'
-    data, label = load_data(path)
+# if __name__ == "__main__":
+#     path = './dataset/abalone.txt'
+#     data, label = load_data(path)
     
-    print(len(data[:4000, :]))
-    print(len(label[:4000]))
+#     print(len(data[:4000, :]))
+#     print(len(label[:4000]))
     
-    lr = LinearRegression()
+#     print(data)
     
-    coefs = lr.fit(data[:4000, :], label[:4000], 0.01)
+#     lr = LinearRegression()
     
-    result = lr.test(data[4001:, :], label[4001:], coefs)
+#     coefs = lr.fit(data[:4000, :], label[:4000], 0.01)
     
+#     result = lr.test(data[4001:, :], label[4001:], coefs)
     
-    print(result)
+#     # print(result)
 
 
 
