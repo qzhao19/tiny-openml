@@ -87,7 +87,7 @@ class LogisticRegressionClassifier(object):
         self._C = C
         self._solver = solver
         
-    def _sigmoid(self, x):
+    def _sigmoid(self, X):
         """sigmoid function. Here, we must be careful of overflow in exp.
         
         f(x) = 1 / (1 +(exp(-x)))
@@ -102,9 +102,14 @@ class LogisticRegressionClassifier(object):
         -------
             The value of function sigmoid
         """
-        return np.exp(np.fmin(x, 0)) / (1 + np.exp(-np.abs(x)))
-    
-    def _compute_cost_fn(self, X, y, theta, max_steps=100):
+        n_sampels, _ = np.shape(X)
+        h = np.zeros((n_samples, 1), dtype=float)
+        h = np.exp(np.fmin(X, 0)) / (1 + np.exp(-np.abs(X)))
+        
+        return h
+
+
+    def _compute_cost_fn(self, X, y, theta):
         """Cost function 
         J(theat) = -1/m * {sum[y * log(h(x)) + (1-y) * log(1 - h(x))]}, h(x) = 1 / (1 - exp(-x))
         penalty = 1/m * (sum[theat * theta])
@@ -170,6 +175,21 @@ class LogisticRegressionClassifier(object):
         
         return grads
 
+    def _feature_mapping(self, x1, x2):
+        """
+        
+        Parameters
+        ----------
+        x1 : TYPE
+            DESCRIPTION.
+        x2 : TYPE
+            DESCRIPTION.
 
+        Returns
+        -------
+        None.
+
+        """
+        return 0
 
 
