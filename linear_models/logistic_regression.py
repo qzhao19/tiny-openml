@@ -107,7 +107,7 @@ class LogisticRegressionClassifier(object):
     def _compute_cost_fn(self, X, y, theta, max_steps=100):
         """Cost function 
         J(theat) = -1/m * {sum[y * log(h(x)) + (1-y) * log(1 - h(x))]}, h(x) = 1 / (1 - exp(-x))
-        
+        penalty = 1/m * (sum[theat * theta])
 
         Parameters
         ----------
@@ -140,6 +140,8 @@ class LogisticRegressionClassifier(object):
     def _compute_gradient(self, X, y, theta):
         """Compute gradiend of the cost function
         
+        theta_j = theta_j + alpha * (1/m) * Sum[(h(x_i) - y_i) * x_i]
+        
         Parameters
         ----------
             X : ndarray-like data
@@ -150,9 +152,23 @@ class LogisticRegressionClassifier(object):
                  model weights
         Returns
         -------
-        None.
+            None.
         """
-
+        n_samples, n_features = np.shape(X)
+        
+        # define an array to storage gradients 
+        grads = np.zeros(np.shape(theta)[0], dtype=float)
+        
+        # h_shape = n*p x p*1 = n*1
+        h = self._sigmoid(np.dot(X, theta))
+        copied_theta = theta.copy()
+        
+        copied_theta[0] = 0
+        
+        grads = (np.dot(np.transpose(X),(h - y)) / n_features) + \
+                (self._C * copied_theta / n_features)
+        
+        return grads
 
 
 
