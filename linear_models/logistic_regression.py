@@ -1,73 +1,6 @@
 import numpy as np
-# import matplotlib.pyplot as plt
-
-# class LogisticRegressionClassifier(object):
-#     """Logistic Regression classifier.
-#     """
-#     def __init__(self):
-#         pass
-
-#     def _sigmoid(self, x):
-#         """Compute sigmoid function. Here, we must be careful of overflow in exp
-#         Args:
-#             x: float, input value
-#         """
-#         return np.exp(np.fmin(x, 0)) / (1 + np.exp(-np.abs(x)))
-
-#     def _compute_gradient_descent(self, data, label, alpha, max_steps):
-#         """Compute gradient ascent to optimize max vals of function
-
-#         Args:
-#             data: ndarray-like data, input data
-#             label: ndarray_like, label
-#             alpha: float, learning rate when update weights
-#             max_steps: int, max iterations to update weights
-
-#         """
-#         if (not isinstance(data, np.ndarray)) or (not isinstance(label, np.ndarray)):
-#             raise ValueError('Data or label shoule be array type')
-        
-#         # get the number of sample to define ths shape of weights and biases
-#         n_samples, n_features = data.shape
-#         # init weights as 1
-#         weights = np.ones((n_features, 1), dtype=data.dtype)
-
-#         label = label.reshape((n_samples, 1))
-#         for step in range(max_steps):
-#             # forcast predict vals from updated weighted data
-#             sigmoid = self._sigmoid(np.dot(data, weights))
-#             error = label - sigmoid
-#             # update weights, if is '-', it will compute gradient descent 
-#             weights = weights + alpha * np.transpose(data).dot(error)
-#         return weights
-
-#     def fit(self, train_X, train_y, alpha=1e-3, max_steps=500):
-#         return self._compute_gradient_descent(train_X, train_y, alpha, max_steps)
-
-#     def predict(self, test_X, test_y, weights):
-#         """Predict test data
-#         """
-#         if (not isinstance(test_X, np.ndarray)) or (not isinstance(test_y, np.ndarray)):
-#             raise ValueError('Data or label shoule be array type')
-        
-#         # get the number of sample to define ths shape of weights and biases
-#         n_samples, n_features = test_X.shape
-#         sigmoid = self._sigmoid(np.dot(test_X, weights))
-#         error = 0.0
-#         label = test_y
-
-#         for i in range(n_samples):
-#             if sigmoid[i] > 0.5:
-#                 print(str(i+1)+'-th sample ', int(label[i]), 'is classfied as: 1') 
-#                 if label[i] != 1:
-#                     error += 1
-#             else:
-#                 print(str(i+1)+'-th sample ', int(label[i]), 'is classfied as: 0')
-#                 if label[i] != 0:
-#                     error += 1
-#         error_rate = error/n_samples
-#         print ("error rate is:", "%.4f" %error_rate)
-#         return error_rate
+import numbers
+import scipy
 
 
 class LogisticRegressionClassifier(object):
@@ -83,7 +16,7 @@ class LogisticRegressionClassifier(object):
             Algorithm to use in the optimization problem.
         
     """
-    def __init__(self, C=1.0, solver='bfgs'):
+    def __init__(self, C=0.1, solver='bfgs'):
         self._C = C
         self._solver = solver
         
@@ -95,14 +28,14 @@ class LogisticRegressionClassifier(object):
 
         Parameters
         ----------
-            x : float
+            X : ndarray 
                 Input value.
 
         Returns
         -------
             The value of function sigmoid
         """
-        n_sampels, _ = np.shape(X)
+        n_samples, _ = np.shape(X)
         h = np.zeros((n_samples, 1), dtype=float)
         h = np.exp(np.fmin(X, 0)) / (1 + np.exp(-np.abs(X)))
         
@@ -190,6 +123,53 @@ class LogisticRegressionClassifier(object):
         None.
 
         """
+        
+        
+        
         return 0
+    
+    def fit(self, X, y):
+        """Fit the model according to the given training data.
 
+        Parameters
+        ----------
+            X : array_like of shape [n_samples, n_features]
+                Training vector, where n_samples is the umber of samples
+                and n_features is the number of features
+            y : array_like of shape [n_samples, ]
+                Target vector relative of traing data X
+
+        Returns
+        -------
+            return gradients of the cost function == self._comtute_gradients
+        """
+        
+        if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
+            raise ValueError('Data or label must be array type')
+        
+        if not isinstance(self._C, numbers.Number) or self._C < 0:
+            raise ValueError("Penalty term must be positive; got (C=%r)" % self.C)
+        
+        n_samples, n_features = X.shape
+        
+        
+        theta = np.ones((n_features, 1), dtype=float)
+        penality_coef = self._C
+        
+        # J_history = self._compute_cost_fn(X, y, theta)
+        
+        if self._solver == 'bfgs':
+            prob = scipy.optimize.fmin_bfgs(self._compute_cost_fn, \
+                                            x0=theta, \
+                                            fprime=self._compute_gradient, \
+                                            args=(X, y, penality_coef))
+        
+        return prob
+        
+        
+        
+        
+        
+        
+        
 
