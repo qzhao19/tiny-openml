@@ -166,7 +166,15 @@ class LogisticRegressionClassifier(object):
         
         return prob
         
+    def predict(self, X, sample_weight):
+        n_samples, n_features = X.shape
         
+        prob = np.zeros((n_samples, 1), dtype=float)
+        prob = self._sigmoid(np.dot(X, sample_weight))
+        
+        for i in range(n_samples):
+            if prob[i] > 0.5:
+                
         
         
         
