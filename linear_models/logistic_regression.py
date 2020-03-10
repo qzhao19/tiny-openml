@@ -1,6 +1,7 @@
 import numpy as np
 import numbers
-import scipy
+from scipy import optimize
+from utils import load_data
 
 
 class LogisticRegressionClassifier(object):
@@ -35,14 +36,16 @@ class LogisticRegressionClassifier(object):
         -------
             The value of function sigmoid
         """
-        n_samples, _ = np.shape(X)
+        # n_samples, n_features = np.shape(X)
+        n_samples = len(X)
         h = np.zeros((n_samples, 1), dtype=float)
+        # h = 1.0 / (1.0 + np.exp(-X))
         h = np.exp(np.fmin(X, 0)) / (1 + np.exp(-np.abs(X)))
         
         return h
 
 
-    def _compute_cost_fn(self, X, y, theta):
+    def _compute_cost_fn(self, theta, X, y):
         """Cost function 
         J(theat) = -1/m * {sum[y * log(h(x)) + (1-y) * log(1 - h(x))]}, h(x) = 1 / (1 - exp(-x))
         penalty = 1/m * (sum[theat * theta])
@@ -75,7 +78,7 @@ class LogisticRegressionClassifier(object):
         
         return J_history + penalty
 
-    def _compute_gradient(self, X, y, theta):
+    def _compute_gradient(self, theta, X, y):
         """Compute gradiend of the cost function
         
         theta_j = theta_j + alpha * (1/m) * Sum[(h(x_i) - y_i) * x_i]
@@ -154,15 +157,15 @@ class LogisticRegressionClassifier(object):
         
         
         theta = np.ones((n_features, 1), dtype=float)
-        penality_coef = self._C
+        # penality_coef = self._C
         
         # J_history = self._compute_cost_fn(X, y, theta)
         
         if self._solver == 'bfgs':
-            prob = scipy.optimize.fmin_bfgs(self._compute_cost_fn, \
-                                            x0=theta, \
-                                            fprime=self._compute_gradient, \
-                                            args=(X, y, penality_coef))
+            prob = optimize.fmin_bfgs(self._compute_cost_fn, \
+                                      x0 = theta, \
+                                      fprime = self._compute_gradient, \
+                                      args = (X, y))
         
         return prob
         
@@ -179,8 +182,19 @@ class LogisticRegressionClassifier(object):
                 pred[i] = 0
                 
         return pred
+
+
+# if __name__ == "__main__":
+#     path = './dataset/horse-colic-train.txt'
+#     data, label = load_data(path)
+    
+#     print((data.shape))
+#     print(label)
         
-        
+#     lr = LogisticRegressionClassifier()
+#     prob = lr.fit(data, label)
+    
+#     print(prob)
         
         
         
