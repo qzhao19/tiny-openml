@@ -1,5 +1,25 @@
 import numpy as np
-from scipy import optimize
+from scipy import linalg
+
+def ridge(A, b, alphas):
+    """
+    Return coefficients for regularized least squares
+
+         min ||A x - b||^2 + alpha ||x||^2
+
+    Parameters
+    ----------
+    A : array, shape (n, p)
+    b : array, shape (n,)
+    alphas : array, shape (k,)
+
+    Returns
+    -------
+    coef: array, shape (p, k)
+    """
+    U, s, Vt = linalg.svd(X, full_matrices=False)
+    d = s / (s[:, np.newaxis].T ** 2 + alphas[:, np.newaxis])
+    return np.dot(d * U.T.dot(y), Vt).T
 
 
 class RidgeRegression(object):
