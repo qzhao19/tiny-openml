@@ -78,7 +78,7 @@ class LogisticRegressionClassifier(object):
         
         return J_history + penalty
 
-    def _compute_gradient(self, theta, X, y):
+    def _compute_gradients(self, theta, X, y):
         """Compute gradiend of the cost function
         
         theta_j = theta_j + alpha * (1/m) * Sum[(h(x_i) - y_i) * x_i]
@@ -164,7 +164,7 @@ class LogisticRegressionClassifier(object):
         if self._solver == 'bfgs':
             prob = optimize.fmin_bfgs(self._compute_cost_fn, \
                                       x0 = theta, \
-                                      fprime = self._compute_gradient, \
+                                      fprime = self._compute_gradients, \
                                       args = (X, y))
         
         return prob
