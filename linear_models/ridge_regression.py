@@ -78,16 +78,38 @@ class Ridge(object):
         """
         return 0
     
-    def _solve_lsqr(self, X, y, ):
+    def _solve_lsqr(self, X, y, tol = 1e-3, max_iter=None):
         """‘lsqr’ uses the dedicated regularized least-squares routine 
         scipy.sparse.linalg.lsqr. It is the fastest and uses an 
         iterative procedure.
-
-
+        
+        Parameters
+        ----------
+            X : ndarray-like matrix [n_samples, n_features]
+                Representation of an m-by-n matrix.
+            y : ndarray-like of shape [n_samples, ]
+                Target values.
+                
+            tol : float, optional
+                Stopping tolerances..
+                
+            max_iter : int, optional
+                Explicit limitation on number of iterations. The default is None.
+            
         """
         n_samples, n_features = X.shape
         
-        coefs = np.zeros((n_features))
+        # coefs = np.zeros((n_features, 1))
+        
+        sqrt_alpha = np.sqrt(self._alpha)
+        
+        coefs = sp_linalg.lsqr(X, y, damp=sqrt_alpha, atol=tol, btol=tol, iter_lim=max_iter)
+        
+        return coefs
+        
+        
+        
+        
 
 
 # def ridge(A, b, alphas):
