@@ -77,6 +77,17 @@ class Ridge(object):
 
         """
         return 0
+    
+    def _solve_lsqr(self, X, y, ):
+        """‘lsqr’ uses the dedicated regularized least-squares routine 
+        scipy.sparse.linalg.lsqr. It is the fastest and uses an 
+        iterative procedure.
+
+
+        """
+        n_samples, n_features = X.shape
+        
+        coefs = np.zeros((n_features))
 
 
 # def ridge(A, b, alphas):
