@@ -107,7 +107,24 @@ class Ridge(object):
         
         return coefs
         
+    
+    def fit(self, X, y):
+        """
         
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+        y : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        return 0
         
         
 
