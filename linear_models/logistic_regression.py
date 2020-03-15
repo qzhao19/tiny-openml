@@ -111,26 +111,8 @@ class LogisticRegressionClassifier(object):
         
         return grads
 
-    def _feature_mapping(self, x1, x2):
-        """
         
-        Parameters
-        ----------
-        x1 : TYPE
-            DESCRIPTION.
-        x2 : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
-        
-        
-        
-        return 0
-    
+            
     def fit(self, X, y):
         """Fit the model according to the given training data.
 
