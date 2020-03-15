@@ -1,6 +1,7 @@
 # from utils import load_data
 import numpy as np
 
+
 class LinearRegression(object):
     """LinearRegression fits a linear model with coefficients w = (w1, ..., wp)
     to minimize the residual sum of squares between the observed targets in
@@ -15,7 +16,7 @@ class LinearRegression(object):
     def __init__(self, standard=False):
         self._standard = standard
 
-    def _feature_standard_scaler(self, X):
+    def _standardize_data(self, X):
         """normalize data by substracting the mean and dividing sigma
         """
         if not isinstance(X, np.ndarray):
@@ -75,7 +76,7 @@ class LinearRegression(object):
         n_samples, n_features = X.shape
         
         if self._standard:
-            X = self._feature_standard_scaler(X)
+            X = self._standardize_data(X)
             
         X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
         
@@ -89,7 +90,7 @@ class LinearRegression(object):
             
     def predict(self, X, sample_weight):
         if self._standard:
-            X = self._feature_standard_scaler(X)
+            X = self._standardize_data(X)
             
         n_samples, n_features = X.shape
         
