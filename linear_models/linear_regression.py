@@ -1,5 +1,6 @@
 # from utils import load_data
 import numpy as np
+from utils import load_data
 
 
 class LinearRegression(object):
@@ -128,8 +129,8 @@ class LinearRegression(object):
         
     
 #     def test(self, X, y, sample_weight):
-#         # return self._feature_normalize(X)
         
+#         # return self._standardize_data(X)
 #         return self.predict(X, sample_weight)
 #         # return self.fit(X, y, alpha=0.01)
         
@@ -139,7 +140,7 @@ class LinearRegression(object):
 #     data, label = load_data(path)
     
 #     print(len(data[:4000, :]))
-#     print(len(label[:4000]))
+#     print(len(label[:4000, :]))
     
 #     print(data)
     
@@ -147,7 +148,9 @@ class LinearRegression(object):
     
 #     coefs = lr.fit(data[:4000, :], label[:4000], 0.01)
     
-#     result = lr.test(data[4001:, :], label[4001:], coefs)
+#     result = lr.test(data[4001:, :], label[4001:, :], coefs)
+    
+#     print(coefs)
     
 #     # print(result)
 
