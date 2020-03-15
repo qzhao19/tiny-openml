@@ -42,7 +42,7 @@ def load_data(file_path, sep = '\t'):
         data.append(contents[i][:-1])
         label.append(contents[i][-1])
 
-    return np.array(data, dtype=float), np.array(label, dtype=float)
+    return np.array(data, dtype=float), np.array(label, dtype=float).reshape(-1, 1)
 
 
 
