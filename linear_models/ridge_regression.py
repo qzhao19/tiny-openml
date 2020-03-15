@@ -1,3 +1,4 @@
+import numbers
 import numpy as np
 from scipy import linalg
 from scipy.sparse import linalg as sp_linalg
@@ -133,15 +134,40 @@ class Ridge(object):
         
         Parameters
         ----------
-            X : TYPE
-                DESCRIPTION.
-            y : TYPE
-                DESCRIPTION.
+            X : ndarray-like matrix [n_samples, n_features]
+                Training vector, where n_samples is the umber of samples.
+            y : array_like of shape [n_samples, 1]
+                Target vector relative of traing data X.
 
         Returns
         -------
             None.
         """
+        
+        if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
+            raise ValueError('Data or label must be array type')
+        
+        if not isinstance(self._C, numbers.Number) or self._C < 0:
+            raise ValueError("Penalty term must be positive; got (C=%r)" % self.C)
+            
+        
+        if y.dims > 2:
+            raise ValueError("Target y has the wrong shape %s" % str(y.shape))
+            
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+            
+            
+        n_samples_X, n_features = X.shape
+
+        n_samples_y, n_targets = y.shape
+        
+        if n_samples_X != n_samples_y:
+            raise ValueError("Number of samples in X and y does not correspond:" \
+                             " %d != %d" % (n_samples, n_samples_))
+        
+        
+        
         
         
         
