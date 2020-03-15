@@ -30,10 +30,7 @@ def load_data(file_path, sep = '\t'):
     Args:
         file_name: input file path which allows to read a txt file
     Returns:
-        retuen_mat: a matrix of dating data contains 3 attributs: 
-                        1. Number of frequent flyer miles earned per year
-                        2. Percentage of time spent playing video games
-                        3. Liters of ice cream consumed per week
+        retuen_mat: a matrix of data
         label_vect: a vectro conatins labels 
     """
     data = []
