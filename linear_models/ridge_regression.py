@@ -1,5 +1,7 @@
 import numpy as np
+from scipy import linalg
 from scipy.sparse import linalg as sp_linalg
+from utils import load_data
 
 
 
@@ -34,7 +36,8 @@ class Ridge(object):
         self._normalize = normalize
         self._solver = solver
         
-    def _normalize(self, X, y):
+        
+    def _normalize_data(self, X, y):
         """Normalize data 
         
             X = (X - mu)/sigma
@@ -53,30 +56,44 @@ class Ridge(object):
             Normalized training matrix and target vector
 
         """
+        n_samples, n_features = X.shape
         
-        return (X - np.mean(X, axis = 1))/np.std(X, axis=1), y - np.mean(y)
+        # return (X - np.mean(X, axis = 0))/np.std(X, axis=1), y - np.mean(y)
+        
+        norm_X = (X - np.tile(np.mean(X, axis=0), (n_samples, 1))) / np.tile(np.std(X, axis=0), (n_samples, 1))
+        
+        # norm_y = y - np.tile(np.mean(y, axis=0), (n_samples, 1))
+        
+        return norm_X
 
 
-    def _solve_sparse_cg(self, X, y, max_iter=None, tol = 1e-3):
-        """
-
+    def _solve_svd(self, X, y):
+        """uses a Singular Value Decomposition of X to compute the Ridge coefficients.
+         
         Parameters
         ----------
-        X : TYPE
-            DESCRIPTION.
-        y : TYPE
-            DESCRIPTION.
-        max_iter : TYPE, optional
-            DESCRIPTION. The default is None.
-        tol : TYPE
-            DESCRIPTION.
+            X : ndarray-like matrix [n_samples, n_features]
+                Representation of an m-by-n matrix.
+            y : ndarray-like of shape [n_samples, ]
+                Target values.
 
         Returns
         -------
-        None.
+            coefs.
 
         """
-        return 0
+        
+        alpha = np.asarray(self._alpha).ravel()
+        alpha = np.repeat(alpha, y.shape[1])
+        U, s, Vt = linalg.svd(X, full_matrices=False)
+        idx = s > 1e-15  # same default value as scipy.linalg.pinv
+        s_nnz = s[idx][:, np.newaxis]
+        UTy = np.dot(U.T, y)
+        d = np.zeros((s.size, alpha.size))
+        d[idx] = s_nnz / (s_nnz ** 2 + alpha)
+        d_UT_y = d * UTy
+        return np.dot(Vt.T, d_UT_y).T
+        
     
     def _solve_lsqr(self, X, y, tol = 1e-3, max_iter=None):
         """‘lsqr’ uses the dedicated regularized least-squares routine 
@@ -99,34 +116,71 @@ class Ridge(object):
         """
         n_samples, n_features = X.shape
         
-        # coefs = np.zeros((n_features, 1))
+        coefs = np.zeros((y.shape[1], n_features))
         
         sqrt_alpha = np.sqrt(self._alpha)
         
-        coefs = sp_linalg.lsqr(X, y, damp=sqrt_alpha, atol=tol, btol=tol, iter_lim=max_iter)
-        
+        for i in range(y.shape[0]):
+            y_column = y[:, i]
+            coefs = sp_linalg.lsqr(X, y_column, damp=sqrt_alpha, \
+                                   atol=tol, btol=tol, iter_lim=max_iter)[0]
+                 
         return coefs
         
     
     def fit(self, X, y):
         """
         
-
         Parameters
         ----------
-        X : TYPE
-            DESCRIPTION.
-        y : TYPE
-            DESCRIPTION.
+            X : TYPE
+                DESCRIPTION.
+            y : TYPE
+                DESCRIPTION.
 
         Returns
         -------
-        None.
-
+            None.
         """
+        
+        
+        
         return 0
+    
+    def test(self, X, y):
         
+        X_norm =  self._normalize_data(X, y)
         
+        return self._solve_svd(X_norm, y)
+        
+        # return self._solve_lsqr(X, y)
+        
+    
+
+
+if __name__ == "__main__":
+    path = './dataset/abalone.txt'
+    data, label = load_data(path, sep='\t')
+    
+    label = label.reshape(-1, 1)
+    
+    # print(data.shape)
+    
+    # print(label.reshape(-1, 1).shape)
+    
+    rr = Ridge()
+    
+    data_n = rr.test(data, label)
+    
+    # print(data_n)
+    
+    # print(data_n.shape)
+    
+    coefs = rr.test(data, label)
+    
+    print(coefs)
+    
+    
 
 
 # def ridge(A, b, alphas):
