@@ -1,5 +1,6 @@
 import numbers
 import numpy as np
+from scipy import sparse
 from scipy import linalg
 from scipy.sparse import linalg as sp_linalg
 from utils import load_data
@@ -7,7 +8,7 @@ from utils import load_data
 
 
 
-class Ridge(object):
+class RidgeRegression(object):
     """Linear least squares with l2 regularization.
     
     Minimizes the objective function: ||y - Xw||^2_2 + alpha * ||w||^2_2
@@ -17,25 +18,34 @@ class Ridge(object):
     
     Parameters
     ----------
-        C: float, default is 1.0
-           Regularization strength; must be a positive float. Regularization
-           improves the conditioning of the problem and reduces the variance of
-           the estimates. Larger values specify stronger regularization.
-           
-       normalize: boolean, optional, default False
-           If True, the regressors X will be normalized before regression.
-           
-        solver: string, default value is {auto, svd}
-            Solver to use in the computational routines:
-            
     
+        alpha: float, default is 1.0
+               Regularization strength; must be a positive float. Regularization
+               improves the conditioning of the problem and reduces the variance of
+               the estimates. Larger values specify stronger regularization.
+           
+            
+        normalize: boolean, optional, default False
+                If True, the regressors X will be normalized before regression.
+        
+        solver: string, default value is {auto, svd}
+                Solver to use in the computational routines:
+            
+        tol : float
+            Precision of the solution.
     
     """
 
-    def __init__(self, alpha = 1.0, normalize = False, solver = 'auto'):
+    def __init__(self, alpha = 1.0, normalize = False, solver = 'svd', 
+                 tol = 1e+3, max_iter = None):
+        
         self._alpha = alpha
         self._normalize = normalize
         self._solver = solver
+        self._tol = tol
+        self._max_iter = max_iter
+        
+        
         
         
     def _normalize_data(self, X, y):
@@ -121,7 +131,7 @@ class Ridge(object):
         
         sqrt_alpha = np.sqrt(self._alpha)
         
-        for i in range(y.shape[0]):
+        for i in range(y.shape[1]):
             y_column = y[:, i]
             coefs = sp_linalg.lsqr(X, y_column, damp=sqrt_alpha, \
                                    atol=tol, btol=tol, iter_lim=max_iter)[0]
@@ -147,11 +157,11 @@ class Ridge(object):
         if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
             raise ValueError('Data or label must be array type')
         
-        if not isinstance(self._C, numbers.Number) or self._C < 0:
-            raise ValueError("Penalty term must be positive; got (C=%r)" % self.C)
+        if not isinstance(self._alpha, numbers.Number) or self._alpha < 0:
+            raise ValueError("Penalty term must be positive; got (C=%r)" % self._alpha)
             
         
-        if y.dims > 2:
+        if y.ndim > 2:
             raise ValueError("Target y has the wrong shape %s" % str(y.shape))
             
         if y.ndim == 1:
@@ -164,47 +174,57 @@ class Ridge(object):
         
         if n_samples_X != n_samples_y:
             raise ValueError("Number of samples in X and y does not correspond:" \
-                             " %d != %d" % (n_samples, n_samples_))
+                             " %d != %d" % (n_samples_X, n_samples_y))
+        
+        if self._solver not in ('svd', 'lsqr'):
+            raise ValueError('Solver %s not understood' % solver)
         
         
-        
-        
-        
-        
-        return 0
+        if self._solver == 'svd':
+            if sparse.issparse(X):
+                raise TypeError('SVD solver does not support sparse')
+                
+            coefs = self._solve_svd(X, y)
+            
+        elif self._solver == 'lsqr':
+            coefs = self._solve_lsqr(X, y, tol = self._tol, max_iter = self._max_iter)
+            
+        return coefs
     
-    def test(self, X, y):
-        
-        X_norm =  self._normalize_data(X, y)
-        
-        return self._solve_svd(X_norm, y)
-        
-        # return self._solve_lsqr(X, y)
-        
     
+    # def test(self, X, y):
+        
+        # X_norm =  self._normalize_data(X, y)
+        
+        # # return self._solve_svd(X_norm, y)
+        
+        # # return self._solve_lsqr(X, y)
+        
+        # return self.fit(X, y)
+    
+*****
 
-
-if __name__ == "__main__":
-    path = './dataset/abalone.txt'
-    data, label = load_data(path, sep='\t')
+# if __name__ == "__main__":
+    # path = './dataset/abalone.txt'
+    # data, label = load_data(path, sep='\t')
     
-    label = label.reshape(-1, 1)
+    # label = label.reshape(-1, 1)
     
-    # print(data.shape)
+    # # print(data.shape)
     
-    # print(label.reshape(-1, 1).shape)
+    # # print(label.reshape(-1, 1).shape)
     
-    rr = Ridge()
+    # rr = RidgeRegression(solver='lsqr')
     
-    data_n = rr.test(data, label)
+    # # data_n = rr.test(data, label)
     
-    # print(data_n)
+    # # print(data_n)
     
-    # print(data_n.shape)
+    # # print(data_n.shape)
     
-    coefs = rr.test(data, label)
+    # coefs = rr.test(data, label)
     
-    print(coefs)
+    # print(coefs)
     
     
     
