@@ -202,8 +202,6 @@ class RidgeRegression(object):
         
         # return self.fit(X, y)
     
-*****
-
 # if __name__ == "__main__":
     # path = './dataset/abalone.txt'
     # data, label = load_data(path, sep='\t')
