@@ -4,4 +4,10 @@ Created on Wed Mar 18 22:19:44 2020
 
 @author: qizhao
 """
+import numpy as np
+
+
+
+
+
 
