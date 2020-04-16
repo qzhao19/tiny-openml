@@ -44,15 +44,21 @@ def log_multivar_t_pdf(x, mu, sigma, nu, min_sigma=1e-7):
     
     try:
         covar_chol = sp.linalg.cholesky(sigma, lower=True)
-    except linalg.LinAlgError:
+    except sp.linalg.LinAlgError:
         
         try:
             covar_chol = sp.linalg.cholesky(sigma + min_sigma * np.eye(p), 
                                             lower=True)
-        except linalg.LinAlgError:
+        except sp.linalg.LinAlgError:
             raise ValueError('"covariances" must be symmetric')
     
     covar_log_det = np.sum(np.log(np.diag(covar_chol)))
+    
+    covar_solve = sp.linalg.solve_triangular(covar_chol, (X - mu[None, :]).T, lower=True).T
+    
+    norm = (sp_gammaln((nu + n_dim) / 2.) - sp_gammaln(nu / 2.) - 0.5 * n_dim * np.log(nu * np.pi))
+    
+    
     
     
 class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
