@@ -11,7 +11,7 @@ from scipy.special import gammaln
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
-def log_multivar_t_pdf(x, mu, sigma, nu):
+def log_multivar_t_pdf(x, mu, sigma, nu, min_sigma=1e-7):
     """Evaluate the density function of a multivariate student t
     distribution at the points X
     
@@ -40,6 +40,19 @@ def log_multivar_t_pdf(x, mu, sigma, nu):
     
     # ret = numerator / denominator
     
+    log_ret = 0
+    
+    try:
+        covar_chol = sp.linalg.cholesky(sigma, lower=True)
+    except linalg.LinAlgError:
+        
+        try:
+            covar_chol = sp.linalg.cholesky(sigma + min_sigma * np.eye(p), 
+                                            lower=True)
+        except linalg.LinAlgError:
+            raise ValueError('"covariances" must be symmetric')
+    
+    covar_log_det = np.sum(np.log(np.diag(covar_chol)))
     
     
 class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
