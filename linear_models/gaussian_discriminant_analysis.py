@@ -11,7 +11,7 @@ from scipy.special import gammaln
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
-def log_multivar_t_pdf(x, mu, sigma, nu, min_sigma=1e-7):
+def log_multivar_t_pdf(X, mu, sigma, nu, min_sigma=1e-7):
     """Evaluate the density function of a multivariate student t
     distribution at the points X
     
@@ -32,7 +32,7 @@ def log_multivar_t_pdf(x, mu, sigma, nu, min_sigma=1e-7):
 
 
     """
-    n, p = np.shape(x)
+    n, p = np.shape(X)
     
     # numerator = gammaln((p + nu) / 2)
     # denominator = gammaln(nu / 2) * np.power((nu * np.pi), 1/2) * np.power(np.linalg.det(sigma, 1/2)) * \
@@ -56,7 +56,7 @@ def log_multivar_t_pdf(x, mu, sigma, nu, min_sigma=1e-7):
     
     covar_solve = sp.linalg.solve_triangular(covar_chol, (X - mu[None, :]).T, lower=True).T
     
-    norm = (sp_gammaln((nu + n_dim) / 2.) - sp_gammaln(nu / 2.) - 0.5 * n_dim * np.log(nu * np.pi))
+    norm = (gammaln((nu + p) / 2.) - gammaln(nu / 2.) - 0.5 * p * np.log(nu * np.pi))
     
     
     
