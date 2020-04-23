@@ -1,4 +1,5 @@
 import numpy as np
+import operator
 import matplotlib.pyplot as plt
 
 
@@ -9,7 +10,8 @@ class KNeighborsClassifier(object):
         self.n_neighbors = n_neighbors
 
     def _normalize(self, data):
-        """Normalize values that lie in differents ranges, commons ranges to normalisze them to are 0 to 1 or -1 to 1 newValue = (oldValue-min)/(max-min)
+        """Normalize values that lie in differents ranges, commons ranges to 
+        normalisze them to are 0 to 1 or -1 to 1 newValue = (oldValue-min)/(max-min)
         Args:
             data: data that we want to normalizing
         Returns:
@@ -40,7 +42,11 @@ class KNeighborsClassifier(object):
         for i in range(self.n_neighbors):
             voted_label = label[sorted_dist_indices[i]]
             label_cnt[voted_label] = label_cnt.get(voted_label, 0) + 1
-        sorted_label_cnt = sorted(label_cnt.items(), key=operator.itemgetter(1), reverse=True)
+        
+        sorted_label_cnt = sorted(label_cnt.items(), \
+                                  key=operator.itemgetter(1), 
+                                  reverse=True)
+        
         return sorted_label_cnt[0][0]
 
     def fit(self, data, label, ratio):
@@ -50,7 +56,10 @@ class KNeighborsClassifier(object):
         test_sample_nums = int(ratio * sample_nums)
         error_count = 0.0
         for i in range(test_sample_nums):
-            classifier_result=self._knn_classify(norm_data[i,:], norm_data[test_sample_nums:sample_nums,:], labels[test_sample_nums:sample_nums])
+            classifier_result = self._knn_classify(norm_data[i,:], \
+                                                   norm_data[test_sample_nums:sample_nums,:], \
+                                                   label[test_sample_nums:sample_nums])
+                
             print('the classifier came back with: %d, the real answer is: %d' %(classifier_result, label[i]))
             if classifier_result != label[i]:
                 error_count+=1.0
