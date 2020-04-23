@@ -11,7 +11,7 @@ from scipy.special import gammaln
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
-def log_multivar_t_pdf(X, mu, sigma, nu, min_sigma=1e-7):
+def log_multivar_t_pdf(X, mu, Sigma, nu, min_sigma=1e-7):
     """Evaluate the density function of a multivariate student t
     distribution at the points X
     
@@ -43,20 +43,52 @@ def log_multivar_t_pdf(X, mu, sigma, nu, min_sigma=1e-7):
     log_ret = 0
     
     try:
-        covar_chol = sp.linalg.cholesky(sigma, lower=True)
+        covar_chol = sp.linalg.cholesky(Sigma * nu, lower=True)
     except sp.linalg.LinAlgError:
         
         try:
-            covar_chol = sp.linalg.cholesky(sigma + min_sigma * np.eye(p), 
+            covar_chol = sp.linalg.cholesky(Sigma * nu + min_sigma * np.eye(p), 
                                             lower=True)
         except sp.linalg.LinAlgError:
             raise ValueError('"covariances" must be symmetric')
     
-    covar_log_det = np.sum(np.log(np.diag(covar_chol)))
+    covar_log_det = 2 * np.sum(np.log(np.diag(covar_chol)))
     
-    covar_solve = sp.linalg.solve_triangular(covar_chol, (X - mu[None, :]).T, lower=True).T
+    covar_solve = sp.linalg.solve_triangular(covar_chol, (X - mu[None, :]).T, lower=True)
     
     norm = (gammaln((nu + p) / 2.) - gammaln(nu / 2.) - 0.5 * p * np.log(nu * np.pi))
+    
+    inner = - (nu + p) * 0.5 * np.log1p(np.linalg.norm(covar_solve, ord=2, axis=0)**2)
+    
+    log_ret = norm + inner - covar_log_det
+    
+    return log_ret
+    
+    
+def mvar_t_pdf(X, mu, Sigma, nu):
+    """
+    
+
+    Parameters
+    ----------
+        X : TYPE
+            DESCRIPTION.
+        mu : TYPE
+            DESCRIPTION.
+        Sigma : TYPE
+            DESCRIPTION.
+        nu : TYPE
+            DESCRIPTION.
+
+    Returns
+    -------
+        None.
+
+    """
+    
+    return np.exp(log_multivar_t_pdf(X, mu, Sigma, nu))
+    
+    
     
     
     
