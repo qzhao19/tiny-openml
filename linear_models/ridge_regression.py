@@ -177,7 +177,7 @@ class RidgeRegression(object):
                              " %d != %d" % (n_samples_X, n_samples_y))
         
         if self._solver not in ('svd', 'lsqr'):
-            raise ValueError('Solver %s not understood' % solver)
+            raise ValueError('Solver %s not understood' % self._solver)
         
         
         if self._solver == 'svd':
