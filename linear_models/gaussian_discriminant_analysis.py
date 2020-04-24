@@ -60,7 +60,7 @@ def log_multivar_t_pdf(X, mu, Sigma, nu, min_sigma=1e-7):
     
     inner = - (nu + p) * 0.5 * np.log1p(np.linalg.norm(covar_solve, ord=2, axis=0)**2)
     
-    log_ret = norm + inner - covar_log_det
+    log_ret = - norm - inner - covar_log_det
     
     return log_ret
     
@@ -71,14 +71,14 @@ def mvar_t_pdf(X, mu, Sigma, nu):
 
     Parameters
     ----------
-        X : TYPE
-            DESCRIPTION.
-        mu : TYPE
-            DESCRIPTION.
-        Sigma : TYPE
-            DESCRIPTION.
-        nu : TYPE
-            DESCRIPTION.
+        x : ndarray-like of shape [n, p]
+            The point at which to evaluate density.
+        mu : ndarray-like of shape [,p].T
+            The means.
+        sigma : ndarray-like of shape [p, p]
+            The covariance  matrix.
+        nu : int
+            degrees of freedom parameter.
 
     Returns
     -------
@@ -89,7 +89,7 @@ def mvar_t_pdf(X, mu, Sigma, nu):
     return np.exp(log_multivar_t_pdf(X, mu, Sigma, nu))
     
     
-    
+
     
     
     
@@ -102,10 +102,10 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
         Parameters
         ----------
-        fit_method : TYPE, optional
-            DESCRIPTION. The default is 'likehood'.
-        diag_cov : TYPE, optional
-            DESCRIPTION. The default is False.
+            fit_method : TYPE, optional
+                DESCRIPTION. The default is 'likehood'.
+            diag_cov : TYPE, optional
+                DESCRIPTION. The default is False.
 
         Returns
         -------
@@ -140,10 +140,12 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
                     - 'Bayes': Fit a fully Bayesian model with conjugate priors
                     
             alpha : float, optional
-                Prior value for Dir(alpha), ignored for MLE. The default is 1.0.
+                Prior value for Dir(alpha), ignored for MLE. 
+                The default is 1.0.
                 
             nu : float, optional
-                Covariance pseudo will be p + nu, ignored for ML. The default is 2.
+                Covariance pseudo will be p + nu, ignored for ML. 
+                The default is 2.
                 
             k : float, optional
                  Mean pseudo data, ignored for ML.. The default is 1e-3.
@@ -156,7 +158,7 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         n_samples, n_features = np.shape(X)
         
-        self.n, self.p = n_samples, n_features
+        self.n_samples, self.n_features = n_samples, n_features
         
         if len(np.shape(y)) != 1:
             raise ValueError('y must have a single dimension!')
@@ -170,33 +172,64 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         classes, n_classes = np.unique(y, return_counts=True)
         
+        # get a dict in which display the unique label class and their 
+        # frequancies, e.g. {1: 2, 2: 3}
         n_classes = {c: n_classes[i] for i, c in enumerate(classes)}
         
         self.classes, self.n_classes = classes, n_classes
         
+        # get the number of unique label
+        self.n_categories = len(classes)
         
+        
+        # Label to class data look up table
+        X = {c: np.vstack(X[i, :] for i in range(n_samples) if y[i] == c) 
+             for c in classes}
+        
+        if method is None:
+            method = self.fit_method
+        
+        
+        if method == 'MLE':
+            self._fit_likehood(X, y)
         
         
         return 0
         
     
     def _fit_likehood(self, X, y=None):
-        """
+        """fit model via maximum likehood method
         
 
         Parameters
         ----------
-        X : TYPE
-            DESCRIPTION.
-        y : TYPE, optional
-            DESCRIPTION. The default is None.
+            X : ndarray of shape [n_samples, n_features]
+                The data matrix. X should be a {label: Array} look up table.
+            
+            y : ndarray of shape [n_samples], optional
+                Class label for X.. The default is None.
 
         Returns
         -------
-        None.
+            None.
 
         """
-        return 0
+        
+        # get probablity of class
+        self.class_prob = {c: self.n_classes[c] / self.n_samples for c in self.classes}
+        
+        # get class means
+        self.class_mu = {c: np.mean(X[c], axis=0) for c in self.classes}
+        
+        # get class Sigma
+        self.class_Sigma = {c: np.cov(X[c], bias=True, rowvar =True) for c in self.classes}
+        
+        if self.diag_cov:
+            self.class_Sigma = {c: np.diag(np.diag(self.class_Sigma[c])) for c in self.classes}
+        
+        self._fitted = 'MLE'
+        
+        return 
     
     
     
