@@ -194,7 +194,36 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             self._fit_likehood(X, y)
         
         
-        return 0
+        
+        return self
+    
+    def predict_prob(self, X):
+        """Compute the predicted probability of the data in X for each class
+        
+
+        Parameters
+        ----------
+            X : ndarray_like of shape [n_samples, n_features]
+                The data matrix.
+
+        Returns
+        -------
+            None.
+
+        """
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
     
     def _fit_likehood(self, X, y=None):
