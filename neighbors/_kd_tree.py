@@ -50,7 +50,7 @@ class Node(object):
             yield self.right, 1
 
 
-
+    
 
 
 
