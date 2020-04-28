@@ -191,9 +191,15 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         
         if method == 'MLE':
-            self._fit_likehood(X, y)
+            self._fit_MLE(X, y)
         
-        
+        # bayesian method
+        else:   
+            self.mu = {c: np.mean(
+                np.vstack([np.mean(X[c], axis=0) for c in self.classes]), axis=0) 
+                for c in self.classes}
+            
+            self.sigma = {c: np.diag(np.vstack([]))}
         
         return self
     
@@ -211,7 +217,10 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             None.
 
         """
+        if not self._fitted:
+            raise ValueError('Must fit the model!')
         
+        if self._fitted != 
         
         
         
@@ -226,7 +235,7 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         
     
-    def _fit_likehood(self, X, y=None):
+    def _fit_MLE(self, X, y=None):
         """fit model via maximum likehood method
         
 
@@ -263,8 +272,27 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
     
     
     
-    
-    
+    def _bayes_update(self, X, y=None):
+        """
+        
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+        y : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        x_mu_per_class = {c: np.mean(X[c], axis=0) for c in self.classes}
+        
+        x
+        
+        
     
     
     
