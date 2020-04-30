@@ -199,8 +199,27 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
                 np.vstack([np.mean(X[c], axis=0) for c in self.classes]), axis=0) 
                 for c in self.classes}
             
-            self.sigma = {c: np.diag(np.vstack([]))}
-        
+            self.sigma = {c: np.diag(
+                np.mean(np.vstack([np.std(X[c], axis=0)]), axis=0)) 
+                for c in self.classes}
+            
+            
+            self.alpha = alpha
+            
+            # covar pseudo-data
+            self.nu = nu + n_features
+            
+            # Mean pseudo data
+            self.k = k
+            
+            # if bayesian MAP method
+            if method == 'MAP':
+                self._fit_MAP(X, y)
+            
+            
+            
+            
+            
         return self
     
     def predict_prob(self, X):
@@ -288,14 +307,34 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         None.
 
         """
+        # get the mean of class
         x_mu_per_class = {c: np.mean(X[c], axis=0) for c in self.classes}
         
-        x
+        alph_hat = {c: self.alpha + self.n_classes[c] for c in self.classes}
+        
+        k_hat = {c: slef.k + self.n_categories[c] for c in self.classes}
         
         
+        
+        
+    def _fit_MAP(self, X, y):
+        """
+        
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+        y : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
     
-    
-    
+        return 0
 
 
 
