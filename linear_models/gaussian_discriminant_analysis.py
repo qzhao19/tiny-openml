@@ -307,15 +307,21 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         None.
 
         """
-        # get the mean of class
-        x_mu_per_class = {c: np.mean(X[c], axis=0) for c in self.classes}
+        classes = self.classes
         
-        alph_hat = {c: self.alpha + self.n_classes[c] for c in self.classes}
+        # get the oberserved mean of class
+        x_hat = {c: np.mean(X[c], axis=0) for c in classes}
         
-        k_hat = {c: slef.k + self.n_categories[c] for c in self.classes}
+        # x_hat which meaning oberved values, e.g. mu_hat: observed total means
+        alph_hat = {c: self.alpha + self.n_classes[c] for c in classes}
         
+        k_hat = {c: slef.k + self.n_categories[c] for c in classes}
         
+        # mu_hat: total mean, it is diffrent between mu_hat and class_mu 
+        mu_hat = {c: (self.k * self.mu[c] + self.n_classes[c] * x_hat[c]) 
+                  / k_hat[c] for c in classes}
         
+        Sigma_hat = 
         
     def _fit_MAP(self, X, y):
         """
@@ -334,7 +340,7 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
         """
     
-        return 0
+        return 
 
 
 
