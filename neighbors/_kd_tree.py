@@ -4,6 +4,26 @@ Created on Fri Apr 24 23:41:57 2020
 
 @author: qizhao
 """
+from functools import wraps
+
+
+def require_axis(func):
+    """check if object of function has axis and sel_axis
+    here, sel_axis is the dimension that we need to split in 
+    next time
+    """
+    
+    @wraps(func)
+    def _wrapper(self, *args, **kwargs):
+        if None in (self.axis, self.sel_axis):
+            raise ValueError('%(func_name) requires the node %(node)s '
+                    'to have an axis and a sel_axis function' %
+                    dict(func_name=func.__name__, node=repr(self)))
+        return func(self, *args, **kwargs)
+    
+    return _wrapper
+
+
 
 
 class Node(object):
@@ -197,8 +217,24 @@ class Node(object):
         return max([min_h] + [node.height() + 1 for node, position in self.children])
 
 
+    def get_child_pos(self, child):
+        """return the position of given child node
+        
 
+        Parameters
+        ----------
+            child : Node class object
+                child node.
 
+        Returns
+        -------
+            the position.
+
+        """
+        
+        for node, position in self.children:
+            if child == node:
+                return position
 
 
 
