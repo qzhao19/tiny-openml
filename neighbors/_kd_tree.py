@@ -8,7 +8,7 @@ from functools import wraps
 
 
 def require_axis(func):
-    """check if object of function has axis and sel_axis
+    """check if object of function has axis and next_axis
     here, sel_axis is the dimension that we need to split in 
     next time
     """
@@ -238,7 +238,27 @@ class Node(object):
 
 
 
-
+class KDNode(Node):
+    """ A Node that contains kd-tree specific data and methods """
+    
+    def __init__(self, data=None, left=None, right=None, axis=None, 
+                 next_axis=None, dimension=None):
+        
+        """create a new node for KD tree
+        
+            if the node will be used within a tree, the axis and next_axis 
+        should be applied. The next_axis is used used when creating subnodes 
+        of the current node. It receives the axis of the parent node and 
+        returns the axis of the child node.
+        
+        """
+        super(KDNode, self).__init__(data, left, right)
+        
+        self.axis = axis
+        self.next_axis = next_axis
+        self.dimension = dimension
+        
+    def add(self, )
 
 
 
