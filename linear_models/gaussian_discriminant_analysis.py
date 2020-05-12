@@ -11,7 +11,7 @@ from scipy.special import gammaln
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
-def log_multivar_t_pdf(X, mu, Sigma, nu, min_sigma=1e-7):
+def log_multivariate_t_pdf(X, mu, Sigma, nu):
     """Evaluate the density function of a multivariate student t
     distribution at the points X
     
@@ -42,6 +42,8 @@ def log_multivar_t_pdf(X, mu, Sigma, nu, min_sigma=1e-7):
     
     log_ret = 0
     
+    min_sigma=1e-7
+    
     try:
         covar_chol = sp.linalg.cholesky(Sigma * nu, lower=True)
     except sp.linalg.LinAlgError:
@@ -65,7 +67,7 @@ def log_multivar_t_pdf(X, mu, Sigma, nu, min_sigma=1e-7):
     return log_ret
     
     
-def mvar_t_pdf(X, mu, Sigma, nu):
+def multivariate_t_pdf(X, mu, Sigma, nu):
     """
     
 
@@ -215,12 +217,19 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             # if bayesian MAP method
             if method == 'MAP':
                 self._fit_MAP(X, y)
+            elif method == 'BAYES_MEAN':
+                
+                pass
             
+            elif method == 'BAYES_FULL':
+                pass
             
-            
-            
-            
+            else:
+                raise NotImplemented
+                
         return self
+    
+    
     
     def predict_prob(self, X):
         """Compute the predicted probability of the data in X for each class
@@ -239,7 +248,32 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         if not self._fitted:
             raise ValueError('Must fit the model!')
         
-        if self._fitted != 
+        if self._fitted != 'BAYES_FULL':
+            def calc_prob(c):
+                try:
+                    return self.class_prob[c] * \
+                        stats.multivariate_normal.pdf(X, 
+                                                      mean=self.class_mu[c],
+                                                      cov=self.class_Sigma[c])
+                
+                
+                except np.linalg.LinAlgError as error:  # Singular matrix
+                    print("LinAlgError on normal.pdf mean = %s, cov = %s"
+                          %(self.class_mu[c], self.class_Sigma[c]))
+                    raise error
+        else:
+            def calc_prob(c):
+                try:
+                    return self.class_prob[c] * \
+                        log_multivariate_t_pdf(X, mu=self.class_mu[c],
+                                               Sigma=self.class_Sigma[c], 
+                                               nu=self.nu_post[c])
+                
+                
+                except np.linalg.LinAlgError as error:  # Singular matrix
+                    print("LinAlgError on normal.pdf mean = %s, cov = %s"
+                          %(self.class_mu[c], self.class_Sigma[c]))
+                    raise error
         
         
         
@@ -292,53 +326,41 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
     
     
     def _bayes_update(self, X, y=None):
-        """
-        
-
-        Parameters
-        ----------
-        X : TYPE
-            DESCRIPTION.
-        y : TYPE, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        None.
-
+        """update parameters via bayesian method
         """
         classes = self.classes
         
         # get the oberserved mean of class
-        x_hat = {c: np.mean(X[c], axis=0) for c in classes}
+        x_bar = {c: np.mean(X[c], axis=0) for c in classes}
         
-        # x_hat which meaning oberved values, e.g. mu_hat: observed total means
+        # x_hat which meaning oberved values, e.g. mu_bar: observed total means
         alph_hat = {c: self.alpha + self.n_classes[c] for c in classes}
         
-        k_hat = {c: slef.k + self.n_categories[c] for c in classes}
+        k_hat = {c: self.k + self.n_categories[c] for c in classes}
         
         # mu_hat: total mean, it is diffrent between mu_hat and class_mu 
-        mu_hat = {c: (self.k * self.mu[c] + self.n_classes[c] * x_hat[c]) 
+        mu_hat = {c: (self.k * self.mu[c] + self.n_classes[c] * x_bar[c]) 
                   / k_hat[c] for c in classes}
         
-        Sigma_hat = 
+        Sigma_hat = {c: self.Sigma[c] + self.n_classes[c] * np.cov(X[c], 
+                                                                   bias=True, 
+                                                                   rowvar=False) + 
+                     (self.k * self.n_classes[c] / (self.k + self.n_classes[c])) * 
+                     np.outer(x_bar[c] - self.mu[c], x_bar[c] - self.mu[c]) 
+                     for c in classes}
+        nu_hat = {c: self.nu + self.n_classes[c] for c in classes}
+        
+        return alpha_hat, k_hat, mu_hat, Sigma_hat, nu_hat
         
     def _fit_MAP(self, X, y):
+        """Fits model via Bayesian MAP
+
         """
+        if self.diag_cov:
+            raise ValueError("Diagonal covariance restriction is only "
+                             "supported for maximum likelihood.")
         
-
-        Parameters
-        ----------
-        X : TYPE
-            DESCRIPTION.
-        y : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
-        """
+        
     
         return 
 

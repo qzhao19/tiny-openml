@@ -258,7 +258,20 @@ class KDNode(Node):
         self.next_axis = next_axis
         self.dimension = dimension
         
-    def add(self, )
+    def add(self, points):
+        """
+        
+
+        Parameters
+        ----------
+        points : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
 
 
 
