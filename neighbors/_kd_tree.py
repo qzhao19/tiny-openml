@@ -23,6 +23,14 @@ def require_axis(func):
     
     return _wrapper
 
+def check_dimensionality(point_list, dims=None):
+    dims = dims or len(point_list[0])
+    
+    for point in point_list:
+        if len(point) != dims:
+            raise ValueError('Allpoints in point_list must have the '
+                             'the same dimensionality')
+    return dims
 
 
 
@@ -242,7 +250,7 @@ class KDNode(Node):
     """ A Node that contains kd-tree specific data and methods """
     
     def __init__(self, data=None, left=None, right=None, axis=None, 
-                 next_axis=None, dimension=None):
+                 next_axis=None, dims=None):
         
         """create a new node for KD tree
         
@@ -256,23 +264,18 @@ class KDNode(Node):
         
         self.axis = axis
         self.next_axis = next_axis
-        self.dimension = dimension
+        self.dims = dims
         
     def add(self, points):
-        """
+        """Add points to the current node or iteratively descends to one 
+        of its children
         
-
-        Parameters
-        ----------
-        points : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
-
+        Users should call add() only to the topmost tree.
         """
-
+        cur_node = self
+        
+        while True:
+            
 
 
 
