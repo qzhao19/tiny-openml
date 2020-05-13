@@ -23,6 +23,9 @@ def require_axis(func):
     
     return _wrapper
 
+
+
+
 def check_dimensionality(point_list, dims=None):
     dims = dims or len(point_list[0])
     
@@ -31,6 +34,7 @@ def check_dimensionality(point_list, dims=None):
             raise ValueError('Allpoints in point_list must have the '
                              'the same dimensionality')
     return dims
+
 
 
 
@@ -255,9 +259,15 @@ class KDNode(Node):
         """create a new node for KD tree
         
             if the node will be used within a tree, the axis and next_axis 
-        should be applied. The next_axis is used used when creating subnodes 
+        should be applied. 
+        
+            The next_axis(axis) is used used when creating subnodes 
         of the current node. It receives the axis of the parent node and 
         returns the axis of the child node.
+        
+            next_axis = (axis + 1) % dims
+        
+        
         
         """
         super(KDNode, self).__init__(data, left, right)
@@ -265,8 +275,10 @@ class KDNode(Node):
         self.axis = axis
         self.next_axis = next_axis
         self.dims = dims
-        
-    def add(self, points):
+    
+    
+    @require_axis
+    def add(self, point):
         """Add points to the current node or iteratively descends to one 
         of its children
         
@@ -275,13 +287,68 @@ class KDNode(Node):
         cur_node = self
         
         while True:
+            check_dimensionality([point], dims=cur_node.dims)
+            
+            # Adding has hit an empty leaf-node, add here
+            if cur_node.data is None:
+                cur_node.data = point
+                return cur_node
+            
+            
+            # split on self.axis
+            if point[cur_node.axis] < cur_node.data[cur_node.axis]:
+                # make sur current left node is not null
+                # else create a newnode as current left node 
+                if cur_node.left is None:
+                    cur_node.left = cur_node.create_subnode(point)
+                    return cur_node.left
+                else:
+                    # if not null, set current node is left node
+                    cur_node = cur_node.left
+            else:
+                
+                if cur_node.right is None:
+                    cur_node.right = cur_node.create_subnode(point)
+                    return cur_node.right
+                else:
+                    # if not null, set current node is left node
+                    cur_node = cur_node.right
+            
+            
+            
+            
+    
+    @require_axis
+    def create_subnode(self, data):
+        """create a subnode for the current node"""
+        
+        return self.__class__(data, 
+                              axis=self.next_axis(self.axis), 
+                              next_axis=self.axis, 
+                              dims=self.dims)
             
 
 
 
-
-
-
+    def should_remove(self, point, node):
+        """ckeck if self points matches, return False if match, it shouldn't 
+        be removed. if not is True, we nned to romve self 
+        """
+        
+        if self.data == point:
+            return False
+        
+        return (node is None) or (node is self)
+    
+    
+    @require_axis
+    def remove(self, point, node=None):
+        """remove the node with the given point from the tree
+        
+        
+        """
+        
+        
 
 
 
