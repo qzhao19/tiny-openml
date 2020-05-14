@@ -88,7 +88,7 @@ def multivariate_t_pdf(X, mu, Sigma, nu):
 
     """
     
-    return np.exp(log_multivar_t_pdf(X, mu, Sigma, nu))
+    return np.exp(log_multivariate_t_pdf(X, mu, Sigma, nu))
     
     
 
@@ -215,7 +215,7 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             self.k = k
             
             # if bayesian MAP method
-            if method == 'MAP':
+            if method == 'BAYES_MAP':
                 self._fit_MAP(X, y)
             elif method == 'BAYES_MEAN':
                 
@@ -333,8 +333,8 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         # get the oberserved mean of class
         x_bar = {c: np.mean(X[c], axis=0) for c in classes}
         
-        # x_hat which meaning oberved values, e.g. mu_bar: observed total means
-        alph_hat = {c: self.alpha + self.n_classes[c] for c in classes}
+        # x_hat which meaning oberved values, e.g. x_bar: observed total means
+        alpha_hat = {c: self.alpha + self.n_classes[c] for c in classes}
         
         k_hat = {c: self.k + self.n_categories[c] for c in classes}
         
@@ -351,8 +351,12 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         nu_hat = {c: self.nu + self.n_classes[c] for c in classes}
         
         return alpha_hat, k_hat, mu_hat, Sigma_hat, nu_hat
-        
-    def _fit_MAP(self, X, y):
+    
+    
+    
+    
+    
+    def _fit_MAP(self, X, y=None):
         """Fits model via Bayesian MAP
 
         """
@@ -361,11 +365,74 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
                              "supported for maximum likelihood.")
         
         
+        classes = self.classes
+        n_features = self.n_features
+        
+        alpha_hat, k_hat, mu_hat, Sigma_hat, nu_hat = self._bayes_update(X, y)
+        
+        class_prob_norm = sum(alpha_hat[c] for c in classes) + self.n_categories
+        
+        self.class_prob = {c: (alpha_hat[c] - 1) / class_prob_norm for c in classes}
+        
+        self.class_Sigma = {c: Sigma_hat[c] / (nu_hat[c] + n_features + 1) for c in classes}
+        
+        self.mu = mu_hat
+        
+        self._fitted = 'BAYES_MAP'
+        
+        return 
+
     
+    def _fit_bayes_mean(self, X, y=None):
+        """Fits model via Bayesian posterior mean.
+
+        """
+        if self.diag_cov:
+            raise ValueError("Diagonal covariance restriction is only "
+                             "supported for maximum likelihood.")
+        
+        
+        classes = self.classes
+        n_features = self.n_features
+        
+        alpha_hat, k_hat, mu_hat, Sigma_hat, nu_hat = self._bayes_update(X, y)
+        
+        class_prob_norm = sum(alpha_hat[c] for c in classes) + self.n_categories
+        
+        self.class_prob = {c: (alpha_hat[c] - 1) / class_prob_norm for c in classes}
+        
+        self.class_Sigma = {c: Sigma_hat[c] / (nu_hat[c] - n_features - 1) for c in classes}
+        
+        self.mu = mu_hat
+        
+        self._fitted = 'BAYES_MAP'
+        
         return 
 
 
+    def _fit_bayes_full(self, X, y=None):
+        """Fits model via fully Bayesian model with conjugate priors
 
-
-
+        """
+        if self.diag_cov:
+            raise ValueError("Diagonal covariance restriction is only "
+                             "supported for maximum likelihood.")
+        
+        
+        classes = self.classes
+        n_features = self.n_features
+        
+        alpha_hat, k_hat, mu_hat, Sigma_hat, nu_hat = self._bayes_update(X, y)
+        
+        class_prob_norm = sum(alpha_hat[c] for c in classes) + self.n_categories
+        
+        self.class_prob = {c: (alpha_hat[c] - 1) / class_prob_norm for c in classes}
+        
+        self.class_Sigma = {c: Sigma_hat[c] / (nu_hat[c] + n_features + 1) for c in classes}
+        
+        self.mu = mu_hat
+        
+        self._fitted = 'BAYES_MAP'
+        
+        return 
 
