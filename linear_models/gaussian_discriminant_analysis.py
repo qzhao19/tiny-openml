@@ -217,15 +217,15 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             # if bayesian MAP method
             if method == 'BAYES_MAP':
                 self._fit_MAP(X, y)
-            elif method == 'BAYES_MEAN':
                 
-                pass
-            
+            elif method == 'BAYES_POSTERIOR_MEAN':
+                self._fit_bayes_mean(X, y)
+                
             elif method == 'BAYES_FULL':
-                pass
+                self._fit_bayes_full(X, y)
             
             else:
-                raise NotImplemented
+                raise NotImplementedError
                 
         return self
     
@@ -249,6 +249,7 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             raise ValueError('Must fit the model!')
         
         if self._fitted != 'BAYES_FULL':
+            # gaiussian posterior
             def calc_prob(c):
                 try:
                     return self.class_prob[c] * \
@@ -262,10 +263,82 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
                           %(self.class_mu[c], self.class_Sigma[c]))
                     raise error
         else:
+            # T-distribustion posterior
             def calc_prob(c):
                 try:
                     return self.class_prob[c] * \
-                        log_multivariate_t_pdf(X, mu=self.class_mu[c],
+                        multivariate_t_pdf(X, mu=self.class_mu[c],
+                                           Sigma=self.class_Sigma[c], 
+                                           nu=self.nu_post[c])
+                
+                
+                except np.linalg.LinAlgError as error:  # Singular matrix
+                    print("LinAlgError on normal.pdf mean = %s, cov = %s"
+                          %(self.class_mu[c], self.class_Sigma[c]))
+                    raise error
+        
+        
+        density = {}
+        normalizer = np.zeros(X.shape[0])
+        
+        for c in self.classes:
+            try:
+                prob = calc_prob(c)
+            except np.linalg.LinAlgError:
+                prob = np.nan * np.empty(X.shape[0])
+                density[c] = prob
+                continue
+            
+            density[c] = prob
+            normalizer += prob
+        
+        for c in self.classes:
+            density[c] = density[c] / normalizer
+        
+        density = np.vstack(density[c] for c in density.keys()).T
+        
+        return density
+    
+    
+    
+    def predict_log_proba(self, X):
+        """Compute the predicted probability of the data in X for each class
+        
+
+        Parameters
+        ----------
+            X : ndarray_like of shape [n_samples, n_features]
+                The data matrix.
+
+        Returns
+        -------
+            None.
+
+        """
+        if not self._fitted:
+            raise ValueError('Must fit the model!')
+        
+        if self._fitted != 'BAYES_FULL':
+            # gaiussian posterior
+            def calc_log_prob(c):
+                try:
+                    return self.class_prob[c] * \
+                        stats.multivariate_normal.logpdf(X, 
+                                                         mean=self.class_mu[c],
+                                                         cov=self.class_Sigma[c])
+                
+                
+                except np.linalg.LinAlgError as error:  # Singular matrix
+                    print("LinAlgError on normal.pdf mean = %s, cov = %s"
+                          %(self.class_mu[c], self.class_Sigma[c]))
+                    raise error
+        else:
+            # T-distribustion posterior
+            def calc_log_prob(c):
+                try:
+                    return self.class_prob[c] * \
+                        log_multivariate_t_pdf(X, 
+                                               mu=self.class_mu[c],
                                                Sigma=self.class_Sigma[c], 
                                                nu=self.nu_post[c])
                 
@@ -276,17 +349,29 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
                     raise error
         
         
+        log_density = {}
+        # normalizer = np.zeros(X.shape[0])
+        
+        for c in self.classes:
+            try:
+                log_prob = calc_log_prob(c)
+            
+            except np.linalg.LinAlgError:
+                log_prob = np.nan * np.empty(X.shape[0])
+                log_density[c] = np.zeros_like(log_prob)
+                continue
+            
+            log_density[c] = log_prob
+        
+      
+        
+        log_density = np.vstack(log_density[c] for c in log_density.keys()).T
+        
+        return log_density
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+
     
     def _fit_MLE(self, X, y=None):
         """fit model via maximum likehood method
@@ -405,7 +490,7 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         self.mu = mu_hat
         
-        self._fitted = 'BAYES_MAP'
+        self._fitted = 'BAYES_POSTERIOR_MEAN'
         
         return 
 
@@ -428,11 +513,16 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         self.class_prob = {c: (alpha_hat[c] - 1) / class_prob_norm for c in classes}
         
-        self.class_Sigma = {c: Sigma_hat[c] / (nu_hat[c] + n_features + 1) for c in classes}
+        # self.class_Sigma = {c: Sigma_hat[c] / (nu_hat[c] + n_features + 1) for c in classes}
+        
+        self.class_Sigma = {c: ((k_hat[c] + 1) / (k_hat[c] * (nu_hat[c] - n_features + 1))) * 
+                            Sigma_hat[c] for c in classes}
         
         self.mu = mu_hat
         
-        self._fitted = 'BAYES_MAP'
+        self.nu_post = {c: nu_hat[c] - n_features + 1 for c in classes}
+        
+        self._fitted = 'BAYES_FULL'
         
         return 
 
