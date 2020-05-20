@@ -21,9 +21,12 @@ class LinearRegression(object):
     
     
     """
-    def __init__(self, normalize, solver=None):
+    def __init__(self, normalize, solver=None, alpha=0.1, n_iters=100):
         self.normalize = normalize
         self.solver = solver
+        self.alpha = alpha
+        self.n_iters = n_iters
+        
     
     def _normalize_data(self, X):
         """normalize data by substracting the mean and dividing sigma
@@ -72,7 +75,7 @@ class LinearRegression(object):
 
         self.theta = theta
         
-    def _fit_sgd(self, X, y=None, alpha=0.1, n_iters=100):
+    def _fit_sgd(self, X, y=None):
         """Gradient descend method to fit model 
         
     
@@ -96,7 +99,10 @@ class LinearRegression(object):
         
         theta = np.zeros((n_features + 1, 1), np.float32)
         
-        cost_func = 
+        cost_func = (np.transpose(X * theta - y)) * (X * theta - y)/(2 * n_samples)
+        
+        
+        
 
 
 
