@@ -99,8 +99,19 @@ class LinearRegression(object):
         
         theta = np.zeros((n_features + 1, 1), np.float32)
         
-        cost_func = (np.transpose(X * theta - y)) * (X * theta - y)/(2 * n_samples)
+        tmp = np.matrix(np.zeros((n_features + 1, n_iters), dtype=np.float))
         
+        
+        # cost_func = (np.transpose(X * theta - y)) * (X * theta - y) / (2 * n_samples)
+        
+        for i in range(n_iters):
+            # compute the product of X and weights
+            h = np.dot(X, theta)
+            
+            # compute gradient
+            
+            
+            
         
         
 

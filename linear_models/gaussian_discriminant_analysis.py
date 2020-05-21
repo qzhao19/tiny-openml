@@ -369,9 +369,17 @@ class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         
         return log_density
         
+    
+    def predict(self, X):
+        """Predict the class label of each sample in X by picking the most
+        probable label"""
         
+        prob = self.predict_prob(X)
+        
+        preds = self.classes[np.argmax(prob, axis=1)]
 
-
+        return preds
+    
     
     def _fit_MLE(self, X, y=None):
         """fit model via maximum likehood method
