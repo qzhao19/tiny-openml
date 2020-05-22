@@ -1,5 +1,6 @@
 # from utils import load_data
 import numpy as np
+from scipy.linalg import lstsq
 from utils import load_data
 
 
@@ -21,11 +22,11 @@ class LinearRegression(object):
     
     
     """
-    def __init__(self, normalize, solver=None, alpha=0.1, n_iters=100):
+    def __init__(self, normalize, solver=None, alpha=0.1, epochs=100):
         self.normalize = normalize
         self.solver = solver
         self.alpha = alpha
-        self.n_iters = n_iters
+        self.epochs  = epochs 
         
     
     def _normalize_data(self, X):
@@ -44,7 +45,7 @@ class LinearRegression(object):
         return x_norm
 
     
-    def _fit_closed_form(self, X, y=None):
+    def _fit_closed_form(self, X, y):
         """Using closed form solution to fit model, 
         
                 delta = (X.T * X)^(-1) * X.T * y
@@ -64,7 +65,7 @@ class LinearRegression(object):
         """
         # get the transpose of matrix X and matrix product between X and X_T
         X_T = np.transpose(X)
-        X_product = np.matmul(X, X_T)
+        X_product = np.matmul(X_T, X)
         
         try:
             X_inv = np.linalg.inv(X_product)
@@ -73,10 +74,11 @@ class LinearRegression(object):
         
         theta = np.matmul(np.matmul(X_inv, X_T), y)
 
-        self.theta = theta
-        
-    def _fit_sgd(self, X, y=None):
-        """Gradient descend method to fit model 
+        return theta
+    
+    
+    def _fit_sgd(self, X, y):
+        """Stocastic gradient descend method to fit model 
         
     
         Parameters
@@ -99,30 +101,58 @@ class LinearRegression(object):
         
         theta = np.zeros((n_features + 1, 1), np.float32)
         
-        tmp = np.matrix(np.zeros((n_features + 1, n_iters), dtype=np.float))
+        tmp = np.matrix(np.zeros((n_features + 1, self.n_iters), dtype=np.float))
         
         
         # cost_func = (np.transpose(X * theta - y)) * (X * theta - y) / (2 * n_samples)
         
-        for i in range(n_iters):
+        for i in range(self.epochs ):
             # compute the product of X and weights
             h = np.dot(X, theta)
             
             # compute gradient
+            tmp[:, i] = theta - (self.alpha / n_samples) * (np.dot(np.transpose(X), h - y))
             
+            theta = tmp[:, i] 
             
+        return theta
             
         
+
+    def _fit_lstsq(self, X, y):
+        """Fit linear model using scipy.linalg.lstsq"""
         
+        theta, residues, rank, singular = lstsq(X, y)
+        
+        return theta.T
 
 
+    def fit(self, X, y):
+        """fit linear model"""
+        
+        n_samples, n_features = X.shape
+        
+        if self.normalize:
+            X = self._normalize_data(X)
+            
+        X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
 
+        if self.solver == 'CLOSED_FORM':
+            self.theta = self._fit_closed_form(X, y)
+            
+        elif self.solver == 'SGD':
+            y = y.reshape(-1,1)
+            self.theta = self._fit_sgd(X, y)
+            
+        elif self.solver == 'LSTSQ':
+            self.theta = self._fit_lstsq(X, y)
+            
+        else:
+            raise NotImplementedError
 
-
-
-
-
-
+        return self
+    
+    
 
 # class LinearRegression(object):
 #     """LinearRegression fits a linear model with coefficients w = (w1, ..., wp)

@@ -93,8 +93,6 @@ def multivariate_t_pdf(X, mu, Sigma, nu):
     
 
     
-    
-    
 class DiscriminantAnalysis(BaseEstimator, ClassifierMixin):
     """
     """
