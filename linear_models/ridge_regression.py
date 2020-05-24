@@ -139,7 +139,16 @@ class RidgeRegression(object):
                                    atol=tol, btol=tol, iter_lim=max_iter)[0]
                  
         return coefs
+    
+    
+    def _solve_sgd(self, X, y):
+        """fit model using sgd method"""
+        n_samples, n_features = X.shape
         
+        
+        
+        
+    
     
     def fit(self, X, y):
         """
@@ -186,12 +195,20 @@ class RidgeRegression(object):
             if sparse.issparse(X):
                 raise TypeError('SVD solver does not support sparse')
                 
-            coefs = self._solve_svd(X, y)
+            self.coefs = self._solve_svd(X, y)
             
         elif self._solver == 'lsqr':
-            coefs = self._solve_lsqr(X, y, tol = self._tol, max_iter = self._max_iter)
+            self.coefs = self._solve_lsqr(X, y, tol = self._tol, max_iter = self._max_iter)
             
-        return coefs
+        return self
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     # def test(self, X, y):

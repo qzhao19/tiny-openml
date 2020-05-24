@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
+import numbers
 import numpy as np
 from scipy import linalg
 # from utils import load_data
@@ -142,13 +143,38 @@ class LinearRegression(object):
     def fit(self, X, y):
         """fit linear model"""
         
-        n_samples, n_features = X.shape
+        
+        
+        if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
+            raise ValueError('Data or label must be array type')
+        
+        if not isinstance(self._alpha, numbers.Number) or self._alpha < 0:
+            raise ValueError("Penalty term must be positive; got (C=%r)" % self._alpha)
+            
+        
+        if y.ndim > 2:
+            raise ValueError("Target y has the wrong shape %s" % str(y.shape))
+            
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+            
+            
+        n_samples_X, n_features = X.shape
+
+        n_samples_y, n_targets = y.shape
+        
+        if n_samples_X != n_samples_y:
+            raise ValueError("Number of samples in X and y does not correspond:" \
+                             " %d != %d" % (n_samples_X, n_samples_y))
+        
+        
+        
+       
         
         if self._normalize:
             X = self._normalize_data(X)
             
-        X = np.hstack((np.ones((n_samples, 1), dtype=float), X))
-
+        
         if self._solver == 'CLOSED_FORM':
             self.theta = self._fit_closed_form(X, y)
             
