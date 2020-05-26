@@ -2,9 +2,33 @@ import numpy as np
 # # from sklearn.datasets import load_iris
 
 
+class PCA(object):
+    """Principal component analysis
 
+    Linear dimensionality reduction using Singular Value Decomposition of the
+    data to project it to a lower dimensional space.
+    
+    Parameters:
+        n_components: int
+            number of the components keep 
+        
+        svd_solver: str
+            Methods for solving svd 'full', 'arpack', 'randomized'
+            
+            - 'full': run exact full SVD calling the standard LAPACK solver via
+            `scipy.linalg.svd` and select the components by postprocessing
+            
+            - 'randomized': run randomized SVD by the method of Halko et al.
+        
+    """
 
-
+    def __init__(self, n_components=2, solver=None):
+        self.n_components = n_components
+        self.solver = solver
+        
+    def _fit_full(self, X, n_components):
+        """Fit the model by computing full SVD on X"""
+        
 
 
 

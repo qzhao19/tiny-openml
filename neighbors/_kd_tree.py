@@ -8,7 +8,7 @@ from functools import wraps
 
 
 def require_axis(func):
-    """check if object of function has axis and next_axis
+    """check if object of function has axis and select_axis
     here, sel_axis is the dimension that we need to split in 
     next time
     """
@@ -254,18 +254,18 @@ class KDNode(Node):
     """ A Node that contains kd-tree specific data and methods """
     
     def __init__(self, data=None, left=None, right=None, axis=None, 
-                 next_axis=None, dims=None):
+                 select_axis=None, dims=None):
         
         """create a new node for KD tree
         
-            if the node will be used within a tree, the axis and next_axis 
+            if the node will be used within a tree, the axis and select_axis 
         should be applied. 
         
-            The next_axis(axis) is used used when creating subnodes 
+            The select_axis(axis) is used used when creating subnodes 
         of the current node. It receives the axis of the parent node and 
         returns the axis of the child node.
         
-            next_axis = (axis + 1) % dims
+            select_axis = (axis + 1) % dims
         
         
         
@@ -273,7 +273,7 @@ class KDNode(Node):
         super(KDNode, self).__init__(data, left, right)
         
         self.axis = axis
-        self.next_axis = next_axis
+        self.select_axis = select_axis
         self.dims = dims
     
     
@@ -323,8 +323,8 @@ class KDNode(Node):
         """create a subnode for the current node"""
         
         return self.__class__(data, 
-                              axis=self.next_axis(self.axis), 
-                              next_axis=self.axis, 
+                              axis=self.select_axis(self.axis), 
+                              select_axis=self.axis, 
                               dims=self.dims)
             
 
@@ -341,13 +341,72 @@ class KDNode(Node):
         return (node is None) or (node is self)
     
     
+    def find_extreme_child(self, select_func, axis):
+        """returns a chile of the subtree and its parents
+        
+        The child node is selected by select_func : min or max
+        """
+        
+        key = lambda child_parent: child_parent[0].data[axis]
+        
+        # define a current node me, because we dont know our parent 
+        # so we include None
+        me = [(self, None)] if self else []
+        
+        child_max = [node.find_extreme_child(select_func, axis) for node, _ in self.children]
+        
+        # insert self as a unknown parents
+        child_max = [(node, pos if pos is not None else self) for node, pos in child_max]
+        
+        candidates = me + child_max
+        
+        if not candidates:
+            return None, None
+        
+        return select_func(candidates, key=key)
+    
+    
+    @require_axis
+    def find_replacement(self):
+        """Find a replacement for the current node, it returns a tuple
+        
+        (replacement-node, replacement-parent-node)"""
+        
+        if self.right:
+            child, parent = self.right.find_extreme_child(min, self.axis)
+        else:
+            child, parent = self.left.find_extreme_child(max, self.axis)
+            
+        return (child, parent if parent is not None else self)
+    
+    
+    
+    @require_axis
+    def _remove(self, point):
+        
+        # reach the node to be deleted
+        # first delete leaf node
+        if self.is_leaf:
+            self.data = None
+            return self
+        
+        
+        
+        
+        
+        
+        return 
+    
+    
+    
+    
     @require_axis
     def remove(self, point, node=None):
         """remove the node with the given point from the tree
         
-        
         """
-                
+        
+        
         
                     
         
