@@ -1,5 +1,58 @@
+import numbers
 import numpy as np
+from scipy import linalg
 # # from sklearn.datasets import load_iris
+
+
+
+def svd_flip(U, V, U_based_decision=True):
+    """Sign correction to make sure e deterministic output from SVD. 
+    Adjusts the columns of u and the rows of v such that the loadings 
+    in the columns in u that are largest in absolute value are always positive.
+    
+    
+
+    Parameters
+    ----------
+        U : ndarray 
+            u and v are the output of `linalg.svd` or
+        :func:`sklearn.utils.extmath.randomized_svd`, 
+        with matching inner dimensions so one can compute
+        `np.dot(u * s, v)`.
+        
+        V : TYPE
+            u and v are the output of `linalg.svd` or
+        :func:`~sklearn.utils.extmath.randomized_svd`, 
+        with matching inner dimensions so one can compute 
+        `np.dot(u * s, v)`.
+        
+        U_based_decision : boolean, optional,
+            If True, use the columns of u as the basis for sign flipping.
+        Otherwise, use the rows of v. The choice of which variable to base the
+        decision on is generally algorithm dependent. The default is True.
+
+    Returns
+    -------
+         u_adjusted, v_adjusted : arrays with the same dimensions as the input.
+         
+    """
+    
+    if U_based_decision:
+        # columns of U, rows of V
+        max_abs_cols = np.argmax(np.abs(U), axis=0)
+        signs = np.sign(U[max_abs_cols, range(U.shape[1])])
+        U *= signs
+        V *= signs[:, np.newaxis]
+    else:
+        # columns of V, rows of U
+        max_abs_rows = np.argmax(np.abs(V), axis=1)
+        signs = np.sign(V[range(V.shape[1]), max_abs_rows])
+        U *= signs
+        V *= signs[:, np.newaxis]
+        
+    return U, V 
+
+
 
 
 class PCA(object):
@@ -25,15 +78,59 @@ class PCA(object):
     def __init__(self, n_components=2, solver=None):
         self.n_components = n_components
         self.solver = solver
+    
+    
+    def _fit_eig(self, X, n_components):
+        """fit the model by eigenvector decomposition"""
         
+        X_mu = np.mean(X, axis=0, keepdims=True)
+        X -= X_mu
+        
+        cov_mat = np.dot(X.T, X)
+        
+        eig_values, eig_vectors = np.linalg.eig(cov_mat)
+        
+        idx = np.argsort(-eig_values)[:n_components]
+        
+        sorted_eig_values = eig_values[idx]
+        
+        sorted_eig_vectors = eig_vectors[:, idx]
+        
+        
+        X_transforme = np.dot(X, sorted_eig_vectors)
+        
+        return X_transforme
+        
+    
+    
     def _fit_full(self, X, n_components):
         """Fit the model by computing full SVD on X"""
         
-
-
-
-
-
+        n_samples, n_features = X.shape
+        
+        if not 0 <= n_components <= min(n_samples, n_features):
+            raise ValueError("n_components=%r must be between 0 and "
+                             "min(n_samples, n_features)=%r with "
+                             "svd_solver='full'"
+                             % (n_components, min(n_samples, n_features)))
+        
+        else:
+            if not isinstance(n_components, numbers.Integral):
+                raise ValueError('n_components=%r must be of type int')
+            
+        
+        # center data
+        X_mu = np.mean(X, axis=0, keepdims=True)
+        X -= X_mu
+        
+        U, S, V = linalg.svd(X, full_matrices=False)
+        
+        U, V = svd_flip(U, V)
+        
+        return U, S, V
+    
+    
+        
 
 
 

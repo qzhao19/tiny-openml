@@ -169,8 +169,6 @@ class LinearRegression(object):
         
         
         
-       
-        
         if self._normalize:
             X = self._normalize_data(X)
             
