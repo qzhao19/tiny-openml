@@ -86,20 +86,25 @@ class PCA(object):
         X_mu = np.mean(X, axis=0, keepdims=True)
         X -= X_mu
         
-        cov_mat = np.dot(X.T, X)
+        S = np.dot(X.T, X)
         
-        eig_values, eig_vectors = np.linalg.eig(cov_mat)
+        eig_values, eig_vectors = np.linalg.eig(S)
         
-        idx = np.argsort(-eig_values)[:n_components]
+        idx = np.abs(eig_values).argsort()[::-1]
         
-        sorted_eig_values = eig_values[idx]
+        # sorted_eig_values = eig_values[idx]
         
         sorted_eig_vectors = eig_vectors[:, idx]
         
+        # get the components of X
+        components = sorted_eig_vectors[:, :n_components]
         
-        X_transforme = np.dot(X, sorted_eig_vectors)
+        # compute projection matrix 
+        # projection_mat = components @ np.linalg.inv(components.T, components) @ components.T 
         
-        return X_transforme
+        # X_transforme = (projection_mat @ X.T).T
+        
+        return components
         
     
     
@@ -132,7 +137,10 @@ class PCA(object):
     
         
 
-
+    def _fit(self, X):
+        """fit model"""
+        
+        return 
 
 
 
