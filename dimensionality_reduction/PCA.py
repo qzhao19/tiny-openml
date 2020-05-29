@@ -83,6 +83,10 @@ class PCA(object):
     def _fit_eig(self, X, n_components):
         """fit the model by eigenvector decomposition"""
         
+        
+        if not isinstance(n_components, numbers.Integral):
+            raise ValueError('n_components=%r must be of type int')
+        
         X_mu = np.mean(X, axis=0, keepdims=True)
         X -= X_mu
         
@@ -108,7 +112,7 @@ class PCA(object):
         
     
     
-    def _fit_full(self, X, n_components):
+    def _fit_full_svd(self, X, n_components):
         """Fit the model by computing full SVD on X"""
         
         n_samples, n_features = X.shape
@@ -138,11 +142,69 @@ class PCA(object):
         
 
     def _fit(self, X):
-        """fit model"""
+        """fit model depending on the chosen solver"""
         
-        return 
+        n_components = self.n_components
+        
+        if self.solver == 'EIGEN_VECTOR':
+            return self._fit_eig(X, n_components)
+        
+        elif self.solver == 'FULL_SVD':
+            return self._fit_full_svd(X, n_components)
+        
+        else:
+            raise ValueError("Unrecognized svd_solver='{0}'"
+                             "".format(self.solver))
+    
+    
+    def fit(self, X, y=None):
+        """"""
+        
+        self._fit(X)
+        return self
+    
+    
+    def fit_transform(self, X, y=None):
+        """Fit the model with X and apply the dimensionality reduction on X.
 
+        Parameters
+        ----------
+            X : ndarray of shape [n_samples, n_features]
+                Training data, where n_samples is the number of samples and 
+                n_features is the number of features.
+            y : None, optional
+                Ignored variabel. The default is None.
 
+        Returns
+        -------
+            X_new : array-like, shape (n_samples, n_components)
+                Transformed values..
+
+        """
+        n_components = self.n_components
+        
+        if self.solver == 'EIGEN_VECTOR':
+            components = self._fit(X)
+            
+            # compute projection matrix 
+            projection_mat = components @ np.linalg.inv(components.T, components) @ components.T 
+            
+            X_transforme = (projection_mat @ X.T).T
+        
+        elif self.solver == 'FULL_SVD':
+            U, S, V = self._fit(X)
+            
+            
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 
 # class PCA(object):
