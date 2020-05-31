@@ -194,6 +194,11 @@ class PCA(object):
         elif self.solver == 'FULL_SVD':
             U, S, V = self._fit(X)
             
+            U *= S[:n_components]
+            
+            X_transforme = U
+        
+        return X_transforme
             
         
         
