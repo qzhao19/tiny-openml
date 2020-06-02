@@ -379,6 +379,16 @@ class KDNode(Node):
             
         return (child, parent if parent is not None else self)
     
+    @require_axis
+    def romve(self, point, node=None):
+        """
+        
+        """
+        
+        return
+    
+    
+    
     
     
     @require_axis
@@ -390,7 +400,14 @@ class KDNode(Node):
             self.data = None
             return self
         
+        # must delete a non_leaf node
+        # find a replacement for a new node (a new subtree node)
+        root, max_p = self.find_replacement()
         
+        
+    
+        
+                        
         
         
         
