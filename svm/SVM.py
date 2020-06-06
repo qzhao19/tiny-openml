@@ -57,6 +57,7 @@ def HardMarginSVM(object):
         n_samples, n_features = X.shape
         
         self._weights = np.zeros((n_samples))
+        
         self._biases = 0.0
         
         self._alpha = np.zeros((n_samples))
