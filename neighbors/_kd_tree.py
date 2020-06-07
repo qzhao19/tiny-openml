@@ -379,16 +379,6 @@ class KDNode(Node):
             
         return (child, parent if parent is not None else self)
     
-    @require_axis
-    def romve(self, point, node=None):
-        """
-        
-        """
-        
-        return
-    
-    
-    
     
     
     @require_axis
@@ -404,25 +394,58 @@ class KDNode(Node):
         # find a replacement for a new node (a new subtree node)
         root, max_p = self.find_replacement()
         
+        # self and root node swap position
+        tmp_left, tmp_right = self.left, self.right
         
-    
+        self.left, self.right = root.left, root.right
         
-                        
+        root.left, root.right = tmp_left if tmp_left is not root else self, tmp_right if tmp_right is not root else self
+        self.axis, root.axis = root.axis, self.axis
         
+        if max_p is not self:
+            pos = max_p.get_child_pos(root)
+            max_p.set_child(pos, self)
+            max_p.remove(point, self)
+
+        else:
+            root.remove(point, self)
+
+        return root
         
-        
-        
-        return 
-    
-    
-    
     
     @require_axis
     def remove(self, point, node=None):
         """remove the node with the given point from the tree
+        Returns the new root node of the (sub)tree.
+
         
         """
+        if not self:
+            return 
         
+        # reached the node to be deleted
+        if should_remove(point, node):
+            return self._remove(point)
+        
+        if self.left and self.left.should_remove(point, node):
+            self.left = self.left._remove(point)
+        
+        elif self.right and self.right.should_remove(point, node):
+            self.right = self.right._remove(point)
+        
+        # Recurse to subtrees
+        if point[self.axis] <= self.data[self.axis]:
+            if self.left:
+                self.left = self.left._remove(point)
+            
+        
+        if point[self.axis] >= self.data[self.axis]:
+            if self.right:
+                self.right = self.right._remove(point)
+        
+        return self
+    
+    
         
         
                     
