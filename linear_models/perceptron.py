@@ -23,8 +23,6 @@ class Perceptron(object):
             learning rate 
             
         
-    
-    
     """
     def __init__(self, max_iters=100, alpha=1e-5):
         self._max_iters = max_iters
