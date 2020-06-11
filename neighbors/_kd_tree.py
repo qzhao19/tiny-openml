@@ -424,7 +424,7 @@ class KDNode(Node):
             return 
         
         # reached the node to be deleted
-        if should_remove(point, node):
+        if self.should_remove(point, node):
             return self._remove(point)
         
         if self.left and self.left.should_remove(point, node):
