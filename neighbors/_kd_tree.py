@@ -8,7 +8,7 @@ from functools import wraps
 
 
 def require_axis(func):
-    """check if object of function has axis and select_axis
+    """check if object of function has axis and selected_axis
     here, sel_axis is the dimension that we need to split in 
     next time
     """
@@ -34,6 +34,39 @@ def check_dimensionality(point_list, dims=None):
             raise ValueError('Allpoints in point_list must have the '
                              'the same dimensionality')
     return dims
+
+
+
+
+def create_KDtree(point_list=None, dims=None, axis=0, selected_axis=None):
+    """Creates a kd-tree from a list of points
+    
+    All points in the list must be of the same dimensionality.
+    
+    If no point_list is given, an empty tree is created. The number of
+    dimensions has to be given instead.
+    
+    If both a point_list and dimensions are given, the numbers must agree.
+    Axis is the axis on which the root-node should split.
+    
+    selected_axis(axis) is used when creating subnodes of a node. It receives the
+    axis of the parent node and returns the axis of the child node.
+    
+             selected_axis = (axis + 1) % dims
+    """
+    
+    if not point_list and not dims:
+        raise ValueError('Either point_list and dimensions must be provided')
+    
+    elif point_list:
+        dims = check_dimensionality(point_list, dims)
+    
+    
+
+    return 
+
+
+
 
 
 
@@ -254,18 +287,18 @@ class KDNode(Node):
     """ A Node that contains kd-tree specific data and methods """
     
     def __init__(self, data=None, left=None, right=None, axis=None, 
-                 select_axis=None, dims=None):
+                 selected_axis=None, dims=None):
         
         """create a new node for KD tree
         
-            if the node will be used within a tree, the axis and select_axis 
+            if the node will be used within a tree, the axis and selected_axis 
         should be applied. 
         
-            The select_axis(axis) is used used when creating subnodes 
+            The selected_axis(axis) is used when creating subnodes 
         of the current node. It receives the axis of the parent node and 
         returns the axis of the child node.
         
-            select_axis = (axis + 1) % dims
+            selected_axis = (axis + 1) % dims
         
         
         
@@ -273,7 +306,7 @@ class KDNode(Node):
         super(KDNode, self).__init__(data, left, right)
         
         self.axis = axis
-        self.select_axis = select_axis
+        self.selected_axis = selected_axis
         self.dims = dims
     
     
@@ -323,8 +356,8 @@ class KDNode(Node):
         """create a subnode for the current node"""
         
         return self.__class__(data, 
-                              axis=self.select_axis(self.axis), 
-                              select_axis=self.axis, 
+                              axis=self.selected_axis(self.axis), 
+                              selected_axis=self.axis, 
                               dims=self.dims)
             
 
@@ -446,9 +479,19 @@ class KDNode(Node):
         return self
     
     
+    @property
+    def is_balance(self):
+        """Return true if the heights of both subtree differ at most by 1
+        """
+        left_tree_h = self.left.height() if self.left else 0
+        right_tree_h = self.right.height() if self.right else 0
         
+        if abs(left_tree_h - right_tree_h) > 1:
+            return False
         
-                    
+        return all(child.is_balance for child, _ in self.children)
+        
+    
         
 
 
