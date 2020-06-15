@@ -61,9 +61,25 @@ def create_KDtree(point_list=None, dims=None, axis=0, selected_axis=None):
     elif point_list:
         dims = check_dimensionality(point_list, dims)
     
+    # by default cycle through the axis
+    # selected_axis = (axis + 1) % dims
+    selected_axis = selected_axis or (lambda prev_axis: (prev_axis + 1) % dims)
     
-
-    return 
+    if not point_list:
+        return KDNode(axis=axis, selected_axis=selected_axis, dims=dims)
+    
+    # Sort point list and choose median as pivot element
+    point_list = list(point_list)
+    point_list.sort(key=lambda point: point[axis])
+    median = len(point_list) // 2
+    
+    pivot = point_list[median]
+    
+    left  = create_KDtree(point_list[:median], dimensions, sel_axis(axis))
+    right = create_KDtree(point_list[median + 1:], dimensions, sel_axis(axis))
+    
+    return KDNode(pivot, left, right, axis=axis, sel_axis=sel_axis, dimensions=dimensions)
+     
 
 
 
@@ -494,7 +510,24 @@ class KDNode(Node):
     
         
 
-
+    def reblance(self):
+        """Return the (new tree) root of the reblanced tree
+        """
+        return create_KDtree([x.data for x in self.inorder()])
+    
+    
+    def axis_dist(self, point, axis):
+        """Squared distance at the given axis between the current node 
+        and the given point
+        """
+        return np.power(self.data[axis] - point[axis], 2)
+    
+    
+    def dist(self, point):
+        """
+        """
+        axis_range = range(self.dims)
+        return sum([self.axis_dist(point, axis) for axis in axis_range])
 
 
 
