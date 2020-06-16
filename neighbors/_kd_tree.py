@@ -4,6 +4,7 @@ Created on Fri Apr 24 23:41:57 2020
 
 @author: qizhao
 """
+import numpy as np
 from functools import wraps
 
 
@@ -75,10 +76,11 @@ def create_KDtree(point_list=None, dims=None, axis=0, selected_axis=None):
     
     pivot = point_list[median]
     
-    left  = create_KDtree(point_list[:median], dimensions, sel_axis(axis))
-    right = create_KDtree(point_list[median + 1:], dimensions, sel_axis(axis))
+    left  = create_KDtree(point_list[:median], dims, selected_axis(axis))
+    right = create_KDtree(point_list[median + 1:], dims, selected_axis(axis))
     
-    return KDNode(pivot, left, right, axis=axis, sel_axis=sel_axis, dimensions=dimensions)
+    return KDNode(pivot, left, right, axis=axis, 
+                  selected_axis=selected_axis, dims=dims)
      
 
 

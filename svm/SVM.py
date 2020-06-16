@@ -44,32 +44,42 @@ def HardMarginSVM(object):
         
         self.support_vectors = None
         
-        self._weights = None
-        self._biases = None
+        self._W = None
+        self._b = None
         
         self._errors = None
-        self._alpha = None
+        self._lambda = None
     
     
-    def init_params(self, X, y):
+    def _init_params(self, X, y):
         """Intialize all parameters
         """
         n_samples, n_features = X.shape
         
-        self._weights = np.zeros((n_samples))
+        self._W = np.zeros((n_samples))
         
-        self._biases = 0.0
+        self._b = 0.0
         
-        self._alpha = np.zeros((n_samples))
+        self._lambda = np.zeros((n_samples))
         
         self._errors = np.zeros((n_samples))
         
         for i in range(len(n_samples)):
-            self._errors[i] = np.dot(self._weights, X[:, i]) + self._biases - y[i]
+            self._errors[i] = np.dot(self._W, X[:, i]) + self._b - y[i]
+    
+    
+    def _check_kkt(self, W, b, x_i, y_i, lambda_i):
+        """make sure if satisfy KKT condition
+        """
+        
+        if lambda_i < 1e-7:
+            return y_i * (np.dot(W, x_i) + b) >= 1
+        else:
+            return abs(y_i * ((np.dot(W, x_i) + b) - 1)) < 1e-7
     
     
     
-    
+        
     
     
     
