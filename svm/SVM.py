@@ -17,20 +17,20 @@ def HardMarginSVM(object):
         max_iters: int
             The number of iteration to be run
         
-        supprot_vectors: ndarray
+        supprot_vectors: ndarray of shape [n_samples]
             The supports vectors
         
-        weights: ndarray of shape [n_samples]
+        W: ndarray of shape [n_samples]
             model's weights
         
-        biases: ndarray of shape [n_samples]
+        b: ndarray of shape [n_samples]
             model's biases
         
         errors: ndarray of shape [n_samples]
             The errors, the difference between true values and predicted values
         
-        alpha: float
-            Regularization parameter, it must be strictly positive.
+        alpha: ndarray of shape [n_samples]
+            Lagrange multipliers
 
     Returns
     -------
@@ -68,8 +68,13 @@ def HardMarginSVM(object):
             self._errors[i] = np.dot(self._W, X[:, i]) + self._b - y[i]
     
     
-    def _check_kkt(self, W, b, x_i, y_i, alpha_i):
+    def _satisty_kkt(self, W, b, x_i, y_i, alpha_i):
         """make sure if satisfy KKT condition
+        
+                1. dL/dw = 0, dL/db = 0
+                2. alpha_i * (1 - y_i * (w_T * X_i + b)) = 0
+                3. alpha_i >= 0
+                4. 1 - y_i * (w_T*X_i + b) <= 0
         """
         
         if alpha_i < 1e-7:
@@ -79,8 +84,8 @@ def HardMarginSVM(object):
     
     
     
-    def _select_j(self, best_i):
-        """
+    def _select_idx_j(self, best_i):
+        """Return an index j which we got the best error_i - error_j 
         """
         j_list = [i for i in range(len(self._alpha)) if self._alpha[i] > 0 and i != best_i]
         best_j = -1
@@ -103,7 +108,36 @@ def HardMarginSVM(object):
         
         return best_j
             
-            
+    def _fit(self, X, y):
+        """Fit model
+        """
+        # initialize params
+        self._init_params(X, y)
+        for _ in range(self._max_iters):
+            # set a flag to check if all points satisfy kkt condiction
+            is_satisfied_kkt = True
+            for i in range(len(self._alpha)):
+                x_i = X[i, :]
+                y_i = y[i]
+                old_alpha_i = self._alpha[i]
+                old_error_i = self._error[i]
+                # choose all points i what break kkt condition
+                if not self._satisty_kkt(self._W, self._b, x_i, y_i, old_alpha_i):
+                    is_satisfied_kkt = False
+                    # select point index i we could get the best for error_i - error_j
+                    best_j = _select_idx_j(i)
+                    # get x_j, y_j, old_aplha_j and old_eooro_j
+                    x_j = X[best_j, :]
+                    y_j = y[best_j]
+                    old_alpha_j = self._alpha[best_j]
+                    old_error_j = self._error[best_j]
+                    
+                    
+                    
+                    
+                
+        
+        
         
                     
             
