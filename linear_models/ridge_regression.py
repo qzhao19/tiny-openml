@@ -204,12 +204,7 @@ class RidgeRegression(object):
     
     
     
-    
-    
-    
-    
-    
-    
+
     
     # def test(self, X, y):
         
