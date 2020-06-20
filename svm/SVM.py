@@ -107,7 +107,9 @@ def HardMarginSVM(object):
             best_j = np.random.choice(j_list_exclu_best_i)
         
         return best_j
-            
+    
+    
+    
     def _fit(self, X, y):
         """Fit model
         """
@@ -131,6 +133,38 @@ def HardMarginSVM(object):
                     y_j = y[best_j]
                     old_alpha_j = self._alpha[best_j]
                     old_error_j = self._error[best_j]
+                    
+                    # update parameters
+                    # 1. got optimized alpha_2 that not clipped
+                    theta = np.dot((x_i -x_j), (x_i - x_j))
+                    # if x_i and x_j are closed, continue
+                    if theta < 1e-3:
+                        continue
+                    opt_alpha_j = old_alpha_j + y_j * (old_error_i - old_error_j) * theta
+                    
+                    # 2. we do clip alpha to get new_alpha_2
+                    if y_i == y_j:
+                        if opt_alpha_j < 0:
+                            new_alpha_j = 0
+                        elif 0 <= opt_alpha_j < old_alpha_i + old_alpha_j:
+                            new_alpha_j = opt_alpha_j
+                        else:
+                            new_alpha_j = old_alpha_i + old_alpha_j
+                    else:
+                        if opt_alpha_j <  max(0, old_alpha_j - old_alpha_i):
+                            new_alpha_j = max(0, old_alpha_j - old_alpha_i)
+                        else:
+                            new_alpha_j = opt_alpha_j
+                    # if abs(new_alph_i - new_alpha_j) < threadhold
+                    # we continues
+                    if np.abs(new_alpha_j - old_alpha_j) < 1e-5:
+                        continue
+                    
+                    # 3. get new alpha_1
+                    new_alpha_i = old_alpha_i + y_i * y_j * (old_alpha_j - new_alpha_j)
+                    
+                    # 4. update W
+                    
                     
                     
                     
