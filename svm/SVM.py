@@ -165,7 +165,10 @@ def HardMarginSVM(object):
                     
                     # 4. update W
                     
-                    
+        
+        def fit(self, X, y):
+            
+            return self
                     
                     
                     
