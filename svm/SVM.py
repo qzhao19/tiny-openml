@@ -11,7 +11,6 @@ import numpy as np
 def HardMarginSVM(object):
     """hard margin svm model
     
-
     Parameters
     ----------
         max_iters: int
@@ -42,7 +41,7 @@ def HardMarginSVM(object):
     def __init__(self, max_iters=100):
         self._max_iters = max_iters
         
-        self.support_vectors = None
+        self._support_vectors = None
         
         self._W = None
         self._b = None
@@ -127,7 +126,7 @@ def HardMarginSVM(object):
                 if not self._satisty_kkt(self._W, self._b, x_i, y_i, old_alpha_i):
                     is_satisfied_kkt = False
                     # select point index i we could get the best for error_i - error_j
-                    best_j = _select_idx_j(i)
+                    best_j = self._select_idx_j(i)
                     # get x_j, y_j, old_aplha_j and old_eooro_j
                     x_j = X[best_j, :]
                     y_j = y[best_j]
@@ -164,7 +163,29 @@ def HardMarginSVM(object):
                     new_alpha_i = old_alpha_i + y_i * y_j * (old_alpha_j - new_alpha_j)
                     
                     # 4. update W
-                    
+                    self._W = self._W + (new_alpha_i - old_alpha_i) * y_i * x_i + (new_alpha_j - old_alpha_j) * y_j * x_j
+
+                    # 5. update alpha
+                    self._alpha[i] = new_alpha_i
+                    self._alpha[best_j] = new_alpha_j
+
+                    # 6. update b and error
+                    new_b_i = y_i - np.dot(self._W, x_i)
+                    new_b_j = y_j - np.dot(self._W, x_j)
+
+                    if new_alpha_i > 0:
+                        self._b = new_b_i
+                    elif new_alpha_j > 0:
+                        self._b = new_b_j
+                    else:
+                        self._b = (new_b_i + new_b_j) / 2.0
+                    # 7. update error
+                    for k in range(len(self._errors)):
+                        self._errors[k] = np.dot(self._W, X[k, :]) + self._b - y[k]
+                if is_satisfied_kkt is True:
+                    break
+            # 8. update support vectors
+            self._support_vectors = np.where(np.where(self._alpha > 1e-3)[0])
         
         def fit(self, X, y):
             
