@@ -4,7 +4,7 @@ Created on Sun May 31 22:07:51 2020
 
 @author: qizhao
 """
-
+import numbers
 import numpy as np
 
 
@@ -36,8 +36,6 @@ def HardMarginSVM(object):
     None.
 
     """
-    
-    
     def __init__(self, max_iters=100):
         self._max_iters = max_iters
         
@@ -186,10 +184,30 @@ def HardMarginSVM(object):
                     break
             # 8. update support vectors
             self._support_vectors = np.where(np.where(self._alpha > 1e-3)[0])
+
+            # 9. update b accroding to the support vector
+            self._b = np.mean(y[s_vector] - np.dot(self._W, X[s_vector, :]) for s_vector in self._support_vectors)
+
+
+
+
         
         def fit(self, X, y):
+            """
+            """
+            if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
+                raise ValueError('Data or label must be array type')
             
-            return self
+            if not isinstance(self._alpha, numbers.Number) or self._alpha < 0:
+                raise ValueError("Penalty term must be positive; got (C=%r)" % self._alpha)
+                
+            
+            if y.ndim > 2:
+                raise ValueError("Target y has the wrong shape %s" % str(y.shape))
+                
+            if y.ndim == 1:
+                y = y.reshape(-1, 1)
+                return self
                     
                     
                     
