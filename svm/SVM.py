@@ -8,7 +8,7 @@ import numbers
 import numpy as np
 
 
-def HardMarginSVM(object):
+class HardMarginSVM(object):
     """hard margin svm model
     
     Parameters
@@ -26,7 +26,8 @@ def HardMarginSVM(object):
             model's biases
         
         errors: ndarray of shape [n_samples]
-            The errors, the difference between true values and predicted values
+            The errors, the difference between true 
+            values and predicted values
         
         alpha: ndarray of shape [n_samples]
             Lagrange multipliers
@@ -37,18 +38,18 @@ def HardMarginSVM(object):
 
     """
     def __init__(self, max_iters=100):
-        self._max_iters = max_iters
+        self.__max_iters = max_iters
         
-        self._support_vectors = None
+        self.__support_vectors = None
         
-        self._W = None
-        self._b = None
+        self.__W = None
+        self.__b = None
         
-        self._errors = None
-        self._alpha = None
+        self.__errors = None
+        self.__alpha = None
     
     
-    def _init_params(self, X, y):
+    def __init_params(self, X, y):
         """Intialize all parameters
         """
         n_samples, n_features = X.shape
@@ -57,15 +58,15 @@ def HardMarginSVM(object):
         
         self._b = 0.0
         
-        self._alpha = np.zeros((n_samples))
+        self.__alpha = np.zeros((n_samples))
         
-        self._errors = np.zeros((n_samples))
+        self.__errors = np.zeros((n_samples))
         
         for i in range(len(n_samples)):
-            self._errors[i] = np.dot(self._W, X[:, i]) + self._b - y[i]
+            self.__errors[i] = np.dot(self._W, X[:, i]) + self._b - y[i]
     
     
-    def _satisty_kkt(self, W, b, x_i, y_i, alpha_i):
+    def __satisfy_kkt(self, W, b, x_i, y_i, alpha_i):
         """make sure if satisfy KKT condition
         
                 1. dL/dw = 0, dL/db = 0
@@ -81,10 +82,10 @@ def HardMarginSVM(object):
     
     
     
-    def _select_idx_j(self, best_i):
+    def __select_idx_j(self, best_i):
         """Return an index j which we got the best error_i - error_j 
         """
-        j_list = [i for i in range(len(self._alpha)) if self._alpha[i] > 0 and i != best_i]
+        j_list = [i for i in range(len(self.__alpha)) if self.__alpha[i] > 0 and i != best_i]
         best_j = -1
         
         # firstly, prior choice j to make sure that 
@@ -92,14 +93,14 @@ def HardMarginSVM(object):
         if len(j_list) > 0:
             max_error = 0
             for j in j_list:
-                cur_error = abs(self._error[j] - self._error[best_i])
+                cur_error = abs(self.__errors[j] - self.__errors[best_i])
                 if cur_error > max_error:
                     best_j = j
                     max_error = cur_error
         
         else:
             # randomly choose j
-            j_list_ = list(range(len(self._alpha)))
+            j_list_ = list(range(len(self.__alpha)))
             j_list_exclu_best_i = j_list_[:best_i] + j_list_[(best_i + 1):]
             best_j = np.random.choice(j_list_exclu_best_i)
         
@@ -107,29 +108,29 @@ def HardMarginSVM(object):
     
     
     
-    def _fit(self, X, y):
+    def __fit(self, X, y):
         """Fit model
         """
         # initialize params
-        self._init_params(X, y)
-        for _ in range(self._max_iters):
+        self.__init_params(X, y)
+        for _ in range(self.__max_iters):
             # set a flag to check if all points satisfy kkt condiction
             is_satisfied_kkt = True
-            for i in range(len(self._alpha)):
+            for i in range(len(self.__alpha)):
                 x_i = X[i, :]
                 y_i = y[i]
-                old_alpha_i = self._alpha[i]
-                old_error_i = self._error[i]
+                old_alpha_i = self.__alpha[i]
+                old_error_i = self.__errors[i]
                 # choose all points i what break kkt condition
-                if not self._satisty_kkt(self._W, self._b, x_i, y_i, old_alpha_i):
+                if not self.__satisfy_kkt(self._W, self._b, x_i, y_i, old_alpha_i):
                     is_satisfied_kkt = False
                     # select point index i we could get the best for error_i - error_j
-                    best_j = self._select_idx_j(i)
+                    best_j = self.__select_idx_j(i)
                     # get x_j, y_j, old_aplha_j and old_eooro_j
                     x_j = X[best_j, :]
                     y_j = y[best_j]
-                    old_alpha_j = self._alpha[best_j]
-                    old_error_j = self._error[best_j]
+                    old_alpha_j = self.__alpha[best_j]
+                    old_error_j = self.__errors[best_j]
                     
                     # update parameters
                     # 1. got optimized alpha_2 that not clipped
@@ -161,57 +162,65 @@ def HardMarginSVM(object):
                     new_alpha_i = old_alpha_i + y_i * y_j * (old_alpha_j - new_alpha_j)
                     
                     # 4. update W
-                    self._W = self._W + (new_alpha_i - old_alpha_i) * y_i * x_i + (new_alpha_j - old_alpha_j) * y_j * x_j
+                    self.__W = self.__W + (new_alpha_i - old_alpha_i) * y_i * x_i + (new_alpha_j - old_alpha_j) * y_j * x_j
 
                     # 5. update alpha
-                    self._alpha[i] = new_alpha_i
-                    self._alpha[best_j] = new_alpha_j
+                    self.__alpha[i] = new_alpha_i
+                    self.__alpha[best_j] = new_alpha_j
 
                     # 6. update b and error
-                    new_b_i = y_i - np.dot(self._W, x_i)
-                    new_b_j = y_j - np.dot(self._W, x_j)
+                    new_b_i = y_i - np.dot(self.__W, x_i)
+                    new_b_j = y_j - np.dot(self.__W, x_j)
 
                     if new_alpha_i > 0:
-                        self._b = new_b_i
+                        self.__b = new_b_i
                     elif new_alpha_j > 0:
-                        self._b = new_b_j
+                        self.__b = new_b_j
                     else:
-                        self._b = (new_b_i + new_b_j) / 2.0
+                        self.__b = (new_b_i + new_b_j) / 2.0
                     # 7. update error
-                    for k in range(len(self._errors)):
-                        self._errors[k] = np.dot(self._W, X[k, :]) + self._b - y[k]
+                    for k in range(len(self.__errors)):
+                        self.__errors[k] = np.dot(self.__W, X[k, :]) + self.__b - y[k]
                 if is_satisfied_kkt is True:
                     break
             # 8. update support vectors
-            self._support_vectors = np.where(np.where(self._alpha > 1e-3)[0])
+            self.__support_vectors = np.where(np.where(self.__alpha > 1e-3)[0])
 
             # 9. update b accroding to the support vector
-            self._b = np.mean(y[s_vector] - np.dot(self._W, X[s_vector, :]) for s_vector in self._support_vectors)
+            self.__b = np.mean(y[s_vector] - np.dot(self.__W, X[s_vector, :]) for s_vector in self.__support_vectors)
 
 
 
-
+    def fit(self, X, y):
+        """
+        """
+        if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
+            raise ValueError('Data or label must be array type')
         
-        def fit(self, X, y):
-            """
-            """
-            if (not isinstance(X, np.ndarray)) or (not isinstance(y, np.ndarray)):
-                raise ValueError('Data or label must be array type')
+        if y.ndim > 2:
+            raise ValueError("Target y has the wrong shape %s" % str(y.shape))
             
-            if not isinstance(self._alpha, numbers.Number) or self._alpha < 0:
-                raise ValueError("Penalty term must be positive; got (C=%r)" % self._alpha)
-                
-            
-            if y.ndim > 2:
-                raise ValueError("Target y has the wrong shape %s" % str(y.shape))
-                
-            if y.ndim == 1:
-                y = y.reshape(-1, 1)
-                return self
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+            return self
+      
+        n_samples_X, n_features = X.shape
+
+        n_samples_y, n_targets = y.shape
+        
+        if n_samples_X != n_samples_y:
+            raise ValueError("Number of samples in X and y does not correspond:" \
+                             " %d != %d" % (n_samples_X, n_samples_y))
+        
+        self.__fit(X, y)
                     
-                    
-                    
-                
+    
+    def get_params(self):
+        """Return w and b
+        """
+        return self.__W, self.__b
+    
+    
         
         
         
