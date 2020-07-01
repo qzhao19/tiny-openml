@@ -7,6 +7,20 @@ Created on Sun May 31 22:07:51 2020
 import numbers
 import numpy as np
 
+def __sigmoid(x):
+    """Sigmoid activation function. f(x) = 1/(1 + exp(-x))
+    Args:
+        x: array-like 
+    Returns:
+        A array with the same type as `x`
+    """
+    x = np.copy(x)
+    try:
+        res = 1 / (1 + np.exp(-x))
+    except OverflowError:
+        res = 0.0
+    return res
+
 
 class HardMarginSVM(object):
     """hard margin svm model
@@ -220,10 +234,20 @@ class HardMarginSVM(object):
         """
         return self.__W, self.__b
     
+    def predict_prob(self, X):
+        """Call sigmoid function. f(x) = 1/(1 + exp(-x)) to
+        calculate predicts probability
+        """
+        return __sigmoid(X.dot(self.__W) + self.__b)
+
+    def predict(self, X):
+        """
+        """
+        prob = self.predict_prob(X)
+        return (prob >= 0.5).astype(int)
+        
+        
     
-        
-        
-        
                     
             
         
