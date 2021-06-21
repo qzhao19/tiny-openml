@@ -1,5 +1,5 @@
-#ifndef SVM_NODE_H_
-#define SVM_NODE_H_
+#ifndef SVM_NODE_HPP_
+#define SVM_NODE_HPP_
 
 struct svm_node {
     /*store the single feature in a single vector ,
