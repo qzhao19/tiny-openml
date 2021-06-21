@@ -1,5 +1,5 @@
-#ifndef SVM_PARAMS_H_
-#define SVM_PARAMS_H_
+#ifndef SVM_PARAMS_HPP_
+#define SVM_PARAMS_HPP_
 
 
 // svm type + kernel function type
@@ -29,4 +29,4 @@ struct svm_params {
 
 };
 
-#endif /*SVM_PARAMS_H_*/
+#endif /*SVM_PARAMS_HPP_*/
