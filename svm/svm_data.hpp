@@ -1,7 +1,7 @@
-#ifndef SVM_DATA_H_
-#define SVM_DATA_H__
+#ifndef SVM_DATA_HPP_
+#define SVM_DATA_HPP_
 
-#include "svm_node.h"
+#include "svm_node.hpp"
 
 
 struct svm_data {
@@ -11,8 +11,8 @@ struct svm_data {
     content is the pointer*/
 
     int n_samples;
-    double *label;
-    struct svm_node **data;
+    double *y;
+    struct svm_node **X;
 };
 
 
