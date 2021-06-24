@@ -5,10 +5,13 @@
 
 
 struct svm_data {
-    /*store the dataset that involved the calculate, there are 
-    the number of samples, *lable is an array what the lable to 
-    which the sample belongs, **data: an 2D array where the 
-    content is the pointer*/
+    /*
+     * Store all samples (data sets) that participated in the calculation this time, 
+     * and their categories 
+     * *y: is an array what the lable to which the sample belongs 
+     * **data: an 2D array where the content is the pointer
+     * 这样的数据结构有一个直接的好处，可以用x[i][j]来访问其中的某一元素
+     */
 
     int n_samples;
     double *y;
