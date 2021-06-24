@@ -6,9 +6,10 @@
 
 
 struct svm_model {
-
-    /**/
-    svm_params parms;       //the number of parameters in training step
+    /**
+     * 结构体svm_model用于保存训练后的训练模型，原来的训练参数也必须保留。
+    */
+    svm_params parms;       // parameters in training step
     int n_classes;          //the number of classes
     int n_support_vec;      //the number of support vectors
     svm_node **support_vec; //support vector, 保存支持向量的指针，至于支持向量的内容，如果是从文件中读取，内容会
