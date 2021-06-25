@@ -18,7 +18,7 @@ struct svm_params {
     int kernel_type;    // kernel function type
     double degree;      //degree of the polynomial kernel function
     double gamma;       //for ploy & rbf & sigmoid, Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’
-    double coff0;       //for ploy & sigmoid, Independent term in kernel function
+    double coef0;       //for ploy & sigmoid, Independent term in kernel function
 
     /*for training only*/
     double cache_size;  // 制定训练所需要的内存
