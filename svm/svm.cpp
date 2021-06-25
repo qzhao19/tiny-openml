@@ -26,9 +26,6 @@ Cache::~Cache() {
     free(head);
 }
 
-/**
- * break the connection from current losaction and 
-*/
 void Cache::lru_delete(Node *cur_node) {
     /**
      * Delete the link of an element from the doubly linked list without 
@@ -43,7 +40,6 @@ void Cache::lru_delete(Node *cur_node) {
     cur_node -> prev -> next = cur_node -> next;
     cur_node -> next -> prev = cur_node -> prev;
 }
-
 
 void Cache::lru_insert(Node *cur_node) {
     /**
@@ -134,5 +130,125 @@ void Cache::swap_index(int i, int j) {
         }
     }
 }
+
+
+
+Kernel::Kernel(int len, 
+               svm_node *const *X_, 
+               const svm_params &params) : kernel_type(params.kernel_type), 
+                                           degree(params.degree), 
+                                           gamma(params.gamma), 
+                                           coef0(params.coef0) {                                 
+    switch (kernel_type)
+    {
+    case LINEAR:
+        kernel_function = &Kernel::linear_kernel;
+        break;
+    
+    case POLY:
+        kernel_function = &Kernel::poly_kernel;
+        break;
+
+    case RBF:
+        kernel_function = &Kernel::rbf_kernel;
+        break;
+    
+    case SIGMOID:
+        kernel_function = &Kernel::sigmoid_kernel;
+        break;
+    
+    case PRECOMPUTED:
+        kernel_function = &Kernel::kernel_precomputed;
+        break;
+    }
+
+    clone(X, X_, len);
+
+    if (kernel_type == RBF) {
+        X_square = new double[len];
+        for (int i = 0; i < len; i++) {
+            X_square[i] = dot(X[i], X[i]);
+        }
+    }
+    else {
+        X_square = 0;
+    }
+
+}
+
+Kernel::~Kernel() {
+    delete[] X;
+    delete[] X_square;
+}
+
+
+void Kernel::swap_index(int i, int j) const {
+    swap(X[i], X[j]);
+    if (X_square) {
+        swap(X_square[i], X_square[j]);
+    }
+}
+
+double Kernel::k_function(const svm_node *x, const svm_node *y, const svm_params &params) {
+    
+}
+
+
+
+
+
+double Kernel::dot(const svm_node *px, const svm_node *py) {
+    /**
+     * 点乘两个样本数据，按svm_node 中index (一般为特征)进行运算，一般来说，index 中1，2，… 直到-1。返回点乘总和。
+     * 例如：x1 = {1,2,3} , x2 = {4, 5, 6} 总和为sum = 1*4 + 2*5 + 3*6 ;在svm_node[3]中存储index = -1 时，停止计算。
+    */
+    double retval = 0.0;
+    while ((px -> index != -1) && (py -> index != -1)) {
+        
+        if (px -> index == py -> index) {
+            retval = px -> value * py -> value;
+            ++px;
+            ++py;
+        } 
+        else {
+            if (px -> index > py -> index) {
+                ++py;
+            } 
+            else {
+                ++px;
+            }
+        }
+    }
+}
+
+double Kernel::linear_kernel(int i, int j) const {
+        // K(x_i, x_j) = transpose(x_i) * x_j 
+        return dot(X[i], X[j]);
+    };
+
+double Kernel::poly_kernel(int i, int j) const {
+    // K(x_i, x_j) = pow((gamme * transpose(x_i) * X_j + r), d)
+    return powi(gamma * dot(X[i], X[j]) + coef0, degree);
+};
+
+double Kernel::rbf_kernel(int i, int j) const {
+    // K(x_i, x_j) = exp(-gamma * norm(x_i - x_j, 2))
+    return exp(-gamma * (X_square[i] + X_square[j] - 2 * dot(X[i], X[j])));
+};
+
+double Kernel::sigmoid_kernel(int i, int j) const {
+    // tanh(gamma * (transpose(x_i) * x_j) + r)
+    return tanh(gamma * dot(X[i], X[j]) + coef0);
+};
+
+double Kernel::kernel_precomputed(int i, int j) const {
+    return X[i][(int)(X[j][0].value)].value;
+}
+
+
+
+
+
+
 
 
