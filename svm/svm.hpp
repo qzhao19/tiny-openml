@@ -98,8 +98,13 @@ public:
 private:
     /**
      * @params n_samples: the number of data samples 
-     * @params size: 指定的全部内存
+     * @params size: 指定的缓存大小
      * @params Node: 结构node用来记录所申请内存的指针，并记录长度，而且通过双向的指针，形成链表，增加寻址的速度
+     *      head[0] -------------- head[1] ------------- haad[2]
+     *          |                     |                     |
+     *      prev,next,len,data[0]  ...                  ...
+     *                    data[1]  ...                  ...
+     *
      * @params *head: 变量指针，该指针记录程序中所申请的内存, ，单块申请到的内存用struct Node来记录所申请内存的指针，并记录长度
      * @params lru_head: 双向链表的表头
      * 
@@ -129,7 +134,7 @@ public:
     virtual double *get_QD() const = 0;
     virtual void swap_index(int i, int j) const = 0;
     virtual ~QMatrix() {};
-}
+};
 
 
 
@@ -150,7 +155,10 @@ public:
     virtual void swap_index(int i, int j) const; 
 
 protected:
-    /**函数指针，根据相应的核函数类型，来决定所使用的函数。在计算矩阵Q 时使*/
+    /**函数指针，根据相应的核函数类型，来决定所使用的函数。在计算矩阵Q 时使
+     * 根据不同的kernel_type分类。返回第i，j两行向量的核运算结果. i，j表示前向量第i行，
+     * 后向量j列的输入数据，此函数仅得到运算矩阵中的一个点
+    */
     double (Kernel::*kernel_function)(int i, int j) const;
 
 private:
@@ -190,4 +198,3 @@ private:
 
 
 #endif
-
