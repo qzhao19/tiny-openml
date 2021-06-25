@@ -138,7 +138,7 @@ Kernel::Kernel(int len,
                const svm_params &params) : kernel_type(params.kernel_type), 
                                            degree(params.degree), 
                                            gamma(params.gamma), 
-                                           coef0(params.coef0) {                                 
+                                           coef0(params.coef0) {                            
     switch (kernel_type)
     {
     case LINEAR:
@@ -183,18 +183,71 @@ Kernel::~Kernel() {
 
 
 void Kernel::swap_index(int i, int j) const {
+    /**虚函数,x[i]和 x[j]中所存储指针的内容。如果 x_square 不为空,则交换相应的内容*/
     swap(X[i], X[j]);
     if (X_square) {
         swap(X_square[i], X_square[j]);
     }
 }
 
-double Kernel::k_function(const svm_node *x, const svm_node *y, const svm_params &params) {
+double Kernel::k_function(const svm_node *x, const svm_node *y, 
+                          const svm_params &params) {
+
+    /**其中 RBF 部分很有讲究。因为存储时,0 值不保留。如果所有 0 值都保留,第一个 while就可以都做完了;
+     * 如果第一个 while 做不完,在 x,y 中任意一个出现 index = -1,第一个 while就停止,
+     * 剩下的代码中两个 while 只会有一个工作,该循环直接把剩下的计算做完
+     */
+    switch (params.kernel_type) {
+        case LINEAR:
+            return dot(x, y);
+
+        case POLY:
+            return powi(params.gamma * dot(x, y) + params.coef0, params.degree);
+
+        case RBF:
+            double sum = 0.0;
+            while (x -> index != -1 && y -> index != -1) {
+                if (x -> index == y -> index) {
+                    double minus_val = x -> value - y -> value;
+                    sum += minus_val * minus_val;
+                    ++x;
+                    ++y;
+                }
+
+                if (x -> index > y -> index) {
+                    sum += y -> value * y -> value;
+                    ++y;
+                }
+                else {
+                    sum += x -> value * x -> value;
+                    ++x;
+                }
+            }
+
+            while (x -> index != -1) {
+                sum += x -> value * x -> value;
+                ++x;
+            }
+
+            while (y -> index != -1) {
+                sum += y -> value * y -> value;
+                ++y;
+            }
+
+            return exp(-params.gamma * sum);
+
+
+        case SIGMOID:
+            return tanh(params.gamma * dot(x, y) + params.coef0);
+
+        case PRECOMPUTED:
+            return x[(int)(y -> value)].value;
+
+        default:
+            return 0;
+    }
     
 }
-
-
-
 
 
 double Kernel::dot(const svm_node *px, const svm_node *py) {
