@@ -138,28 +138,27 @@ Kernel::Kernel(int len,
                const svm_params &params) : kernel_type(params.kernel_type), 
                                            degree(params.degree), 
                                            gamma(params.gamma), 
-                                           coef0(params.coef0) {                            
-    switch (kernel_type)
-    {
-    case LINEAR:
-        kernel_function = &Kernel::linear_kernel;
-        break;
-    
-    case POLY:
-        kernel_function = &Kernel::poly_kernel;
-        break;
+                                           coef0(params.coef0) {                         
+    switch(kernel_type) {
+        case LINEAR:
+            kernel_function = &Kernel::linear_kernel;
+            break;
+        
+        case POLY:
+            kernel_function = &Kernel::poly_kernel;
+            break;
 
-    case RBF:
-        kernel_function = &Kernel::rbf_kernel;
-        break;
-    
-    case SIGMOID:
-        kernel_function = &Kernel::sigmoid_kernel;
-        break;
-    
-    case PRECOMPUTED:
-        kernel_function = &Kernel::kernel_precomputed;
-        break;
+        case RBF:
+            kernel_function = &Kernel::rbf_kernel;
+            break;
+        
+        case SIGMOID:
+            kernel_function = &Kernel::sigmoid_kernel;
+            break;
+        
+        case PRECOMPUTED:
+            kernel_function = &Kernel::kernel_precomputed;
+            break;
     }
 
     clone(X, X_, len);
