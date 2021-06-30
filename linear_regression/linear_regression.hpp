@@ -15,27 +15,33 @@ public:
     /**empty constructor*/
     LinearRegression(): lambda(0.0), intercept(true) {};
 
-    LinearRegression(arma::mat &X, arma::rowvec &y, const double lambda, bool intercept);
+    /**constructor to initialze lamnda and intercept*/
+    LinearRegression(const double lambda_, bool intercept_): 
+        lambda(lambda_), intercept(intercept_) {};
 
-    LinearRegression(arma::mat &X, arma::rowvec &y, arma::rowvec &weights, const double lambda, bool intercept);
+    void fit(arma::mat &X, arma::rowvec &y);
+
+    void fit(arma::mat &X, arma::rowvec &y, arma::rowvec &weights);
 
     
 
+protected:
+
+    void train(arma::mat &X, arma::rowvec &y, arma::rowvec &weights);
+
+    const arma::rowvec& predict(arma::mat &X);
 
 
 private:
     /**
-     * @params theta: ndarray_like data of shape [n_samples,]
-     *                the parameters that we want ot calculate, 
-     *                initialized and filled by constructor for the least square method
+     * @params theta: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
+     * calculate, initialized and filled by constructor for the least square method
      * 
-     * @params lambda: double, default = 0.0 
-     *                 the Tikhonov regularization parameter for ridge regression, 0 for
-     *                 linear regression. Regularization improves the conditioning of the 
-     *                 problem and reduces the variance of the estimate.
+     * @params lambda: double, default = 0.0. the Tikhonov regularization parameter for ridge 
+     * regression, 0 for linear regression. Regularization improves the conditioning of the 
+     * problem and reduces the variance of the estimate.
      * 
-     * @params intercept: bool, default = True
-     *                    whether to fit the intercept for the model. 
+     * @params intercept: bool, default = True. whether to fit the intercept for the model. 
      * 
     */
     
