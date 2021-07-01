@@ -16,21 +16,24 @@ public:
     LinearRegression(): lambda(0.0), intercept(true) {};
 
     /**constructor to initialze lamnda and intercept*/
-    LinearRegression(const double lambda_, bool intercept_): 
+    LinearRegression(double lambda_, bool intercept_): 
         lambda(lambda_), intercept(intercept_) {};
 
-    void fit(arma::mat &X, arma::rowvec &y);
+    void fit(arma::mat &X, arma::vec &y);
 
-    void fit(arma::mat &X, arma::rowvec &y, arma::rowvec &weights);
+    void fit(arma::mat &X, arma::vec &y, arma::vec &weights);
+
+    const arma::vec& predict(arma::mat &X);
+
+    arma::vec& get_theta();
 
     
 
 protected:
 
-    void train(arma::mat &X, arma::rowvec &y, arma::rowvec &weights);
+    void train(arma::mat &X, arma::vec &y, arma::vec &weights);
 
-    const arma::rowvec& predict(arma::mat &X);
-
+    
 
 private:
     /**
