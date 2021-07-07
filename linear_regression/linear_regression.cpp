@@ -3,11 +3,13 @@
 using namespace regression;
 
 
-void LinearRegression::train(arma::mat &X, arma::vec &y, arma::vec &weights) {
+void LinearRegression::train(const arma::mat &X, 
+                             const arma::vec &y, 
+                             const arma::vec &weights) {
 
 
-    const size_t n_samples = X.n_rows;
-    const size_t n_dims = X.n_cols;
+    const std::size_t n_samples = X.n_rows;
+    const std::size_t n_dims = X.n_cols;
 
     arma::mat X_ = X;
     arma::vec y_ = y;
@@ -32,8 +34,29 @@ void LinearRegression::train(arma::mat &X, arma::vec &y, arma::vec &weights) {
 
 
 
+void LinearRegression::fit(const arma::mat &X, 
+                           const arma::vec &y, 
+                           const arma::vec &weights) {
+
+    train(X, y, weights);
+}
+
+void LinearRegression::fit(const arma::mat &X, 
+                           const arma::vec &y) {
+
+    train(X, y, arma::vec());
+}
 
 
+const arma::vec& LinearRegression::predict(const arma::mat &X) const {
+
+    return X * this -> theta;
+
+}
+
+const arma::vec& LinearRegression::get_theta() const {
+    return this -> theta;
+}
 
 
 
