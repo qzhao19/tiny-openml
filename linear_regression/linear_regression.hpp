@@ -1,9 +1,8 @@
 #ifndef LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #define LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
+#include <cstdio>
 #include <iostream>
 #include <armadillo>
-
-
 
 
 namespace regression {
@@ -16,22 +15,26 @@ public:
     LinearRegression(): lambda(0.0), intercept(true) {};
 
     /**constructor to initialze lamnda and intercept*/
-    LinearRegression(double lambda_, bool intercept_): 
+    LinearRegression(const double lambda_, const bool intercept_): 
         lambda(lambda_), intercept(intercept_) {};
 
-    void fit(arma::mat &X, arma::vec &y);
+    ~LinearRegression() {};
 
-    void fit(arma::mat &X, arma::vec &y, arma::vec &weights);
+    void fit(const arma::mat &X, const arma::vec &y);
 
-    const arma::vec& predict(arma::mat &X);
+    void fit(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
 
-    arma::vec& get_theta();
+    const arma::vec& predict(const arma::mat &X) const;
 
-    
+    const arma::vec& get_theta() const;
+
+    double get_lambda() const;
+
+    bool get_intercept() const;
 
 protected:
 
-    void train(arma::mat &X, arma::vec &y, arma::vec &weights);
+    void train(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
 
     
 
