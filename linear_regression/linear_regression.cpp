@@ -57,6 +57,21 @@ void LinearRegression::predict(const arma::mat &X, arma::vec &y) {
     }
 }
 
+const double LinearRegression::score(const arma::vec &y_true, 
+                                     const arma::vec &y_pred) const {
+    /**
+     * Return the coeffiecient of determination R^2
+     * R^2 = (1 - u / v), u = ((y_pred - y_true) ** 2).sum()
+     * v = ((y_true - y_true.mean()) ** 2).sum()
+    */
+
+   double u = arma::sum(arma::square(y_pred - y_true));
+
+   double v = arma::sum(arma::square(y_true - arma::mean(y_true)));
+
+   return 1 - u / v;
+
+}
 
 void LinearRegression::fit(const arma::mat &X, 
                            const arma::vec &y, 
@@ -71,9 +86,6 @@ void LinearRegression::fit(const arma::mat &X,
     train(X, y, arma::vec());
 }
 
-
-
-
 const arma::vec& LinearRegression::get_theta() const {
     return this -> theta;
 }
@@ -85,4 +97,3 @@ double LinearRegression::get_lambda() const {
 bool LinearRegression::get_intercept() const {
     return this -> intercept;
 }
-
