@@ -59,6 +59,18 @@ public:
      * 
     */
     void predict(const arma::mat &X, arma::vec &y);
+
+    /**
+     * Return the coefficient of determination R^2 of the prediction
+     * The coefficeint R^2 is defined as (1 - u/v), where u is the residual 
+     * sum of square ((y_pred - y_true) ** 2).sum() and v is the total sum
+     * of square ((y_true - y_true.mean()) ** 2).sum() The best possible score 
+     * is 1.0 and it can be negative (because the model can be arbitrarily worse). 
+     * A constant model that always predicts the expected value of y, disregarding 
+     * the input features, would get a R^2 score of 0.0.
+    */
+    const double score(const arma::vec &y_true, 
+                       const arma::vec &y_pred) const ;
     
     /**
      * Return the training params theta, 
@@ -87,7 +99,6 @@ protected:
     */
     void train(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
 
-
 private:
     /**
      * @params theta: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
@@ -108,7 +119,6 @@ private:
     bool intercept;
 
 };
-
 }
 
 
