@@ -1,7 +1,6 @@
 #ifndef LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #define LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
-#include <cstdio>
-#include <iostream>
+#include "../pre_reqs.hpp"
 #include <armadillo>
 
 
@@ -11,32 +10,83 @@ namespace regression {
 class LinearRegression {
 public:
 
-    /**empty constructor*/
+    /**
+     * empty constructor, we initialize the default value of 
+     * the lambda and intercedpt 0.0 and true
+    */
     LinearRegression(): lambda(0.0), intercept(true) {};
 
-    /**constructor to initialze lamnda and intercept*/
-    LinearRegression(const double lambda_, const bool intercept_): 
+    /**
+     * Non-empty constructor, create the model with lamnda and intercept
+     * 
+     * @param lambda, regularization constant for ridge regression
+     * @param intercept, whether or not to include an intercept term
+    */
+    LinearRegression(const double lambda_, 
+                     const bool intercept_): 
         lambda(lambda_), intercept(intercept_) {};
 
+    /**deconstructor*/
     ~LinearRegression() {};
 
-    void fit(const arma::mat &X, const arma::vec &y);
+    /**
+     * train the lenaer regression model on given dataset, this function 
+     * requires to input the dataset ans the relative label
+     * 
+     * @param X, the matrix of dataset
+     * @param y, the label vector
+     * 
+    */
+    void fit(const arma::mat &X, 
+             const arma::vec &y);
 
-    void fit(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
+    /**
+     * Train the linear regression model, using the sample weights
+     * 
+     * @param X, the matrix of dataset 
+     * @param y, the label vector
+     * @param weights, Individual weights for each sample
+    */
+    void fit(const arma::mat &X, 
+             const arma::vec &y, 
+             const arma::vec &weights);
 
-    const arma::vec& predict(const arma::mat &X) const;
-
+    /**
+     * Calculate the predicted value y_pred for each instance
+     * 
+     * @param X, the test sample
+     * @param y, the targetedt value 
+     * 
+    */
+    void predict(const arma::mat &X, arma::vec &y);
+    
+    /**
+     * Return the training params theta, 
+    */
     const arma::vec& get_theta() const;
 
+    /**
+     * Return the regularization param for ridge regression
+    */
     double get_lambda() const;
+
+    /**
+     * Return whether or not the intercept term is used
+    */
 
     bool get_intercept() const;
 
 protected:
 
+    /**
+     * Train the linear regression model on the given dataset, and weights.
+     * 
+     * @param X, the matrix of dataset to train model
+     * @param y, the label to the dataset
+     * @param weights, observation weights 
+    */
     void train(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
 
-    
 
 private:
     /**
@@ -52,11 +102,10 @@ private:
     */
     
     arma::vec theta;
+
     double lambda;
+    
     bool intercept;
-
-
-
 
 };
 
