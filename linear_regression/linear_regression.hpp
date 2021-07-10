@@ -1,6 +1,6 @@
 #ifndef LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #define LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
-#include "../pre_reqs.hpp"
+#include "../prereqs.hpp"
 #include <armadillo>
 
 
