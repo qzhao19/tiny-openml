@@ -12,6 +12,7 @@
 #include <tuple>
 #include <utility>
 
+#include <armadillo>
 
 
 
