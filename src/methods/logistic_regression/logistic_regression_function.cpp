@@ -14,3 +14,12 @@ LogisticRegressionFunction::LogisticRegressionFunction(
     }
     
 };
+
+
+
+double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
+    /**
+     * The objective function is likelihood function, theta is the vector 
+     * of parameters,  
+    */
+}

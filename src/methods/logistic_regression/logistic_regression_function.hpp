@@ -20,6 +20,8 @@ public:
     LogisticRegressionFunction(const arma::mat &X_, 
                                const arma::vec &y_, 
                                const double lambda_);
+    
+    ~LogisticRegressionFunction() {};
 
     double Evaluate(const arma::mat &theta) const;
 
