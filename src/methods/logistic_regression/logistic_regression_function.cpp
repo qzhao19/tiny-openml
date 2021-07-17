@@ -20,6 +20,14 @@ LogisticRegressionFunction::LogisticRegressionFunction(
 double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
     /**
      * The objective function is likelihood function, theta is the vector 
-     * of parameters,  
+     * of parameters, y is the result, X is the matrix of data
+     * 
+     * f(w) = sum(y_i * log(sigmoid(w.t() * x_i)) + (1 - y_i) * log(1 - sigmoid(w.t() * x_i)))
+     * need to minimize this function.
+     * 
+     * L2-regularization term is the lambda multiply by the squared l2-norm then divide
+     * by 2
     */
+
+    const double regularization;
 }
