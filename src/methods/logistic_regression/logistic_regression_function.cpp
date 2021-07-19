@@ -29,5 +29,35 @@ double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
      * by 2
     */
 
-    const double regularization;
+    // get the number of features ==> nb of cols
+    const int n_features = X.n_cols;
+
+    // the regularization term P(w) = lambda / m * norm2(w)
+    const double penality = (lambda / n_features) * arma::dot(theta, theta);
+
+    // define the sogmoid function h(x) = 1 / (1 + exp(w'x))
+    const arma::vec h = 1.0 / (1.0 + arma::exp(-1 * X * theta));
+
+    // the objective function we want to minimize, so we make positive function as negative
+    // -1 / n_features 
+    const double cost_fn = (-1 / n_features) * (arma::dot(y, arma::log(h)) + 
+                                                arma::dot(1 - y, arma::log(1 - h)));
+
+    return cost_fn + penality;
+}
+
+
+void LogisticRegressionFunction::Gradient(const arma::mat &theta, 
+                                          arma::mat &grad) const {
+    
+    /**
+     * Evaluate the gradient of the logistic regression objective function.
+     * 
+     * @param theta Vector of logistic regression parameters.
+     * @param grad Vector to output gradient into.
+    */
+
+    
+
+
 }
