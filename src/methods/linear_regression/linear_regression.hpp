@@ -1,6 +1,6 @@
 #ifndef METHOD_LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #define METHOD_LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
-#include "../prereqs.hpp"
+#include "../../prereqs.hpp"
 
 
 namespace regression {
