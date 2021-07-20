@@ -11,8 +11,10 @@
 #include <stdexcept>
 #include <tuple>
 #include <utility>
+#include <iostream>
 
 #include <armadillo>
+#include <ensmallen.hpp>
 
 
 
