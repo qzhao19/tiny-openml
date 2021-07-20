@@ -1,0 +1,8 @@
+#ifndef CORE_MATH_SHUFFLE_DATA_HPP
+#define CORE_MATH_SHUFFLE_DATA_HPP
+
+
+
+
+
+#endif
