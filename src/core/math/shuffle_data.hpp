@@ -13,12 +13,12 @@ namespace math {
  * @param output_X The shuffled output dataset 
  * @param output_y Shuffled vector of lable associated dataset
 */
-template<typename MatrixType, 
-         typename VectorType>
-void shuffle_data(const MatrixType& input_X, 
-                  const VectorType &input_y, 
-                  MatrixType &output_X, 
-                  VectorType &output_y) {
+template<typename MatType, 
+         typename VecType>
+void shuffle_data(const MatType& input_X, 
+                  const VecType &input_y, 
+                  MatType &output_X, 
+                  VecType &output_y) {
     
     
     // get samples numbers
@@ -32,7 +32,6 @@ void shuffle_data(const MatrixType& input_X,
     output_y = input_y.rows(shuffled_idx);
 
 }
-
 
 };
 #endif
