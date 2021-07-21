@@ -1,21 +1,13 @@
 #include "logistic_regression_function.hpp"
-
 using namespace regression;
+using namespace math;
 
-
-LogisticRegressionFunction::LogisticRegressionFunction(
-    const arma::mat &X_, 
-    const arma::vec &y_, 
-    const double lambda_): X(X_), y(y_), lambda(lambda_) {
-
-    if (X.n_cols != y.n_cols) {
-        std::cerr << "The training dataset has " << X.n_cols << " features, but "
-        << "the parameters vector got " << y.n_cols << " features." <<std::endl;
-    }
+void LogisticRegressionFunction::Shuffle() {
+    arma::mat output_X;
+    arma::vec output_y;
+    math::shuffle_data(X, y, output_X, output_y);
     
-};
-
-
+}
 
 double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
     /**
@@ -27,13 +19,14 @@ double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
      * 
      * L2-regularization term is the lambda multiply by the squared l2-norm then divide
      * by 2
+     * 
     */
 
     // get the number of features ==> nb of cols
     const int n_features = X.n_cols;
 
     // the regularization term P(w) = lambda / m * norm2(w)
-    const double penality = (lambda / n_features) * arma::dot(theta, theta);
+    const double penality = (lambda / 2.0 * n_features) * arma::dot(theta, theta);
 
     // define the sogmoid function h(x) = 1 / (1 + exp(w'x))
     const arma::vec h = 1.0 / (1.0 + arma::exp(-1 * X * theta));
@@ -48,16 +41,76 @@ double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
 
 
 void LogisticRegressionFunction::Gradient(const arma::mat &theta, 
-                                          arma::mat &grad) const {
-    
+                                          arma::mat &grads) const {
     /**
      * Evaluate the gradient of the logistic regression objective function.
-     * 
-     * @param theta Vector of logistic regression parameters.
-     * @param grad Vector to output gradient into.
+     *      grad = (1 / m) * sum(sigmoid(x) - y) + (lambda / m) * theta
     */
 
-    
+    // define the sigmoid function h(x) = 1 / (1 + exp(w'x))
+    const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X * theta));
 
+    const int n_features = X.n_cols;
+
+    arma::mat penality = (lambda / n_features) * theta;
+
+    grads.set_size(arma::size(theta));
+
+    grads = X.t() * (sigmoid - y) + penality;
+}
+
+
+double LogisticRegressionFunction::Evaluate(const arma::mat &theta, 
+                                            const std::size_t begin, 
+                                            const std::size_t batch_size) const {
+    /**
+     * define the objective function f(x)
+     * 
+     *   f(x) = sum(y_batch * log(sigmoid(W * X_batch)) + (1 - y_batch) * log(1 - sigmoid(W * X_batch)))
+    */
+    int n_features = X.n_cols;
+
+    // regularization term penality = lambda * batch_size / 2 * m * sum(W**2), here m = n_features
+    const double penality = (lambda * batch_size) / 
+        (2.0 * n_features) * arma::dot(theta, theta);
+
+
+    // define dataset of one batch and vector of label associated
+    arma::mat X_batch = X.rows(begin, begin + batch_size - 1);
+    arma::vec y_batch = y.rows(begin, begin + batch_size - 1);
+
+    // define the sigmoid function 
+    // sigmoid(z) = 1 / (1 + exp(-z))
+    const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X_batch * theta));
+
+    const double cost_fn = (-1 / n_features) * (arma::dot(y_batch, arma::log(sigmoid)) + 
+                                                arma::dot((1 - y_batch), arma::log(1 - sigmoid)));
+    
+    return cost_fn + penality;
+
+}
+
+
+void LogisticRegressionFunction::Gradient(const arma::mat &theta,  
+                                          const std::size_t begin, 
+                                          arma::mat &grads,
+                                          const std::size_t batch_size) const {
+    /**
+     * calculate gradient vector 
+     *      gradient = (1 / m) * sum(sigmoid(x) - y) + (lambda / m) * theta
+    */
+    int n_features = X.n_cols;
+
+    arma::mat penality = lambda * theta / n_features * batch_size;
+
+    // define dataset of one batch and vector of label associated
+    arma::mat X_batch = X.rows(begin, begin + batch_size - 1);
+    arma::vec y_batch = y.rows(begin, begin + batch_size - 1);
+
+    const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X_batch * theta));
+
+    grads.set_size(arma::size(theta));
+
+    grads = X_batch.t() * (sigmoid - y_batch) + penality;
 
 }
