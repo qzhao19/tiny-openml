@@ -119,3 +119,4 @@ void LogisticRegressionFunction::Gradient(const arma::mat &theta,
     grads = X_batch.t() * (sigmoid - y_batch) + penality;
 
 }
+
