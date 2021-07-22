@@ -28,47 +28,34 @@ public:
      * 
     */
     LogisticRegression(): solver("sgd"), 
-                          intercept(true), 
                           shuffle(true),
                           lambda(0.0), 
                           alpha(0.01), 
                           tol(1e-5),
                           batch_size(32), 
-                          max_iter(10000), n_basis(10) {}; 
+                          max_iter(10000), 
+                          n_basis(10) {}; 
 
     /**
      * Constructor for SGD solver
     */
     LogisticRegression(const std::string solver_,
-                       const bool intercept_, 
                        const bool shuffle_,
                        const double lambda_, 
                        const double alpha_, 
                        const double tol_, 
                        const std::size_t batch_size_, 
-                       const std::size_t max_iter_ ): 
+                       const std::size_t max_iter_, 
+                       const std::size_t n_basis_ ): 
         solver(solver_), 
-        intercept(intercept_), 
         shuffle(shuffle_),
         lambda(lambda_), 
         alpha(alpha_), 
         tol(tol_), 
         batch_size(batch_size_), 
-        max_iter(max_iter_) {};
-
-    /**
-     * Constructor for lbfgs optimizer
-    */
-    LogisticRegression(const std::string solver_,
-                       const bool intercept_, 
-                       const double lambda_, 
-                       const std::size_t max_iter_, 
-                       const std::size_t n_basis_): 
-        solver(solver_), 
-        intercept(intercept_), 
-        lambda(lambda_), 
         max_iter(max_iter_), 
-        n_basis(n_basis_) { };
+        n_basis(n_basis_) {};
+
 
     ~LogisticRegression() {};
 
@@ -98,6 +85,14 @@ public:
     */
     const arma::mat& predict_prob(const arma::mat &X);
 
+protected:
+    template<typename OptimizerType, typename... CallbackTypes>
+    void fit(const arma::mat& X, 
+             const arma::vec& y, 
+             OptimizerType& optimizer,
+             CallbackTypes&&... callbacks) const;
+
+
 private:
     /**
      * @param theta Vector of logistic regression function parameters
@@ -118,8 +113,6 @@ private:
     arma::vec theta;
     
     std::string solver;
-
-    bool intercept;
 
     bool shuffle;
 
