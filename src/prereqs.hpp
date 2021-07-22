@@ -7,12 +7,12 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
+#include <string>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <iostream>
-
+#include <algorithm>
 #include <armadillo>
 #include <ensmallen.hpp>
 
