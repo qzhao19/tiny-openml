@@ -5,9 +5,11 @@ using namespace math;
 void LogisticRegressionFunction::Shuffle() {
     arma::mat output_X;
     arma::vec output_y;
+
     math::shuffle_data(X, y, output_X, output_y);
     
 }
+
 
 double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
     /**
@@ -26,15 +28,15 @@ double LogisticRegressionFunction::Evaluate(const arma::mat &theta) const {
     const int n_features = X.n_cols;
 
     // the regularization term P(w) = lambda / m * norm2(w)
-    const double penality = (lambda / 2.0 * n_features) * arma::dot(theta, theta);
+    const double penality = (lambda / (2.0 * n_features)) * arma::dot(theta, theta);
 
-    // define the sogmoid function h(x) = 1 / (1 + exp(w'x))
-    const arma::vec h = 1.0 / (1.0 + arma::exp(-1 * X * theta));
+    // define the sigmoid function h(x) = 1 / (1 + exp(w'x))
+    const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X * theta));
 
     // the objective function we want to minimize, so we make positive function as negative
     // -1 / n_features 
-    const double cost_fn = (-1 / n_features) * (arma::dot(y, arma::log(h)) + 
-                                                arma::dot(1 - y, arma::log(1 - h)));
+    const double cost_fn = -0.5 * (arma::dot(y, arma::log(sigmoid)) + 
+        arma::dot(1 - y, arma::log(1 - sigmoid)));
 
     return cost_fn + penality;
 }
@@ -47,12 +49,13 @@ void LogisticRegressionFunction::Gradient(const arma::mat &theta,
      *      grad = (1 / m) * sum(sigmoid(x) - y) + (lambda / m) * theta
     */
 
+    // get the number of features ==> nb of cols
+    const int n_features = X.n_cols;
+
     // define the sigmoid function h(x) = 1 / (1 + exp(w'x))
     const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X * theta));
 
-    const int n_features = X.n_cols;
-
-    arma::mat penality = (lambda / n_features) * theta;
+    arma::mat penality = lambda * theta / n_features;
 
     grads.set_size(arma::size(theta));
 
@@ -68,11 +71,11 @@ double LogisticRegressionFunction::Evaluate(const arma::mat &theta,
      * 
      *   f(x) = sum(y_batch * log(sigmoid(W * X_batch)) + (1 - y_batch) * log(1 - sigmoid(W * X_batch)))
     */
-    int n_features = X.n_cols;
+    const int n_features = X.n_cols;
 
     // regularization term penality = lambda * batch_size / 2 * m * sum(W**2), here m = n_features
-    const double penality = (lambda * batch_size) / 
-        (2.0 * n_features) * arma::dot(theta, theta);
+    const double penality = ((lambda * batch_size) / (2.0 * n_features)) * 
+        arma::dot(theta, theta);
 
 
     // define dataset of one batch and vector of label associated
@@ -83,8 +86,10 @@ double LogisticRegressionFunction::Evaluate(const arma::mat &theta,
     // sigmoid(z) = 1 / (1 + exp(-z))
     const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X_batch * theta));
 
-    const double cost_fn = (-1 / n_features) * (arma::dot(y_batch, arma::log(sigmoid)) + 
-                                                arma::dot((1 - y_batch), arma::log(1 - sigmoid)));
+    // objective function
+    const double cost_fn = (-1.0 / 2.0) * 
+        (arma::dot(y_batch, arma::log(sigmoid)) + 
+            arma::dot((1 - y_batch), arma::log(1 - sigmoid)));
     
     return cost_fn + penality;
 
@@ -99,7 +104,7 @@ void LogisticRegressionFunction::Gradient(const arma::mat &theta,
      * calculate gradient vector 
      *      gradient = (1 / m) * sum(sigmoid(x) - y) + (lambda / m) * theta
     */
-    int n_features = X.n_cols;
+    const int n_features = X.n_cols;
 
     arma::mat penality = lambda * theta / n_features * batch_size;
 
