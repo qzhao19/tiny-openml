@@ -3,10 +3,10 @@ using namespace regression;
 
 
 template<typename OptimizerType, typename... CallbackTypes>
-void LogisticRegression::fit(const arma::mat& X, 
-                             const arma::vec& y, 
-                             OptimizerType& optimizer,
-                             CallbackTypes&&... callbacks) const {
+const arma::vec LogisticRegression::fit(const arma::mat& X, 
+    const arma::vec& y, 
+    OptimizerType& optimizer,
+    CallbackTypes&&... callbacks) const {
     
     std::size_t n_samples = X.n_rows;
     std::size_t n_features = X.n_cols;
@@ -22,20 +22,15 @@ void LogisticRegression::fit(const arma::mat& X,
     arma::vec theta_(n_features + 1, arma::fill::zeros);
     X_.insert_cols(n_features, arma::ones<arma::mat>(n_samples, 1));
 
-    // first checkout whether number of elem for vector theta is 
-    // equal with number of cols for dataset plus 1
-    if (theta_.n_elem != X_.n_cols) {
-        X_.insert_cols(n_features, arma::ones<arma::mat>(n_samples, 1));
-    }
-    
-    LogisticRegressionFunction lrf(X, y, lambda);
+    LogisticRegressionFunction lrf(X_, y_, lambda);
 
     optimizer.Optimize(lrf, theta_, callbacks...);
+    
+    theta_.print("theta: ");
+    // this -> theta = theta_;
 
-    this -> theta = theta_;
-
+    return theta_;
 }
-
 
 void LogisticRegression::fit(const arma::mat &X, const arma::vec &y) {
     // fit model
@@ -45,8 +40,7 @@ void LogisticRegression::fit(const arma::mat &X, const arma::vec &y) {
         sgd_optimizer.Tolerance() = tol ;
         sgd_optimizer.StepSize() = alpha;
         sgd_optimizer.BatchSize() = batch_size;
-
-        fit(X, y, sgd_optimizer);
+        theta = fit(X, y, sgd_optimizer);
 
     }
     else if (solver == "lbfgs") {
@@ -54,10 +48,58 @@ void LogisticRegression::fit(const arma::mat &X, const arma::vec &y) {
         lbfg_optimizer.NumBasis() = n_basis;
         lbfg_optimizer.MaxIterations() = max_iter;
         lbfg_optimizer.MinGradientNorm() = tol;
-        fit(X, y, lbfg_optimizer);
+        theta = fit(X, y, lbfg_optimizer);
     }
-
 }
 
+const arma::vec LogisticRegression::predict(const arma::mat& X) const{
+    // Predict class labels for samples in X.
+    // calculate the desicion boundary func
+    arma::vec decision_boundary = X * 
+        theta.tail_rows(theta.n_elem - 1) + theta(0);
 
+    arma::vec y_pred = 1.0 / (1.0 + arma::exp(decision_boundary));
 
+    for(auto& value:y_pred) {
+        if (value > 0.5) {
+            value = 1;
+        }
+        else {
+            value = 0;
+        }
+    }
+
+    return y_pred;
+}
+
+const arma::mat LogisticRegression::predict_prob(const arma::mat &X) const {
+    // predict prob of class
+    arma::vec decision_boundary = X * 
+        theta.tail_rows(theta.n_elem - 1) + theta(0);
+
+    arma::vec y_pred = 1.0 / (1.0 + arma::exp(decision_boundary));
+
+    // define a matrix of shape [n_sampels, n_classes], here n_classe 
+    // is 2, which means positve case or negative case 
+    arma::mat prob(y_pred.n_rows, 2, arma::fill::zeros);
+
+    prob.col(0) = y_pred;
+    prob.col(1) = 1 - y_pred;
+
+    return prob;
+}
+
+const double LogisticRegression::score(const arma::vec &y_true, 
+    const arma::vec &y_pred) const {
+    double acc = 0.0;
+    std::size_t n_samples = y_true.n_rows;
+
+    for (int i = 0; i < n_samples; i++) {
+        bool matched = (y_true(i) == y_pred(i));
+        if (matched) {
+            acc++;
+        }
+    }
+
+    return acc / n_samples;
+}
