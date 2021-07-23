@@ -25,9 +25,6 @@ const arma::vec LogisticRegression::fit(const arma::mat& X,
     LogisticRegressionFunction lrf(X_, y_, lambda);
 
     optimizer.Optimize(lrf, theta_, callbacks...);
-    
-    theta_.print("theta: ");
-    // this -> theta = theta_;
 
     return theta_;
 }
