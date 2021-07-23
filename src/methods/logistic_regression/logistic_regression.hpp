@@ -29,7 +29,7 @@ public:
     */
     LogisticRegression(): solver("sgd"), 
                           shuffle(true),
-                          lambda(0.0), 
+                          lambda(0.1), 
                           alpha(0.01), 
                           tol(1e-5),
                           batch_size(32), 
@@ -40,13 +40,13 @@ public:
      * Non-empty constructor, create the model with params
     */
     LogisticRegression(const std::string solver_,
-                       const bool shuffle_,
-                       const double lambda_, 
-                       const double alpha_, 
-                       const double tol_, 
-                       const std::size_t batch_size_, 
-                       const std::size_t max_iter_, 
-                       const std::size_t n_basis_ ): 
+                       const bool shuffle_ = true,
+                       const double lambda_ = 0.1, 
+                       const double alpha_ = 0.01, 
+                       const double tol_ = 1e-5, 
+                       const std::size_t batch_size_ = 32, 
+                       const std::size_t max_iter_ = 10000, 
+                       const std::size_t n_basis_ = 10): 
         solver(solver_), 
         shuffle(shuffle_),
         lambda(lambda_), 
