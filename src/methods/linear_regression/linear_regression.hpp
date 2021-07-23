@@ -2,9 +2,7 @@
 #define METHOD_LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #include "../../prereqs.hpp"
 
-
 namespace regression {
-
 
 class LinearRegression {
 public:
@@ -51,13 +49,14 @@ public:
              const arma::vec &weights);
 
     /**
-     * Calculate the predicted value y_pred for each instance
+     * Calculate the predicted value y_pred for test dataset
      * 
-     * @param X, the test sample
-     * @param y, the targetedt value 
+     * @param X the test sample
+     * @param y the targetedt value 
      * 
+     * @return Returns predicted values, ndarray of shape (n_samples,)
     */
-    void predict(const arma::mat &X, arma::vec &y);
+    const arma::vec predict(const arma::mat &X) const;
 
     /**
      * Return the coefficient of determination R^2 of the prediction
@@ -69,48 +68,36 @@ public:
      * the input features, would get a R^2 score of 0.0.
     */
     const double score(const arma::vec &y_true, 
-                       const arma::vec &y_pred) const ;
-    
-    /**
+                       const arma::vec &y_pred) const;
+	
+	/**
      * Return the training params theta, 
     */
     const arma::vec& get_theta() const;
-
-    /**
-     * Return the regularization param for ridge regression
-    */
-    double get_lambda() const;
-
-    /**
-     * Return whether or not the intercept term is used
-    */
-
-    bool get_intercept() const;
-
+    
 protected:
 
     /**
      * Train the linear regression model on the given dataset, and weights.
      * 
-     * @param X, the matrix of dataset to train model
-     * @param y, the label to the dataset
-     * @param weights, observation weights 
+     * @param X the matrix of dataset to train model
+     * @param y the label to the dataset
+     * @param weights observation weights 
     */
     void train(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
 
 private:
     /**
-     * @params theta: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
+     * @param theta: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
      * calculate, initialized and filled by constructor for the least square method
      * 
-     * @params lambda: double, default = 0.0. the Tikhonov regularization parameter for ridge 
+     * @param lambda: double, default = 0.0. the Tikhonov regularization parameter for ridge 
      * regression, 0 for linear regression. Regularization improves the conditioning of the 
      * problem and reduces the variance of the estimate.
      * 
-     * @params intercept: bool, default = True. whether to fit the intercept for the model. 
+     * @param intercept: bool, default = True. whether to fit the intercept for the model. 
      * 
     */
-    
     arma::vec theta;
 
     double lambda;
@@ -119,6 +106,5 @@ private:
 
 };
 }
-
 
 #endif /*LINEAR_REGRESSION_LINEAR_REGRESSION_HPP*/
