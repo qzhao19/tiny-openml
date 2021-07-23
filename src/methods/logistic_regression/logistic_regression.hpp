@@ -37,7 +37,7 @@ public:
                           n_basis(10) {}; 
 
     /**
-     * Constructor for SGD solver
+     * Non-empty constructor, create the model with params
     */
     LogisticRegression(const std::string solver_,
                        const bool shuffle_,
@@ -61,7 +61,7 @@ public:
 
     /**
      * Train the logistic regression model on given dataset. By default, 
-     * the sgd optimizer is used.
+     * the sgd optimizer is used. The overload function of fit(...)
      * 
      * @param X Input dataset matrix for training 
      * @param y Vector of label associated the dataset
@@ -74,7 +74,7 @@ public:
      * 
      * @param X Input dataset matrix for training 
     */
-    const arma::vec& predict(const arma::mat &X);
+    const arma::vec predict(const arma::mat &X) const;
 
     /**
      * Probability estimates. The returned estimates for all classes are 
@@ -82,16 +82,44 @@ public:
      * 
      * @param X Input dataset matrix for training 
      * 
+     * @return y_pred_prob Probability of the sample for each class in the model, 
+     *         ndarray of shape (n_samples, n_classes)
+     * 
     */
-    const arma::mat& predict_prob(const arma::mat &X);
+    const arma::mat predict_prob(const arma::mat &X) const;
+
+    /**
+     * Accuracy classification score. calculate the mean accuracy 
+     * on the given lable of test dataset and predicted label.
+     * 
+     * @param y_true True label for dataset X, ndarray of shape (n_samples,)
+     * @param y_pred Predicted label from predict(), ndarray of shape (n_samples,)
+     * 
+     * @return acc Mean accuracy of y' and y.
+    */
+    const double score(const arma::vec &y_true, 
+                       const arma::vec &y_pred) const;
+    
+    /**
+     * Return the training params theta, 
+    */
+    const arma::vec& get_theta() const { return theta; };
 
 protected:
+    /**
+     * Train the logistic model with the given optimizer, using the overload allow
+     * configuring the optimizer before training.
+     * 
+     * @param X Input training dataset, ndarray of shape [n_samples, n_features]
+     * @param y Vector of asscociated label with dataset, ndnarry of shape [m_samples]
+     * @param OptimizerType Type of optimizer to use to train the model
+     * @param CallbackTypes Types of Callback Functions.
+    */
     template<typename OptimizerType, typename... CallbackTypes>
-    void fit(const arma::mat& X, 
-             const arma::vec& y, 
-             OptimizerType& optimizer,
-             CallbackTypes&&... callbacks) const;
-
+    const arma::vec fit(const arma::mat& X, 
+                        const arma::vec& y, 
+                        OptimizerType& optimizer,
+                        CallbackTypes&&... callbacks) const;
 
 private:
     /**
