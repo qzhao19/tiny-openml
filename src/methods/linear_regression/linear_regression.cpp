@@ -2,11 +2,9 @@
 #include "linear_regression.hpp"
 using namespace regression;
 
-
 void LinearRegression::train(const arma::mat &X, 
                              const arma::vec &y, 
                              const arma::vec &weights) {
-
     /**
      * Calculate the closed form solution
      * 
@@ -27,33 +25,42 @@ void LinearRegression::train(const arma::mat &X,
         y_ = arma::sqrt(weights) % y_;
     }
     
-
     arma::mat identifty_mat = arma::eye<arma::mat>(X_.n_cols, X_.n_cols);
     arma::mat pseudo_inv = (X_.t() * X_ + this -> lambda * identifty_mat);
 
-
-    this -> theta = arma::inv(pseudo_inv) * X_.t() * y_;
+    theta = arma::inv(pseudo_inv) * X_.t() * y_;
 
 };
 
+void LinearRegression::fit(const arma::mat &X, 
+                           const arma::vec &y, 
+                           const arma::vec &weights) {
+    train(X, y, weights);
+}
 
-void LinearRegression::predict(const arma::mat &X, arma::vec &y) {
+void LinearRegression::fit(const arma::mat &X, 
+                           const arma::vec &y) {
+    train(X, y, arma::vec());
+}
+
+const arma::vec LinearRegression::predict(const arma::mat &X) const {
     /**
      * y_pred = X * theta
     */
-
+    arma::vec y_pred;
+    
     if (intercept) {
-        if (X.n_cols != theta.n_rows - 1) {
-            return ;
-        }
-
         // if intercept, need split the intercept term from theta vector
-        y = X * theta.subvec(0, theta.n_rows - 2);
+        y_pred = X * theta.subvec(0, theta.n_rows - 2);
 
-        y += theta(theta.n_rows - 1);
-    }
+        y_pred += theta(theta.n_rows - 1);
+
+        return y_pred;
+    } 
     else {
-        y = X * theta;
+        y_pred = X * theta;
+
+        return y_pred;
     }
 }
 
@@ -73,27 +80,6 @@ const double LinearRegression::score(const arma::vec &y_true,
 
 }
 
-void LinearRegression::fit(const arma::mat &X, 
-                           const arma::vec &y, 
-                           const arma::vec &weights) {
-
-    train(X, y, weights);
-}
-
-void LinearRegression::fit(const arma::mat &X, 
-                           const arma::vec &y) {
-
-    train(X, y, arma::vec());
-}
-
 const arma::vec& LinearRegression::get_theta() const {
     return this -> theta;
-}
-
-double LinearRegression::get_lambda() const {
-    return this -> lambda;
-}
-
-bool LinearRegression::get_intercept() const {
-    return this -> intercept;
 }
