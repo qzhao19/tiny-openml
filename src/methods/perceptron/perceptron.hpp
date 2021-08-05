@@ -11,12 +11,24 @@ template<typename WeightInitializer>
 class Perceptron {
 
 public:
+    /**
+     * Default constructor, create the perceptron with given parameters having 
+     * default values.
+     * 
+     * @param initializer Weights initializer to initialize w, string with default value 
+     *                    zerosInitializer
+     * @param shuffle Whether or not the training data should be shuffled after each epoch
+     * @param alpha learning rate when update parameters, default = 0.001
+     * @param tol The stopping criterion, default = 1e-3 
+     * @param max_iter The maximum number of passes over the training data, default=1000
+    */
     Perceptron(): initializer("zeros"), 
         shuffle(true),
         alpha(0.01), 
         tol(1e-5), 
         max_iter(10000) {};
     
+
     Perceptron(const std::string initializer_,
         const bool shuffle_,
         const double alpha_, 
@@ -27,6 +39,10 @@ public:
             tol(tol_), 
             max_iter(max_iter_) {};
 
+
+    
+    
+    
 protected:
     void fit(const arma::mat &X, 
              const arma::vec &y) const;
