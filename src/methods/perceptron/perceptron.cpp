@@ -13,8 +13,6 @@ double Perceptron<WeightInitializer>::sign(const arma::vec& x,
 }
 
 
-
-
 template<typename WeightInitializer>
 void Perceptron<WeightInitializer>::fit(const arma::mat& X, 
     const arma::vec& y) const {
@@ -29,32 +27,36 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
 
     std::size_t iter = 0;
 
-    for (std::size_t iter = 0; iter < max_iter; iter++) {
+    arma::mat X_shuffled = X;
+    arma::vec y_shuffled = y;
 
-        arma::mat X_ = X;
-        arma::vec y_ = y;
+    bool converged = false;
 
+    while ((iter < max_iter) && (!converged)) {
+
+        int error_count = 0;
+        // shuffle dataset and associated label
         if (shuffle) {
-            shuffle_data(X, y, X_, y_);
+            shuffle_data(X, y, X_shuffled, y_shuffled);
         }
 
         for (std::size_t i = 0; i < n_samples; i++) {
-            double total_error = 0.0;
-            X_row = X_.row(i);
-            y_row = y_(i);
-            double y_pred = sign(X_row, weights, bias);
-            total_error += std::pow(y_row - y_pred, 2); 
-            if (y_row * y_pred)
+           
+            X_ = X_shuffled.row(i);
+            y_ = y_shuffled(i);
 
-
+            double y_pred = sign(X_, weights, bias);
+            if ((y_ * y_pred) <= 0.0) {
+                weights = weights + alpha * X_ * y_;
+                bias = bias + alpha * y_;
+                error_count++;
+            }
         }
 
-
+        if (error_count == 0) {
+            converged = true;
+        }
     }
-
-
-
 }
-
 
 
