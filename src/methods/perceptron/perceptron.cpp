@@ -57,6 +57,8 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
             converged = true;
         }
     }
-}
 
+    this -> weights = weights;
+    this -> bias = bias
+}
 
