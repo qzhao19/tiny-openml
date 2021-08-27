@@ -39,17 +39,34 @@ public:
             tol(tol_), 
             max_iter(max_iter_) {};
 
-
-    
-    
     
 protected:
+    /**
+     * Train the perceptron on the given data for up to the 
+     * maximum number of iterations. A single iteration 
+     * corresponds to a single pass through the data.
+     * 
+     * @param X Dataset on which training should be performed
+     * @param y Labels of the dataset.
+    */
     void fit(const arma::mat &X, 
-             const arma::vec &y) const;
+        const arma::vec &y) const;
 
+    /**
+     * 
+    */
     double sign(const arma::vec& x, 
-                const arma::vec& w, 
-                const double b) const;
+        const arma::vec& w, 
+        const double b) const;
+
+    /**
+     * Classification function. After training, use the weights 
+     * matrix to classify test dataset 
+     * 
+     * @param X shape of [n_samples, n_features] input testing dataset
+     * 
+    */
+    const arma::mat predict(const arma::mat &X) const;
 
 private:
     arma::vec weights;
