@@ -12,3 +12,4 @@ In order to provide efficient implementations, the core algorithms of open-ml-pa
 
 - Armadillo
 - ensmallen
+- NumPy
