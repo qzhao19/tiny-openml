@@ -55,7 +55,7 @@ protected:
     /**
      * 
     */
-    double sign(const arma::vec& x, 
+    double sign(const arma::rowvec& x, 
         const arma::vec& w, 
         const double b) const;
 
