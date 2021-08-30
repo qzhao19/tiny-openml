@@ -3,7 +3,7 @@ using namespace perceptron;
 using namespace math;
 
 template<typename WeightInitializer>
-double Perceptron<WeightInitializer>::sign(const arma::vec& x, 
+double Perceptron<WeightInitializer>::sign(const arma::rowvec& x, 
     const arma::vec& w, 
     const double b) const {
 
@@ -42,8 +42,8 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
 
         for (std::size_t i = 0; i < n_samples; i++) {
            
-            X_ = X_shuffled.row(i);
-            y_ = y_shuffled(i);
+            arma::rowvec X_ = X_shuffled.row(i);
+            double y_ = y_shuffled(i);
 
             double y_pred = sign(X_, weights, bias);
             if ((y_ * y_pred) <= 0.0) {
@@ -56,9 +56,9 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
         if (error_count == 0) {
             converged = true;
         }
+        iter++;
     }
 
-    this -> weights = weights;
-    this -> bias = bias
 }
+
 
