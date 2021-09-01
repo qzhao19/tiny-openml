@@ -40,7 +40,7 @@ public:
             max_iter(max_iter_) {};
 
     
-protected:
+
     /**
      * Train the perceptron on the given data for up to the 
      * maximum number of iterations. A single iteration 
@@ -52,12 +52,6 @@ protected:
     void fit(const arma::mat &X, 
         const arma::vec &y) const;
 
-    /**
-     * 
-    */
-    double sign(const arma::rowvec& x, 
-        const arma::vec& w, 
-        const double b) const;
 
     /**
      * Classification function. After training, use the weights 
@@ -67,6 +61,23 @@ protected:
      * 
     */
     const arma::mat predict(const arma::mat &X) const;
+
+
+    /**
+     * 
+    */
+    const double Perceptron::score(const arma::vec &y_true, 
+        const arma::vec &y_pred) const;
+
+protected:
+    /**
+     * 
+    */
+    double sign(const arma::rowvec& x, 
+        const arma::vec& w, 
+        const double b) const;
+
+    
 
 private:
     arma::vec weights;
