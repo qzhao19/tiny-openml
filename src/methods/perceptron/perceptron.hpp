@@ -2,12 +2,12 @@
 #define METHOD_PERCEPTRON_PERCEPTRON_HPP
 #include "../../core.hpp"
 #include "../../prereqs.hpp"
-#include "weight_initializer/zero_initializer.hpp"
+#include "weight_initializer/ones_initializer.hpp"
 
 
 namespace perceptron {
 
-template<typename WeightInitializer>
+template<typename WeightInitializer = OnesInitializer>
 class Perceptron {
 
 public:
@@ -22,7 +22,7 @@ public:
      * @param tol The stopping criterion, default = 1e-3 
      * @param max_iter The maximum number of passes over the training data, default=1000
     */
-    Perceptron(): initializer("zeros"), 
+    Perceptron(): initializer("ones"), 
         shuffle(true),
         alpha(0.01), 
         tol(1e-5), 
