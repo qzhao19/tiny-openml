@@ -9,7 +9,7 @@ double Perceptron<WeightInitializer>::sign(const arma::rowvec& x,
 
     double y = arma::dot(x, w) + b;
 
-    return (y >= 0.0) ? 1.0 : -1.0;
+    return (y >= 0.0) ? 1.0 : 0.0;
 }
 
 
@@ -35,7 +35,6 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
     std::size_t iter = 0;
 
     while (iter < max_iter) {
-
         // shuffle dataset and associated label
         if (shuffle) {
             math::shuffle_data(X, y, X_shuffled, y_shuffled);
@@ -61,3 +60,38 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
 }
 
 
+template<typename WeightInitializer>
+const arma::mat Perceptron<WeightInitializer>::predict(
+    const arma::mat& X) const {
+
+    arma::vec y_pred = X * weights + bias;
+    for(auto& value:y_pred) {
+        if (value > 0.5) {
+            value = 1;
+        }
+        else {
+            value = 0;
+        }
+    }
+
+    return y_pred;
+}
+
+
+template<typename WeightInitializer>
+const double Perceptron<WeightInitializer>::score(
+    const arma::vec &y_true, 
+    const arma::vec &y_pred) const {
+    
+    double acc = 0.0;
+    std::size_t n_samples = y_true.n_rows;
+
+    for (int i = 0; i < n_samples; i++) {
+        bool matched = (y_true(i) == y_pred(i));
+        if (matched) {
+            acc++;
+        }
+    }
+
+    return acc / n_samples;
+}
