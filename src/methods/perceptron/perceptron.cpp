@@ -9,7 +9,7 @@ double Perceptron<WeightInitializer>::sign(const arma::rowvec& x,
 
     double y = arma::dot(x, w) + b;
 
-    return (y >= 0.0) ? 1.0 : 0.0;
+    return (y >= 0.0) ? 1.0 : -1.0;
 }
 
 
@@ -21,43 +21,42 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
     std::size_t n_samples = X.n_rows;
     std::size_t n_features = X.n_cols;
 
+    // define local weights and bias, and initialize them by
+    // weight_initializer  
+    arma::vec w;
+    double b;
+
     WeightInitializer weight_initializer;
-
-    weight_initializer.Initialize(weights, bias, n_features);
-
-    std::size_t iter = 0;
+    weight_initializer.Initialize(w, b, n_features);
 
     arma::mat X_shuffled = X;
     arma::vec y_shuffled = y;
 
-    bool converged = false;
+    std::size_t iter = 0;
 
-    while ((iter < max_iter) && (!converged)) {
+    while (iter < max_iter) {
 
-        int error_count = 0;
         // shuffle dataset and associated label
         if (shuffle) {
-            shuffle_data(X, y, X_shuffled, y_shuffled);
+            math::shuffle_data(X, y, X_shuffled, y_shuffled);
         }
 
         for (std::size_t i = 0; i < n_samples; i++) {
-           
-            arma::rowvec X_ = X_shuffled.row(i);
-            double y_ = y_shuffled(i);
+            arma::rowvec X_row = X_shuffled.row(i);
+            double y_row = y_shuffled(i);
+            double y_pred = sign(X_row, w, b);
 
-            double y_pred = sign(X_, weights, bias);
-            if ((y_ * y_pred) <= 0.0) {
-                weights = weights + alpha * X_ * y_;
-                bias = bias + alpha * y_;
-                error_count++;
+            if ((y_row * y_pred) <= 0.0) {
+                arma::vec X_trans = arma::conv_to<arma::vec>::from(X_row);
+                w = w + alpha * X_trans * y_row;
+                b = b + alpha * y_row;
             }
-        }
-
-        if (error_count == 0) {
-            converged = true;
         }
         iter++;
     }
+
+    this -> weights = w;
+    this -> bias = b;
 
 }
 
