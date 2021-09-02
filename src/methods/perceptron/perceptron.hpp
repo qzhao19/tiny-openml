@@ -2,6 +2,7 @@
 #define METHOD_PERCEPTRON_PERCEPTRON_HPP
 #include "../../core.hpp"
 #include "../../prereqs.hpp"
+
 #include "weight_initializer/ones_initializer.hpp"
 
 
@@ -24,22 +25,21 @@ public:
     */
     Perceptron(): initializer("ones"), 
         shuffle(true),
-        alpha(0.01), 
-        tol(1e-5), 
-        max_iter(10000) {};
+        alpha(0.1), 
+        max_iter(1000) {};
     
-
     Perceptron(const std::string initializer_,
         const bool shuffle_,
         const double alpha_, 
-        const double tol_, 
         const std::size_t max_iter_): initializer(initializer_), 
             shuffle(shuffle_),
             alpha(alpha_), 
-            tol(tol_), 
             max_iter(max_iter_) {};
 
-    
+    /**
+     * deconstructor
+    */
+    ~Perceptron() {};
 
     /**
      * Train the perceptron on the given data for up to the 
@@ -50,8 +50,7 @@ public:
      * @param y Labels of the dataset.
     */
     void fit(const arma::mat &X, 
-        const arma::vec &y) const;
-
+        const arma::vec &y);
 
     /**
      * Classification function. After training, use the weights 
@@ -62,35 +61,31 @@ public:
     */
     const arma::mat predict(const arma::mat &X) const;
 
-
     /**
-     * 
+     * Return the mean accuracy on the given test data and labels.
+     * @param y_true array-like of shape (n_samples,) 
+     * @param y_pred predict class labels for samples in X.
     */
-    const double Perceptron::score(const arma::vec &y_true, 
+    const double score(const arma::vec &y_true, 
         const arma::vec &y_pred) const;
 
+
 protected:
-    /**
-     * 
-    */
     double sign(const arma::rowvec& x, 
         const arma::vec& w, 
         const double b) const;
 
-    
+    const arma::vec train(const arma::mat &X, 
+        const arma::vec &y) const;
 
+    
 private:
     arma::vec weights;
     double bias;
-
     std::string initializer;
     bool shuffle;
     double alpha;
-    double tol;
     std::size_t max_iter;
-
-
-
 
 };
 
