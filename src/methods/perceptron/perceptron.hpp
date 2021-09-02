@@ -4,11 +4,12 @@
 #include "../../prereqs.hpp"
 
 #include "weight_initializer/ones_initializer.hpp"
+#include "weight_initializer/rand_initializer.hpp"
 
 
 namespace perceptron {
 
-template<typename WeightInitializer = OnesInitializer>
+template<typename WeightInitializer = RandInitializer>
 class Perceptron {
 
 public:
