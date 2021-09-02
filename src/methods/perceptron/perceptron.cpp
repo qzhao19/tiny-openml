@@ -9,12 +9,12 @@ double Perceptron<WeightInitializer>::sign(const arma::rowvec& x,
 
     double y = arma::dot(x, w) + b;
 
-    return (y >= 0.0) ? 1.0 : 0.0;
+    return (y >= 0.0) ? 1.0 : -1.0;
 }
 
 
 template<typename WeightInitializer>
-void Perceptron<WeightInitializer>::fit(const arma::mat& X, 
+const arma::vec Perceptron<WeightInitializer>::train(const arma::mat& X, 
     const arma::vec& y) const {
     
     // get number of cols == n_features and number of samples
@@ -29,6 +29,7 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
     WeightInitializer weight_initializer;
     weight_initializer.Initialize(w, b, n_features);
 
+    // assigne X-shuffled and y_shuffled
     arma::mat X_shuffled = X;
     arma::vec y_shuffled = y;
 
@@ -54,9 +55,28 @@ void Perceptron<WeightInitializer>::fit(const arma::mat& X,
         iter++;
     }
 
-    this -> weights = w;
-    this -> bias = b;
+    w.resize(n_features + 1);
+    w(n_features) = b;
 
+    return w;
+}
+
+
+template<typename WeightInitializer>
+void Perceptron<WeightInitializer>::fit(const arma::mat& X, 
+    const arma::vec& y) {
+    
+    std::size_t n_features = X.n_cols;
+
+    arma::vec retval(n_features + 1, arma::fill::zeros);
+
+    retval = train(X, y);
+
+    weights = retval.subvec(0, n_features - 1);
+    bias = retval(n_features);
+
+    // std::cout << weights << std::endl;
+    // std::cout << bias << std::endl;
 }
 
 
@@ -65,15 +85,15 @@ const arma::mat Perceptron<WeightInitializer>::predict(
     const arma::mat& X) const {
 
     arma::vec y_pred = X * weights + bias;
+
     for(auto& value:y_pred) {
-        if (value > 0.5) {
-            value = 1;
+        if (value >= 0.0) {
+            value = 1.0;
         }
         else {
             value = 0;
         }
     }
-
     return y_pred;
 }
 
@@ -92,6 +112,5 @@ const double Perceptron<WeightInitializer>::score(
             acc++;
         }
     }
-
     return acc / n_samples;
 }
