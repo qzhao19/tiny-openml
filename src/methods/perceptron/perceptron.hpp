@@ -9,9 +9,7 @@
 
 namespace perceptron {
 
-template<typename WeightInitializer = RandInitializer>
 class Perceptron {
-
 public:
     /**
      * Default constructor, create the perceptron with given parameters having 
@@ -24,7 +22,7 @@ public:
      * @param tol The stopping criterion, default = 1e-3 
      * @param max_iter The maximum number of passes over the training data, default=1000
     */
-    Perceptron(): initializer("ones"), 
+    Perceptron(): initializer("rand"), 
         shuffle(true),
         alpha(0.1), 
         max_iter(1000) {};
@@ -76,8 +74,10 @@ protected:
         const arma::vec& w, 
         const double b) const;
 
+
+    template<typename WeightInitializer>
     const arma::vec train(const arma::mat &X, 
-        const arma::vec &y) const;
+        const arma::vec &y, WeightInitializer& weight_initializer) const;
 
     
 private:
