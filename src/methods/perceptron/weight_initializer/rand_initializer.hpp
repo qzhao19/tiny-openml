@@ -12,10 +12,12 @@ public:
         double& bias, 
         const std::size_t n_features) {
         
-        weights(n_features, fill::randn);
-        bias = (double)rand() / (double)(RAND_MAX / 1.0);;
-    };
+        arma::vec w(n_features, arma::fill::randu);
+        weights = w;
 
+        double b = (double)rand() / (double)(RAND_MAX / 1.0);
+        bias = b;
+    };
 };
 
 };
