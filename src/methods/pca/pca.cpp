@@ -16,14 +16,35 @@ void PCA::scale_data(arma::mat& X) {
     
 }
 
-template<typename DecompositionPolicy>
-const arma::mat PCA::train(const arma::mat& X, 
-        DecompositionPolicy& decomposition_policy) const {
-    
-    
+const arma::mat PCA::eig_train(const arma::mat& X) const {
+    arma::mat centered_X;
 
+    math::center(X, centered_X);
+
+    arma::vec eig_val;
+    arma::mat eig_vec;
+
+    EigPolicy eig;
+    eig.Apply(centered_X, eig_val, eig_vec);
+
+    return eig_vec.cols(n_components - 1, X.n_cols - 1);
 
 }
 
+template<typename DecompositionPolicy>
+const arma::mat PCA::svd_train(const arma::mat& X, 
+        DecompositionPolicy& decomposition_policy) const {
+    
+    arma::mat centered_X;
+    math::center(X, centered_X);
+
+    arma::mat U;
+    arma::vec s;
+    arma::mat V;
+
+    decomposition_policy.Apply(centered_X, U, s, V);
+
+    
+}
 
 
