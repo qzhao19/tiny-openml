@@ -1,63 +1,65 @@
-#ifndef METHOD_PCA_PCA_HPP
-#define METHOD_PCA_PCA_HPP
-#include "../../prereqs.hpp"
-#include "../../core.hpp"
+#include "pca.hpp"
 
-#include "decomposition_policies/eig_method.hpp"
-#include "decomposition_policies/exact_svd_method.hpp"
+using namespace math;
+using namespace pca;
 
-namespace pca{
+void PCA::scale_data(arma::mat& X) {
+    arma::vec scaled_vec = arma::stddev(X, 0, 1);
+    // if there are any zero, make them small
 
-class PCA {
-public:
+    for (std::size_t i = 0; i < scaled_vec.n_elem; i++) {
+        if (scaled_vec[i] == 0) {
+            scaled_vec[i] = 1e-30;
+        }
+    }
+    X = arma::repmat(scaled_vec, 1, X.n_cols);
+}
 
-    /**
-     * 
-    */
-    PCA(): solver("exact_svd"), 
-        n_components(2), 
-        scale(false) {};
-
-
-    PCA(std::string solver_, 
-        std::size_t n_components_, 
-        bool scale_): 
-            solver(solver_), 
-            n_components(n_components_), 
-            scale(scale_) {};
+const arma::mat PCA::eig_train(const arma::mat& X) const {
     
-    ~PCA() {};
+    arma::vec eig_val;
+    arma::mat eig_vec;
 
+    EigPolicy eig;
+    eig.Apply(X, eig_val, eig_vec);
 
-    void fit(const arma::mat& X);
+    eig_vec = arma::reverse(eig_vec, 1);
 
-protected:
-    /**
-     * 
-    */
-    template<typename DecompositionPolicy>
-    const arma::mat svd_train(const arma::mat& X, 
-        DecompositionPolicy& decomposition_policy) const;
+    return eig_vec.cols(0, n_components - 1);
 
-    const arma::mat eig_train(const arma::mat& X) const;
+}
 
-    /**
-     * Scaling the data is when we reduce the variance of each dimension to 1.
-    */
-    void scale_data(arma::mat& X);
-
-
-private:
-
-    arma::mat components;
-
-    std::string solver;
-
-    std::size_t n_components;
-
-    bool scale;
+template<typename DecompositionPolicy>
+const arma::mat PCA::svd_train(const arma::mat& X, 
+        DecompositionPolicy& decomposition_policy) const {
     
-};
+    arma::mat U;
+    arma::vec s;
+    arma::mat V;
 
-};
-#endif
+    decomposition_policy.Apply(X, U, s, V);
+    
+    return V.cols(0, n_components - 1);
+}
+
+void PCA::fit(const arma::mat& X) {
+
+    arma::mat retmat;
+    arma::mat centered_X;
+    math::center(X, centered_X);
+
+    if (scale) {
+        scale_data(centered_X);
+    }
+
+    if (solver == "auto") {
+        retmat = eig_train(centered_X);
+    }
+    else if (solver == "full_svd") {
+        ExactSvdPlicy svd_policy;
+        retmat = svd_train(centered_X, svd_policy);
+    }
+
+}
+
+
