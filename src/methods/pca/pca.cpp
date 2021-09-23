@@ -60,6 +60,12 @@ void PCA::fit(const arma::mat& X) {
         retmat = svd_train(centered_X, svd_policy);
     }
 
+    components = retmat;
 }
 
+const arma::mat PCA::transform(const arma::mat& X) {
+    arma::mat centered_X;
+    math::center(X, centered_X);
 
+    return centered_X * components; 
+}
