@@ -28,6 +28,10 @@ public:
     
     ~PCA() {};
 
+    void fit(const arma::mat& X);
+
+    const arma::mat transform(const arma::mat& X); 
+
 protected:
     /**
      * 
