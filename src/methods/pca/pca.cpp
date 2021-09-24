@@ -6,7 +6,6 @@ using namespace pca;
 void PCA::scale_data(arma::mat& X) {
     arma::vec scaled_vec = arma::stddev(X, 0, 1);
     // if there are any zero, make them small
-
     for (std::size_t i = 0; i < scaled_vec.n_elem; i++) {
         if (scaled_vec[i] == 0) {
             scaled_vec[i] = 1e-30;
