@@ -20,9 +20,7 @@ namespace math {
 */
 template<typename MatType>
 void svd_flip(MatType& U, MatType& V, bool u_based_decision = true) {
-
-    
-
+    arma::mat svd;
 };
 
 
@@ -34,19 +32,18 @@ void svd_flip(MatType& U, MatType& V, bool u_based_decision = true) {
  * @param X Input matrix 
 */
 template<typename MatType>
-double logdet(MatType& X) {
+double logdet(const MatType& X) {
 
     double val;
     double sign;
 
     arma::log_det(val, sign, X);
 
-    if (sign < 0) {
-        return -arma::datum::inf;
+    if (!(sign > 0)) {
+        return std::numeric_limits<double>::min();
     }
     return val;
 };
-
 
 
 
