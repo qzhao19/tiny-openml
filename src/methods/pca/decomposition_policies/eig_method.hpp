@@ -17,10 +17,11 @@ public:
         arma::vec& eig_val, 
         arma::mat& eig_vec) {
         
-        arma::eig_sym(eig_val, eig_vec, X);   
+        arma::mat X_new = (X.t() * X) / (X.n_rows - 1);
+
+        arma::eig_sym(eig_val, eig_vec, X_new);   
     };
 };
 
 };
-
 #endif
