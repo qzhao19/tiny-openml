@@ -1,93 +1,131 @@
-#ifndef METHOD_PCA_PCA_HPP
-#define METHOD_PCA_PCA_HPP
-#include "../../prereqs.hpp"
-#include "../../core.hpp"
+#include "pca.hpp"
 
-#include "decomposition_policies/eig_method.hpp"
-#include "decomposition_policies/exact_svd_method.hpp"
+using namespace math;
+using namespace pca;
 
-namespace pca{
-
-class PCA {
-public:
-
-    /**
-     * Default constructor to create PCA object, linear dimesionality reduction using SVD 
-     * of the data to project it to a lower dimesional space, input data shoule be centered 
-     * 
-     * @param solver the matrix decomnposition policies, if eig, will run eigen vector
-     * decomposition, if svd, will run full svd via arma::svd
-     * 
-     * @param n_components Number of components to keep
-     * @param scale Whether or not to scale the data.
-    */
-    PCA(): solver("full_svd"), 
-        n_components(2), 
-        scale(false) {};
+void PCA::scale_data(arma::mat& X) const {
+    arma::vec scaled_vec = arma::stddev(X, 0, 1);
+    // if there are any zero, make them small
+    for (std::size_t i = 0; i < scaled_vec.n_elem; i++) {
+        if (scaled_vec[i] == 0) {
+            scaled_vec[i] = std::numeric_limits<double>::max();;
+        }
+    }
+    X = arma::repmat(scaled_vec, 1, X.n_cols);
+}
 
 
-    PCA(std::string solver_, 
-        std::size_t n_components_, 
-        bool scale_): 
-            solver(solver_), 
-            n_components(n_components_), 
-            scale(scale_) {};
+const arma::vec PCA::score_samples(const arma::mat& X) const {
     
-    /**deconstructor*/
-    ~PCA() {};
+    arma::mat centered_X;
+    math::center(X, centered_X);
 
-    /**
-     * Apply Principal Component Analysis to the provided data set.
-     * @param X Dataset on which training should be performed
-    */
-    void fit(const arma::mat& X);
+    std::size_t n_features = centered_X.n_cols;
 
-    /**
-     * Apply dimensionality reduction to X.
-    */
-    const arma::mat transform(const arma::mat& X); 
+    arma::mat cov_X = arma::cov(centered_X);
 
-    /**
-     * Return the average log-likelihood of all samples.
-    */
-    const double score(const arma::mat& X);
-
-protected:
-    /**
-     * Using SVD method 
-    */
-    template<typename DecompositionPolicy>
-    const arma::mat svd_train(const arma::mat& X, 
-        DecompositionPolicy& decomposition_policy);
-
-    const arma::mat eig_train(const arma::mat& X);
-
-    /**
-     * Scaling the data is when we reduce the variance of each dimension to 1.
-    */
-    void scale_data(arma::mat& X) const;
-
-    /**
-     * Return the log-likelihood of each sample.
-    */
-    const arma::vec score_samples(const arma::mat& X) const;
-
-
-private:
-
-    arma::mat components;
-
-    arma::rowvec explained_var;
-
-    arma::rowvec explained_var_ratio;
-
-    std::string solver;
-
-    std::size_t n_components;
-
-    bool scale;
+    arma::mat precision = arma::pinv(cov_X);
     
-};
+    arma::vec log_like;
 
-};
-#endif
+    log_like = -0.5 * arma::sum((centered_X * arma::trans(centered_X * precision)), 1);
+
+    log_like -= -0.5 * (n_features * std::log(2.0 * arma::datum::pi) - math::logdet(precision));
+
+    return log_like;
+
+}
+
+const arma::mat PCA::eig_train(const arma::mat& X) {
+    
+    arma::vec eig_val;
+    arma::mat eig_vec;
+
+    EigPolicy eig;
+    eig.Apply(X, eig_val, eig_vec);
+
+    eig_vec = arma::reverse(eig_vec, 1);
+
+    // calc explained variance 
+    std::size_t n_samples = X.n_rows;
+    arma::vec explained_var_ = arma::pow(eig_val, 2) / (n_samples - 1);
+
+    double total_var = arma::sum(explained_var_);
+
+    arma::vec explained_var_ratio_ = explained_var_ / total_var;
+
+    // get expalined variance and explained variance rotion, convert its to rowvec
+    
+    explained_var = arma::conv_to<arma::rowvec>::from(explained_var_);
+    explained_var_ratio = arma::conv_to<arma::rowvec>::from(explained_var_ratio_);
+
+
+    return eig_vec.cols(0, n_components - 1);
+
+}
+
+template<typename DecompositionPolicy>
+const arma::mat PCA::svd_train(const arma::mat& X, 
+        DecompositionPolicy& decomposition_policy) {
+    
+    arma::mat U;
+    arma::vec s;
+    arma::mat Vt;
+
+    std::size_t n_samples = X_new.n_rows;
+
+    decomposition_policy.Apply(X, U, s, Vt);
+
+    // calc explained variance 
+    arma::vec explained_var_ = arma::pow(s, 2) / (n_samples - 1);
+
+    double total_var = arma::sum(explained_var_);
+
+    arma::vec explained_var_ratio_ = explained_var_ / total_var;
+
+    // get expalined variance and explained variance rotion, convert its to rowvec
+    explained_var = arma::conv_to<arma::rowvec>::from(explained_var_);
+    explained_var_ratio = arma::conv_to<arma::rowvec>::from(explained_var_ratio_);
+    
+
+    return Vt.cols(0, n_components - 1);
+}
+
+void PCA::fit(const arma::mat& X) {
+
+    arma::mat retmat;
+    arma::mat centered_X;
+    math::center(X, centered_X);
+
+    if (scale) {
+        scale_data(centered_X);
+    }
+
+    if (solver == "eig") {
+        retmat = eig_train(centered_X);
+    }
+    else if (solver == "full_svd") {
+        ExactSvdPlicy svd_policy;
+        retmat = svd_train(centered_X, svd_policy);
+    }
+
+    components = retmat;
+}
+
+const arma::mat PCA::transform(const arma::mat& X) {
+    arma::mat centered_X;
+    math::center(X, centered_X);
+
+    return centered_X * components; 
+}
+
+
+const double PCA::score(const arma::mat& X) {
+
+    arma::vec log_like;
+
+    log_like = score_samples(X);
+
+    return arma::mean(log_like);
+
+}
