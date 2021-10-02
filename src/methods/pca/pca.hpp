@@ -58,9 +58,9 @@ protected:
     */
     template<typename DecompositionPolicy>
     const arma::mat svd_train(const arma::mat& X, 
-        DecompositionPolicy& decomposition_policy) const;
+        DecompositionPolicy& decomposition_policy);
 
-    const arma::mat eig_train(const arma::mat& X) const;
+    const arma::mat eig_train(const arma::mat& X);
 
     /**
      * Scaling the data is when we reduce the variance of each dimension to 1.
