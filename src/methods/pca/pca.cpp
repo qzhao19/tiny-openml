@@ -48,6 +48,7 @@ const arma::mat PCA::eig_train(const arma::mat& X) {
 
     // calc explained variance 
     std::size_t n_samples = X.n_rows;
+    std::size_t n_features = X.n_cols;
     arma::vec explained_var_ = arma::pow(eig_val, 2) / (n_samples - 1);
 
     double total_var = arma::sum(explained_var_);
@@ -58,6 +59,14 @@ const arma::mat PCA::eig_train(const arma::mat& X) {
     
     explained_var = arma::conv_to<arma::rowvec>::from(explained_var_);
     explained_var_ratio = arma::conv_to<arma::rowvec>::from(explained_var_ratio_);
+
+    
+    if (n_components < std::min(n_samples, n_features)) {
+        noise_variance = arma::mean(explained_var.cols(0, n_components - 1));
+    }
+    else {
+        noise_variance = 0.0;
+    }
 
 
     return eig_vec.cols(0, n_components - 1);
@@ -87,6 +96,12 @@ const arma::mat PCA::svd_train(const arma::mat& X,
     explained_var = arma::conv_to<arma::rowvec>::from(explained_var_);
     explained_var_ratio = arma::conv_to<arma::rowvec>::from(explained_var_ratio_);
     
+    if (n_components < std::min(n_samples, n_features)) {
+        noise_variance = arma::mean(explained_var.cols(0, n_components - 1));
+    }
+    else {
+        noise_variance = 0.0;
+    }
 
     return Vt.cols(0, n_components - 1);
 }
