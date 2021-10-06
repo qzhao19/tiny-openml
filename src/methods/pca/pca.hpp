@@ -52,6 +52,18 @@ public:
     */
     const double score(const arma::mat& X);
 
+    /**
+     * Compute data covariance with the generative model.
+     * cov = components_.T * S**2 * components_ + sigma2 * eye(n_features) 
+     * where S**2 contains the explained variances, and sigma2 contains the
+     * noise variances
+     * 
+     * @return cov: array of shape=(n_features, n_features) 
+     *              Estimated covariance of data.
+    */
+    arma::mat get_covariance();
+
+
 protected:
     /**
      * Using SVD method 
@@ -84,6 +96,8 @@ private:
     std::string solver;
 
     std::size_t n_components;
+
+    double noise_variance;
 
     bool scale;
     
