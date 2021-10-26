@@ -1,4 +1,4 @@
-# Open-ML-Package (ing...)
+# tiny-OpenML (ing...)
 The tiny-openml is an open-source machine learning library, it aims to provide fast, simple machine learning tools for data analysis. 
 
 
