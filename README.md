@@ -1,5 +1,5 @@
 # Open-ML-Package (ing...)
-The open-ml-package is an open-source machine learning library, it aims to provide fast, simple machine learning tools for data analysis. 
+The tiny-openml is an open-source machine learning library, it aims to provide fast, simple machine learning tools for data analysis. 
 
 
 # Overview
