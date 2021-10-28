@@ -81,7 +81,8 @@ const arma::mat PCA::svd_train(const arma::mat& X,
     arma::vec s;
     arma::mat Vt;
 
-    std::size_t n_samples = X_new.n_rows;
+    std::size_t n_samples = X.n_rows;
+    std::size_t n_features = X.n_cols;
 
     decomposition_policy.Apply(X, U, s, Vt);
 
@@ -136,11 +137,29 @@ const arma::mat PCA::transform(const arma::mat& X) {
 
 
 const double PCA::score(const arma::mat& X) {
-
     arma::vec log_like;
-
     log_like = score_samples(X);
-
     return arma::mean(log_like);
 
 }
+
+/**
+ * cov = components_.T * S**2 * components_ + sigma2 * eye(n_features)
+ * where S**2 contains the explained variances, and sigma2 contains the 
+ * noise variances.
+*/
+arma::mat PCA::get_covariance() {
+
+    std::size_t n_features = explained_var.n_cols;
+
+    arma::mat cov;
+
+    arma::rowvec exp_var_square = arma::pow(explained_var, 2);
+
+    cov = components.t() * exp_var_square * components ;
+
+    cov += (arma::eye(n_features, n_features) * noise_variance);
+
+    return cov;
+}
+
