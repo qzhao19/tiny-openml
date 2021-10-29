@@ -137,8 +137,11 @@ const arma::mat PCA::transform(const arma::mat& X) {
 
 
 const double PCA::score(const arma::mat& X) {
+
     arma::vec log_like;
+
     log_like = score_samples(X);
+
     return arma::mean(log_like);
 
 }
@@ -150,14 +153,18 @@ const double PCA::score(const arma::mat& X) {
 */
 arma::mat PCA::get_covariance() {
 
-    std::size_t n_features = explained_var.n_cols;
+    std::size_t n_features = explained_var.n_elem;
 
+    // exp_var is a vector, so need to convert it to a diag matrix 
+    // then get the submatrix with the shape of [n_componenets, n_componenets] 
+    // which contains the explained var
+    arma::mat exp_var_ = arma::diagmat(explained_var);
+    arma::mat exp_var = exp_var_.submat(0, 0, n_components - 1, n_components - 1);
+    arma::mat exp_var_square = arma::pow(exp_var, 2);
+
+    // calc the conv
     arma::mat cov;
-
-    arma::rowvec exp_var_square = arma::pow(explained_var, 2);
-
-    cov = components.t() * exp_var_square * components ;
-
+    cov = components * exp_var_square * components.t();
     cov += (arma::eye(n_features, n_features) * noise_variance);
 
     return cov;
