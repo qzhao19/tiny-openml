@@ -12,24 +12,25 @@ public:
 
     NaiveBayes(): var_smoothing(1e-9) {};
 
-
+    ~NaiveBayes() {};
 
 protected:
 
     /**
      * Compute the unnormalized prior log probability of y
-     * I.e. ``log P(c)``
+     * I.e. ``log P(c)`` as an array-like of shape 
+     * (n_classes, n_samples).
     */
     void get_log_class_prior_prob(const arma::vec& y);
     
+    /**
+     * Compute online update of Gaussian mean and variance.
+    */
     void update_mean_variance(const arma::mat& X, 
         const arma::vec& y);
 
 
 private:
-
-
-
     arma::vec log_class_prior_prob;
 
     arma::vec means;
