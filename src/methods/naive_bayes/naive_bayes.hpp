@@ -31,15 +31,21 @@ protected:
 
 
 private:
+    /**
+     * @param log_class_prior_prob Vector for log prior probabilty for each class 
+     * @param means Matrix of shape [n_classes, n_feature], measn of each feature for
+     *              different class
+     * @param vars  Matrix of shape [n_classes, n_feature], variances of each feature for
+     *              different class
+     * @param label_map Hash map containing each label and their count numbers 
+    */
     arma::vec log_class_prior_prob;
 
-    arma::vec means;
+    arma::mat means;
 
-    arma::vec vars;
+    arma::mat vars;
 
-
-    std::unordered_map<double, int> label_map;
-
+    std::unordered_map<double, double> label_map;
 
     bool fit_prior;
 
