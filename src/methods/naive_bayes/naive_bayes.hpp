@@ -3,9 +3,7 @@
 #include "../../core.hpp"
 #include "../../prereqs.hpp"
 
-
 namespace naive_bayes {
-
 
 class NaiveBayes {
 public:
@@ -27,6 +25,9 @@ protected:
      * Compute online update of Gaussian mean and variance.
     */
     void update_mean_variance(const arma::mat& X, 
+        const arma::vec& y);
+
+    void gaussian_train(const arma::mat& X, 
         const arma::vec& y);
 
 
@@ -55,8 +56,6 @@ private:
 
     int n_classes;
 
-    
-    
 
 };
 
