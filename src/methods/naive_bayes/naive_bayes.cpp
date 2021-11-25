@@ -21,9 +21,7 @@ void NaiveBayes::get_log_class_prior_prob(const arma::vec& y) {
 
     log_class_prior_prob = arma::conv_to<arma::vec>::from(class_prior_prob);
     log_class_prior_prob = arma::log(log_class_prior_prob);
-
 }
-
 
 void NaiveBayes::update_mean_variance(const arma::mat& X, 
     const arma::vec& y) {
@@ -43,8 +41,16 @@ void NaiveBayes::update_mean_variance(const arma::mat& X,
     }
 }
 
+void NaiveBayes::gaussian_train(const arma::mat& X, 
+    const arma::vec& y) {
 
+    get_log_class_prior_prob(y);
 
+    update_mean_variance(X, y);
+
+    vars = vars + var_smoothing * vars.max();
+
+}
 
 
 
