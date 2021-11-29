@@ -12,6 +12,9 @@ public:
 
     ~NaiveBayes() {};
 
+    void fit(const arma::mat& X, 
+        const arma::vec& y);
+
 protected:
 
     /**
@@ -30,6 +33,8 @@ protected:
     void gaussian_train(const arma::mat& X, 
         const arma::vec& y);
 
+
+    void gaussian_predict(const arma::vec& y);
 
 private:
     /**
