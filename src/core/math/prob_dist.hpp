@@ -13,12 +13,12 @@ namespace math {
  * @param retval DataType, return gaussiance value 
 */
 template<typename DataType>
-void gaussian(const DataType& X, 
+void gaussian_fn(const DataType& x, 
     const DataType& u, 
     const DataType& v, 
     DataType& retval) {
     
-    retval = -(x - u) ** 2 / (2 * v) - log(sqrt(2 * arma::datum::pi * v))
+    retval = std::pow(-(x - u), 2) / (2.0 * v) - std::log(std::sqrt(2.0 * arma::datum::pi * v));
 };
 
 
