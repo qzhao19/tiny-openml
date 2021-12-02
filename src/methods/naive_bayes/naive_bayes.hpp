@@ -8,12 +8,27 @@ namespace naive_bayes {
 class NaiveBayes {
 public:
 
-    NaiveBayes(): var_smoothing(1e-9) {};
+    NaiveBayes(): solver("gaussian"), 
+        var_smoothing(1e-9) {};
 
+
+    NaiveBayes(const std::string solver_, 
+        const double var_smoothing_) :
+            solver(solver_),
+            var_smoothing(var_smoothing_) {}
+    
+    
     ~NaiveBayes() {};
 
     void fit(const arma::mat& X, 
         const arma::vec& y);
+
+    const arma::vec predict(const arma::mat& X);
+
+    const arma::mat predict_prob(const arma::mat& X);
+
+    const arma::mat predict_log_prob(const arma::mat& X);
+
 
 protected:
 
@@ -30,15 +45,16 @@ protected:
     void update_mean_variance(const arma::mat& X, 
         const arma::vec& y);
 
-    void gaussian_train(const arma::mat& X, 
-        const arma::vec& y);
+    const arma::vec joint_log_likelihood(const arma::rowvec& x) const;
 
+    const std::pair<double, arma::vec> predict_prob_label(const arma::rowvec& x) const;
 
-    void gaussian_predict(const arma::vec& y);
+    // void predict_X(const arma::mat& X);
 
 private:
     /**
      * @param log_class_prior_prob Vector for log prior probabilty for each class 
+     * @param log_prob  
      * @param means Matrix of shape [n_classes, n_feature], measn of each feature for
      *              different class
      * @param vars  Matrix of shape [n_classes, n_feature], variances of each feature for
@@ -47,11 +63,15 @@ private:
     */
     arma::vec log_class_prior_prob;
 
+    arma::mat log_joint_prob;
+
     arma::mat means;
 
     arma::mat vars;
 
-    std::unordered_map<double, double> label_map;
+    std::map<double, double> label_map;
+
+    std::string solver;
 
     bool fit_prior;
 
