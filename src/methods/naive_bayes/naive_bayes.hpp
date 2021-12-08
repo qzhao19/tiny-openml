@@ -9,13 +9,16 @@ class NaiveBayes {
 public:
 
     NaiveBayes(): solver("gaussian"), 
-        var_smoothing(1e-9) {};
+        var_smoothing(1e-9), 
+        alpha(0.0) {};
 
 
     NaiveBayes(const std::string solver_, 
-        const double var_smoothing_) :
+        const double var_smoothing_, 
+        const double alpha_) :
             solver(solver_),
-            var_smoothing(var_smoothing_) {}
+            var_smoothing(var_smoothing_), 
+            alpha(alpha_) {}
     
     
     ~NaiveBayes() {};
@@ -61,13 +64,20 @@ private:
      *              different class
      * @param label_map Hash map containing each label and their count numbers 
     */
-    arma::vec log_class_prior_prob;
-
+    
     arma::mat log_joint_prob;
 
     arma::mat means;
 
     arma::mat vars;
+
+    arma::vec log_class_prior_prob;
+
+    arma::vec feature_count;
+
+    arma::vec class_count;
+
+    arma::vec feature_log_prob;
 
     std::map<double, double> label_map;
 
@@ -77,7 +87,7 @@ private:
 
     double var_smoothing;
 
-    double binarize;
+    double alpha;
 
     int n_classes;
 
