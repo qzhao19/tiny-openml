@@ -1,6 +1,7 @@
 #ifndef METHOD_LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #define METHOD_LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #include "../../prereqs.hpp"
+#include "../../core.hpp"
 
 namespace regression {
 
@@ -11,7 +12,9 @@ public:
      * empty constructor, we initialize the default value of 
      * the lambda and intercedpt 0.0 and true
     */
-    LinearRegression(): lambda(0.0), intercept(true) {};
+    LinearRegression(): lambda(0.1), 
+        intercept(true), 
+        penality("l2") {};
 
     /**
      * Non-empty constructor, create the model with lamnda and intercept
@@ -20,8 +23,9 @@ public:
      * @param intercept, whether or not to include an intercept term
     */
     LinearRegression(const double lambda_, 
-                     const bool intercept_): 
-        lambda(lambda_), intercept(intercept_) {};
+                     const bool intercept_, 
+                     const std::string penality_): 
+        lambda(lambda_), intercept(intercept_), penality(penality_) {};
 
     /**deconstructor*/
     ~LinearRegression() {};
@@ -73,7 +77,7 @@ public:
 	/**
      * Return the training params theta, 
     */
-    const arma::vec& get_theta() const;
+    const arma::vec& get_coef() const;
     
 protected:
 
@@ -84,11 +88,13 @@ protected:
      * @param y the label to the dataset
      * @param weights observation weights 
     */
-    void train(const arma::mat &X, const arma::vec &y, const arma::vec &weights);
+    void fit_(const arma::mat &X, 
+        const arma::vec &y, 
+        const arma::vec &weights);
 
 private:
     /**
-     * @param theta: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
+     * @param W: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
      * calculate, initialized and filled by constructor for the least square method
      * 
      * @param lambda: double, default = 0.0. the Tikhonov regularization parameter for ridge 
@@ -97,10 +103,13 @@ private:
      * 
      * @param intercept: bool, default = True. whether to fit the intercept for the model. 
      * 
+     * @param penality string, Specify the norm of the penalty, {"l2"}
     */
-    arma::vec theta;
+    arma::vec W;
 
     double lambda;
+
+    std::string penality;
     
     bool intercept;
 
