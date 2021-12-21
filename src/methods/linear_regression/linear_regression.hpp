@@ -14,7 +14,7 @@ public:
     */
     LinearRegression(): lambda(0.1), 
         intercept(true), 
-        penality("l2") {};
+        penalty("l2") {};
 
     /**
      * Non-empty constructor, create the model with lamnda and intercept
@@ -24,8 +24,8 @@ public:
     */
     LinearRegression(const double lambda_, 
                      const bool intercept_, 
-                     const std::string penality_): 
-        lambda(lambda_), intercept(intercept_), penality(penality_) {};
+                     const std::string penalty_): 
+        lambda(lambda_), intercept(intercept_), penalty(penalty_) {};
 
     /**deconstructor*/
     ~LinearRegression() {};
@@ -103,13 +103,13 @@ private:
      * 
      * @param intercept: bool, default = True. whether to fit the intercept for the model. 
      * 
-     * @param penality string, Specify the norm of the penalty, {"l2"}
+     * @param penalty  string, Specify the norm of the penalty, {"l2"}
     */
     arma::vec W;
 
     double lambda;
 
-    std::string penality;
+    std::string penalty ;
     
     bool intercept;
 
