@@ -7,6 +7,7 @@ void LinearRegression::fit_(const arma::mat &X,
                             const arma::vec &weights) {
     /**
      * Calculate the closed form solution
+     * 
      * theta = (X.T * X + lambda * I)^(-1) * X.T * y
     */
     const std::size_t n_samples = X.n_rows;
@@ -23,12 +24,12 @@ void LinearRegression::fit_(const arma::mat &X,
     }
     
     arma::mat identifty_mat = arma::eye<arma::mat>(X_.n_cols, X_.n_cols);
-    if (penalty.empty()) {
-        arma::mat pseudo_inv = arma::inv(X_.t() * X_);
+    if (penalty.compare("l2")) {
+        arma::mat pseudo_inv = arma::inv(X_.t() * X_ + this -> lambda * identifty_mat);
         W = pseudo_inv * X_.t() * y_;
     }
     else {
-        arma::mat pseudo_inv = arma::inv(X_.t() * X_ + this -> lambda * identifty_mat);
+        arma::mat pseudo_inv = arma::inv(X_.t() * X_);
         W = pseudo_inv * X_.t() * y_;
     }
     // W = arma::inv(pseudo_inv) * X_.t() * y_;
