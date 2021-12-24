@@ -3,6 +3,8 @@
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
+using namespace math;
+
 namespace data {
 
 /**
@@ -28,7 +30,7 @@ std::tuple<MatType, MatType, VecType, VecType> train_test_split(const MatType& X
     arma::vec y_ = y;
 
     if (shuffle) {
-        shuffle_data(X, y, X_, y_);
+        math::shuffle_data(X, y, X_, y_);
     }
 
     int n_train_samples = n_samples * train_size;
