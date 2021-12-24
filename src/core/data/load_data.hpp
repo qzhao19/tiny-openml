@@ -3,9 +3,18 @@
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
+namespace data {
+
+/**
+ * load dataset from a txt file
+ * @param fp String the given filepath 
+ * 
+ * @return tuple(X, y), X ndarray of shape (n_samples, n_features)
+ *         y ndarray of shape (n_sample, )
+*/
 template<typename DataType>
-void loadtxt(const std::string &filename, arma::mat& retmat) {
-    std::ifstream fin(filename);
+std::tuple<arma::mat, arma::vec> loadtxt(const std::string &fp) {
+    std::ifstream fin(fp);
     
     // first goal: Figure out how many columns there are
     // by reading in and parsing the first line of the file
@@ -40,10 +49,15 @@ void loadtxt(const std::string &filename, arma::mat& retmat) {
         }
     }
 
-    arma::mat retmat_(&data[0][0], data.size(), data[0].size(), false, false);
-    retmat = retmat_;
+    arma::mat matrix(&data[0][0], data.size(), data[0].size(), false, false);
+    std::size_t n_features = matrix.n_cols;
+
+    arma::mat X = matrix.head_cols(n_features - 1);
+    arma::vec y = matrix.tail_cols(1);
+    
+    return std::make_tuple(X, y);
+
 }
-
-
+}
 
 #endif
