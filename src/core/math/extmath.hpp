@@ -33,10 +33,8 @@ void svd_flip(MatType& U, MatType& V, bool u_based_decision = true) {
 */
 template<typename MatType>
 double logdet(const MatType& X) {
-
     double val;
     double sign;
-
     arma::log_det(val, sign, X);
 
     if (!(sign > 0)) {
@@ -45,7 +43,16 @@ double logdet(const MatType& X) {
     return val;
 };
 
-
+/**
+ * flatten a vector of vector to a one dimension vector
+*/
+template<typename Type, typename = typename Type::value_type>
+Type flatten(const std::vector<Type>& v) {
+    return std::accumulate(v.begin(), v.end(), Type{}, [](auto& dest, auto& src) {
+        dest.insert(dest.end(), src.begin(), src.end());
+        return dest;
+    });
+}
 
 };
 #endif
