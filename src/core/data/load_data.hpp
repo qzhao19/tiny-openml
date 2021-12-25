@@ -2,6 +2,7 @@
 #define CORE_DATA_LOAD_DATA_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
+using namespace math;
 
 namespace data {
 
@@ -14,50 +15,32 @@ namespace data {
 */
 template<typename DataType>
 std::tuple<arma::mat, arma::vec> loadtxt(const std::string &fp) {
-    std::ifstream fin(fp);
-    
-    // first goal: Figure out how many columns there are
-    // by reading in and parsing the first line of the file
-    std::vector<std::vector<DataType>> data;
-    std::string first_line;
-    std::getline(fin, first_line);
-    std::istringstream iss(first_line); // used to separate each element in the line
-    
-    DataType elem;
-    while (iss >> elem){
+    std::vector<std::vector<DataType>> stdmat;
+
+    std::ifstream file_in(fp);
+    for (std::string line; std::getline(file_in, line); ) {
+        std::stringstream ss(line);
         std::vector<DataType> row;
-        data.push_back(row); // add empty sequence
-        data.back().push_back(elem); // insert first element
-    }
-    
-    // First line and all sequences are now created.
-    // Now we just loop for the rest of the way.
-    bool end = false;
-    while (!end){
-        for (size_t i = 0; i < data.size(); i++){
-            DataType elem;
-            if (fin >> elem){
-                data[i].push_back(elem);
-            }
-            else{
-                // end of data.
-                // could do extra error checking after this
-                // to make sure the columns are all equal in size
-                end = true;
-                break;
-            } 
+
+        for (DataType elem; ss >> elem; ) {
+            row.push_back(elem);
         }
+        stdmat.push_back(row);
     }
 
-    arma::mat matrix(&data[0][0], data.size(), data[0].size(), false, false);
-    std::size_t n_features = matrix.n_cols;
+    std::size_t n_samples = stdmat.size(), n_features = stdmat[0].size();
+    arma::mat data;
+    for (std::size_t i = 0; i < n_samples; i++) {
+        arma::rowvec row = arma::conv_to<arma::rowvec>::from(stdmat[i]);
+        data.insert_rows(i, row);
+    }
 
-    arma::mat X = matrix.head_cols(n_features - 1);
-    arma::vec y = matrix.tail_cols(1);
+    arma::mat X = data.head_cols(n_features - 1);
+    arma::vec y = data.tail_cols(1);
     
     return std::make_tuple(X, y);
+    
+};
 
 }
-}
-
 #endif
