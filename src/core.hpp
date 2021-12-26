@@ -8,8 +8,10 @@
 
 #include "../src/core/utility/utils.hpp"
 
-
 #include "../src/core/data/load_data.hpp"
 #include "../src/core/data/split_data.hpp"
+
+#include "../src/core/loss/log_loss.hpp"
+#include "../src/core/loss/mean_squared_error.hpp"
 
 #endif
