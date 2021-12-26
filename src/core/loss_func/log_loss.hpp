@@ -1,5 +1,5 @@
-#ifndef CORE_LOSS_FUNC_LOG_LOSS_HPP
-#define CORE_LOSS_FUNC_LOG_LOSS_HPP
+#ifndef CORE_LOSS_LOG_LOSS_HPP
+#define CORE_LOSS_LOG_LOSS_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 using namespace math;
@@ -23,7 +23,6 @@ public:
      * deconstructor
     */
     ~LogLoss() {};
-
 
     /**
      * shuffle the dataset and associated label, when we apply the SGD method.
@@ -103,7 +102,6 @@ public:
         grads = X.t() * (sigmoid - y) + penalty;
     };
 
-
     /**
      * Evaluate the gradient of logistic regression log-likelihood function with the given 
      * parameters using the given batch size from the given point index. This is specificly
@@ -126,7 +124,6 @@ public:
         // regularization term penalty = lambda * batch_size / 2 * m * sum(W**2), here m = n_features
         const double penalty = ((lambda * batch_size) / (2.0 * n_features)) * 
             arma::dot(W, W);
-
 
         // define dataset of one batch and vector of label associated
         arma::mat X_batch = X.rows(begin, begin + batch_size - 1);
