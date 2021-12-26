@@ -1,5 +1,5 @@
-#ifndef CORE_LOSS_FUNC_MEAN_SQUARED_ERROR_HPP
-#define CORE_LOSS_FUNC_MEAN_SQUARED_ERROR_HPP
+#ifndef CORE_LOSS_MEAN_SQUARED_ERROR_HPP
+#define CORE_LOSS_MEAN_SQUARED_ERROR_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 using namespace math;
