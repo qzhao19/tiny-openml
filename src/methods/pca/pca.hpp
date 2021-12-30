@@ -63,16 +63,20 @@ public:
     */
     arma::mat get_covariance();
 
-
 protected:
     /**
      * Using SVD method 
     */
     template<typename DecompositionPolicy>
-    const arma::mat svd_train(const arma::mat& X, 
+    const arma::mat svd_fit(const arma::mat& X, 
         DecompositionPolicy& decomposition_policy);
 
-    const arma::mat eig_train(const arma::mat& X);
+    /**
+     * Eigen vector method
+    */
+    template<typename DecompositionPolicy>
+    const arma::mat eig_fit(const arma::mat& X, 
+        DecompositionPolicy& decomposition_policy);
 
     /**
      * Scaling the data is when we reduce the variance of each dimension to 1.
@@ -86,7 +90,6 @@ protected:
 
 
 private:
-
     arma::mat components;
 
     arma::rowvec explained_var;
