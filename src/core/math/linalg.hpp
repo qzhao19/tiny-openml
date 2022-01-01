@@ -42,6 +42,7 @@ std::tuple<MatType, VecType, MatType> svd(const MatType& X,
     else {
         arma::svd_econ(U, s, Vt, X);
     }
+    s %= s / (X.n_cols - 1);
     return std::make_tuple(U, s, Vt)
 };
 
