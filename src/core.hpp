@@ -2,7 +2,7 @@
 #define CORE_HPP
 
 #include "../src/core/math/shuffle_data.hpp"
-#include "../src/core/math/lin_alg.hpp"
+#include "../src/core/math/linalg.hpp"
 #include "../src/core/math/extmath.hpp"
 #include "../src/core/math/prob_dist.hpp"
 
