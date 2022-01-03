@@ -31,7 +31,6 @@ public:
     void Shuffle() {
         arma::mat output_X;
         arma::vec output_y;
-
         math::shuffle_data(X, y, output_X, output_y);
     };
 
@@ -70,7 +69,6 @@ public:
         // -1 / n_features 
         const double cost_fn = -0.5 * (arma::dot(y, arma::log(sigmoid)) + 
             arma::dot(1 - y, arma::log(1 - sigmoid)));
-
         return cost_fn + penalty;
     };
 
@@ -94,11 +92,8 @@ public:
 
         // define the sigmoid function h(x) = 1 / (1 + exp(w'x))
         const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X * W));
-
         arma::mat penalty = lambda * W / n_features;
-
         grads.set_size(arma::size(W));
-
         grads = X.t() * (sigmoid - y) + penalty;
     };
 
@@ -154,7 +149,6 @@ public:
          *      gradient = (1 / m) * sum(sigmoid(x) - y) + (lambda / m) * W
         */
         const int n_features = X.n_cols;
-
         arma::mat penalty = lambda * W / n_features * batch_size;
 
         // define dataset of one batch and vector of label associated
@@ -162,9 +156,7 @@ public:
         arma::vec y_batch = y.rows(begin, begin + batch_size - 1);
 
         const arma::vec sigmoid = 1.0 / (1.0 + arma::exp(-1 * X_batch * W));
-
         grads.set_size(arma::size(W));
-
         grads = X_batch.t() * (sigmoid - y_batch) + penalty;
     }
     
@@ -172,8 +164,8 @@ public:
     std::size_t NumFunctions() const { return X.n_cols; }
 
 private:
-    const arma::mat &X;
-    const arma::vec &y;
+    arma::mat X;
+    arma::vec y;
     double lambda;
     
 };
