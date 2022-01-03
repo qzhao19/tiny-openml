@@ -14,9 +14,7 @@ void PCA::scale_data(arma::mat& X) const {
     X = arma::repmat(scaled_vec, 1, X.n_cols);
 }
 
-
 const arma::vec PCA::score_samples(const arma::mat& X) const {
-    
     arma::mat centered_X;
     math::center(X, centered_X);
     std::size_t n_features = centered_X.n_cols;
@@ -29,59 +27,29 @@ const arma::vec PCA::score_samples(const arma::mat& X) const {
     log_like -= -0.5 * (n_features * std::log(2.0 * arma::datum::pi) - math::logdet(precision));
 
     return log_like;
-
 }
 
-template<typename DecompositionPolicy>
-const arma::mat PCA::eig_fit(const arma::mat& X, 
-    DecompositionPolicy& decomposition_policy) {
-    
-    arma::vec eig_val;
-    arma::mat eig_vec;
-
-    // EigPolicy eig;
-    decomposition_policy.Apply(X, eig_val, eig_vec);
-
-    eig_vec = arma::reverse(eig_vec, 1);
-
-    // calc explained variance 
-    std::size_t n_samples = X.n_rows;
-    std::size_t n_features = X.n_cols;
-    arma::vec explained_var_ = arma::pow(eig_val, 2) / (n_samples - 1);
-
-    double total_var = arma::sum(explained_var_);
-    arma::vec explained_var_ratio_ = explained_var_ / total_var;
-
-    // get expalined variance and explained variance rotion, convert its to rowvec
-    explained_var = arma::conv_to<arma::rowvec>::from(explained_var_);
-    explained_var_ratio = arma::conv_to<arma::rowvec>::from(explained_var_ratio_);
-
-    if (n_components < std::min(n_samples, n_features)) {
-        noise_variance = arma::mean(explained_var.cols(0, n_components - 1));
-    }
-    else {
-        noise_variance = 0.0;
-    }
-
-    return eig_vec.cols(0, n_components - 1);
-
-}
-
-template<typename DecompositionPolicy>
-const arma::mat PCA::svd_fit(const arma::mat& X, 
-    DecompositionPolicy& decomposition_policy) {
-    
-    arma::mat U;
-    arma::vec s;
-    arma::mat Vt;
-
+void PCA::fit_(const arma::mat& X) {
     std::size_t n_samples = X.n_rows;
     std::size_t n_features = X.n_cols;
 
-    decomposition_policy.Apply(X, U, s, Vt);
+    arma::vec explained_var_;
 
-    // calc explained variance 
-    arma::vec explained_var_ = arma::pow(s, 2) / (n_samples - 1);
+    if (solver == "svd") {
+        arma::mat U;
+        arma::vec s;
+        arma::mat Vt;
+
+        std::tie(U, s, Vt) = math::svd<arma::mat, arma::vec>(X);
+        
+        //  math::svd(X, U, s, Vt);
+
+        // flip eigenvectors' sign to enforce deterministic output
+        std::tie(U, Vt) = math::svd_flip<arma::mat>(U, Vt);
+        
+        explained_var_ = arma::pow(s, 2) / (static_cast<double>(n_samples) - 1.);
+        components = Vt.cols(0, n_components - 1);
+    }
     double total_var = arma::sum(explained_var_);
     arma::vec explained_var_ratio_ = explained_var_ / total_var;
 
@@ -95,28 +63,12 @@ const arma::mat PCA::svd_fit(const arma::mat& X,
     else {
         noise_variance = 0.0;
     }
-    return Vt.cols(0, n_components - 1);
 }
 
 void PCA::fit(const arma::mat& X) {
-
-    arma::mat retmat;
     arma::mat centered_X;
     math::center(X, centered_X);
-
-    if (scale) {
-        scale_data(centered_X);
-    }
-
-    if (solver == "eig") {
-        EigPolicy eig_policy;
-        retmat = eig_fit(centered_X, eig_policy);
-    }
-    else if (solver == "full_svd") {
-        ExactSvdPlicy svd_policy;
-        retmat = svd_fit(centered_X, svd_policy);
-    }
-    components = retmat;
+    fit_(centered_X);
 }
 
 const arma::mat PCA::transform(const arma::mat& X) {
@@ -126,10 +78,10 @@ const arma::mat PCA::transform(const arma::mat& X) {
     return centered_X * components; 
 }
 
-
 const double PCA::score(const arma::mat& X) {
     arma::vec log_like;
     log_like = score_samples(X);
+
     return arma::mean(log_like);
 }
 
@@ -156,4 +108,3 @@ arma::mat PCA::get_covariance() {
 
     return cov;
 }
-
