@@ -1,7 +1,6 @@
 #include "logistic_regression.hpp"
 using namespace regression;
 
-
 template<typename OptimizerType, typename... CallbackTypes>
 const arma::vec LogisticRegression::fit(const arma::mat& X, 
     const arma::vec& y, 
@@ -19,14 +18,13 @@ const arma::vec LogisticRegression::fit(const arma::mat& X,
     // pass through the origin point.
     
     // init local theat vector
-    arma::vec theta_(n_features + 1, arma::fill::zeros);
+    arma::vec W_(n_features + 1, arma::fill::zeros);
     X_.insert_cols(n_features, arma::ones<arma::mat>(n_samples, 1));
 
-    LogisticRegressionFunction lrf(X_, y_, lambda);
+    loss::LogLoss log_loss(X_, y_, lambda);
+    optimizer.Optimize(log_loss, W_, callbacks...);
 
-    optimizer.Optimize(lrf, theta_, callbacks...);
-
-    return theta_;
+    return W_;
 }
 
 void LogisticRegression::fit(const arma::mat &X, const arma::vec &y) {
@@ -37,15 +35,14 @@ void LogisticRegression::fit(const arma::mat &X, const arma::vec &y) {
         sgd_optimizer.Tolerance() = tol ;
         sgd_optimizer.StepSize() = alpha;
         sgd_optimizer.BatchSize() = batch_size;
-        theta = fit(X, y, sgd_optimizer);
-
+        W = fit(X, y, sgd_optimizer);
     }
     else if (solver == "lbfgs") {
         ens::L_BFGS lbfg_optimizer;
         lbfg_optimizer.NumBasis() = n_basis;
         lbfg_optimizer.MaxIterations() = max_iter;
         lbfg_optimizer.MinGradientNorm() = tol;
-        theta = fit(X, y, lbfg_optimizer);
+        W = fit(X, y, lbfg_optimizer);
     }
 }
 
@@ -53,7 +50,7 @@ const arma::vec LogisticRegression::predict(const arma::mat& X) const{
     // Predict class labels for samples in X.
     // calculate the desicion boundary func
     arma::vec decision_boundary = X * 
-        theta.tail_rows(theta.n_elem - 1) + theta(0);
+        W.tail_rows(W.n_elem - 1) + W(0);
 
     arma::vec y_pred = 1.0 / (1.0 + arma::exp(decision_boundary));
 
@@ -72,7 +69,7 @@ const arma::vec LogisticRegression::predict(const arma::mat& X) const{
 const arma::mat LogisticRegression::predict_prob(const arma::mat &X) const {
     // predict prob of class
     arma::vec decision_boundary = X * 
-        theta.tail_rows(theta.n_elem - 1) + theta(0);
+        W.tail_rows(W.n_elem - 1) + W(0);
 
     arma::vec y_pred = 1.0 / (1.0 + arma::exp(decision_boundary));
 
@@ -97,6 +94,5 @@ const double LogisticRegression::score(const arma::vec &y_true,
             acc++;
         }
     }
-
     return acc / n_samples;
 }
