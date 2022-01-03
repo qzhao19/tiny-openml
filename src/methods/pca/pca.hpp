@@ -3,9 +3,6 @@
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
-#include "decomposition_policies/eig_method.hpp"
-#include "decomposition_policies/exact_svd_method.hpp"
-
 namespace pca{
 
 class PCA {
@@ -21,7 +18,7 @@ public:
      * @param n_components Number of components to keep
      * @param scale Whether or not to scale the data.
     */
-    PCA(): solver("full_svd"), 
+    PCA(): solver("svd"), 
         n_components(2), 
         scale(false) {};
 
@@ -67,16 +64,8 @@ protected:
     /**
      * Using SVD method 
     */
-    template<typename DecompositionPolicy>
-    const arma::mat svd_fit(const arma::mat& X, 
-        DecompositionPolicy& decomposition_policy);
-
-    /**
-     * Eigen vector method
-    */
-    template<typename DecompositionPolicy>
-    const arma::mat eig_fit(const arma::mat& X, 
-        DecompositionPolicy& decomposition_policy);
+    // template<typename DecompositionPolicy>
+    void fit_(const arma::mat& X);
 
     /**
      * Scaling the data is when we reduce the variance of each dimension to 1.
@@ -87,7 +76,6 @@ protected:
      * Return the log-likelihood of each sample.
     */
     const arma::vec score_samples(const arma::mat& X) const;
-
 
 private:
     arma::mat components;
