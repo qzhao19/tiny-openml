@@ -10,7 +10,8 @@ class MeanSquaredError {
 public:
     MeanSquaredError(
         const arma::mat &X_, 
-        const arma::vec &y_) : X(X_), y(y_) {};
+        const arma::vec &y_, 
+        const double lambda_) : X(X_), y(y_), lambda(lambda_) {};
 
     ~MeanSquaredError() {};
 
@@ -22,6 +23,9 @@ public:
         arma::vec output_y;
 
         math::shuffle_data(X, y, output_X, output_y);
+
+        X = output_X;
+        y = output_y;
     }
 
     /**
@@ -37,7 +41,11 @@ public:
         arma::mat X_batch = X.rows(begin, begin + batch_size - 1);
         arma::vec y_batch = y.rows(begin, begin + batch_size - 1);
 
-        double retval = arma::accu(X_batch * W - y_batch);
+        // double retval = arma::accu(X_batch * W - y_batch);
+        // double retval = arma::trans(W) * (arma::trans(X_batch) * X_batch + lambda * identifty_mat) * W -
+        //     2 * arma::trans(W) * arma::trans(X_batch) * y_batch + arma::trans(y_batch) * y_batch ;
+        double retval = arma::accu(arma::trans(X_batch * W - y_batch) * (X_batch * W - y_batch) +
+            lambda * arma::trans(W) * W);
     };
 
     /**
@@ -58,16 +66,21 @@ public:
         arma::mat X_batch = X.rows(begin, begin + batch_size - 1);
         arma::vec y_batch = y.rows(begin, begin + batch_size - 1);
 
-        grads = 2 * arma::trans(X) * X * W - 2 * arma::trans(X) * y;
+        grads = 2 * (arma::trans(X_batch) * X_batch + lambda) * W - 2 * arma::trans(X_batch) * y_batch;
         
     };
     
-    std::size_t NumFunctions() const { return X.n_cols; }
+    std::size_t NumFunctions() const {return X.n_cols;}
 
 private:
-    const arma::mat &X;
-    const arma::vec &y;
-
+    /**
+     * @param X, the matrix of input dataset
+     * @param y, the vector of label 
+     * @param lambda, regularization coefficient
+    */
+    arma::mat X;
+    arma::vec y;
+    double lambda;
 };
 
 };
