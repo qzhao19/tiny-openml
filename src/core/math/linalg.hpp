@@ -1,8 +1,9 @@
-#ifndef CORE_MATH_LIN_ALG_HPP
-#define CORE_MATH_LIN_ALG_HPP
+#ifndef CORE_MATH_LINALG_HPP
+#define CORE_MATH_LINALG_HPP
 #include "../../prereqs.hpp"
 
 namespace math {
+
 /**
  * Eigen vector decomposition
  * @param X ndarray of shape (n_samples, n_features),
@@ -14,10 +15,9 @@ namespace math {
 */
 template<typename MatType, typename VecType>
 std::tuple<MatType, VecType> eig(const MatType& X) {
-    VecType eig_val;
     MatType eig_vec;
+    VecType eig_val;
     arma::eig_gen(eig_val, eig_vec, X);
-
     return std::make_tuple(eig_vec, eig_val);
 };
 
@@ -42,10 +42,8 @@ std::tuple<MatType, VecType, MatType> svd(const MatType& X,
     else {
         arma::svd_econ(U, s, Vt, X);
     }
-    s %= s / (X.n_cols - 1);
-    return std::make_tuple(U, s, Vt)
+    return std::make_tuple(U, s, Vt);
 };
-
 
 };
 #endif
