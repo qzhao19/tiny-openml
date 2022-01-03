@@ -1,8 +1,8 @@
 #ifndef METHOD_LOGISTIC_REGRESSION_LOGISTIC_REGRESSION_HPP
 #define METHOD_LOGISTIC_REGRESSION_LOGISTIC_REGRESSION_HPP
-#include "logistic_regression_function.hpp"
 #include "../../prereqs.hpp"
-
+#include "../../core.hpp"
+using namespace loss;
 
 namespace regression {
 
@@ -28,33 +28,33 @@ public:
      * 
     */
     LogisticRegression(): solver("sgd"), 
-                          shuffle(true),
-                          lambda(0.1), 
-                          alpha(0.01), 
-                          tol(1e-5),
-                          batch_size(32), 
-                          max_iter(10000), 
-                          n_basis(10) {}; 
+        shuffle(true),
+        lambda(0.1), 
+        alpha(0.01), 
+        tol(1e-5),
+        batch_size(32), 
+        max_iter(10000), 
+        n_basis(10) {}; 
 
     /**
      * Non-empty constructor, create the model with params
     */
     LogisticRegression(const std::string solver_,
-                       const bool shuffle_ = true,
-                       const double lambda_ = 0.1, 
-                       const double alpha_ = 0.01, 
-                       const double tol_ = 1e-5, 
-                       const std::size_t batch_size_ = 32, 
-                       const std::size_t max_iter_ = 10000, 
-                       const std::size_t n_basis_ = 10): 
-        solver(solver_), 
-        shuffle(shuffle_),
-        lambda(lambda_), 
-        alpha(alpha_), 
-        tol(tol_), 
-        batch_size(batch_size_), 
-        max_iter(max_iter_), 
-        n_basis(n_basis_) {};
+        const bool shuffle_ = true,
+        const double lambda_ = 0.1, 
+        const double alpha_ = 0.01, 
+        const double tol_ = 1e-5, 
+        const std::size_t batch_size_ = 32, 
+        const std::size_t max_iter_ = 10000, 
+        const std::size_t n_basis_ = 10): 
+            solver(solver_), 
+            shuffle(shuffle_),
+            lambda(lambda_), 
+            alpha(alpha_), 
+            tol(tol_), 
+            batch_size(batch_size_), 
+            max_iter(max_iter_), 
+            n_basis(n_basis_) {};
 
 
     ~LogisticRegression() {};
@@ -101,9 +101,9 @@ public:
                        const arma::vec &y_pred) const;
     
     /**
-     * Return the training params theta, 
+     * Return the training params W, 
     */
-    const arma::vec& get_theta() const { return theta; };
+    const arma::vec& get_coef() const { return W; };
 
 protected:
     /**
@@ -117,13 +117,13 @@ protected:
     */
     template<typename OptimizerType, typename... CallbackTypes>
     const arma::vec fit(const arma::mat& X, 
-                        const arma::vec& y, 
-                        OptimizerType& optimizer,
-                        CallbackTypes&&... callbacks) const;
+        const arma::vec& y, 
+        OptimizerType& optimizer,
+        CallbackTypes&&... callbacks) const;
 
 private:
     /**
-     * @param theta Vector of logistic regression function parameters
+     * @param W Vector of logistic regression function parameters
      * @param solver Algorithm to use in the optimization problem, default is 
      *               sgd optimizer. There are two methods to optimize loss funct
      * @param intercept Whether to fit the intercept for training the model. 
@@ -138,7 +138,7 @@ private:
      *                is visited in linear order. default is True
      * @param n_basis Number of memory points to be stored (default 10).
     */
-    arma::vec theta;
+    arma::vec W;
     
     std::string solver;
 
