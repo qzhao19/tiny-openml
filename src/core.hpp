@@ -14,4 +14,7 @@
 #include "../src/core/loss/log_loss.hpp"
 #include "../src/core/loss/mean_squared_error.hpp"
 
+#include "../src/core/initializer/zero_initializer.hpp"
+#include "../src/core/initializer/rand_initializer.hpp"
+
 #endif
