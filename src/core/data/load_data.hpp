@@ -2,19 +2,24 @@
 #define CORE_DATA_LOAD_DATA_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
-using namespace math;
 
+namespace openml {
 namespace data {
 
 /**
  * load dataset from a txt file
  * @param fp String the given filepath 
+ * @param data 2d-array of shape (n_samples, n_features) the output matrix 
  * 
- * @return tuple(X, y), X ndarray of shape (n_samples, n_features)
- *         y ndarray of shape (n_sample, )
 */
-template<typename DataType>
-std::tuple<arma::mat, arma::vec> loadtxt(const std::string &fp) {
+template<typename MatType, 
+    typename DataType = typename MatType::value_type>
+void loadtxt(const std::string &fp, 
+    MatType& data) {
+
+    using Matrix = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
+    using Vector = Eigen::Vector<DataType, Eigen::Dynamic>;
+
     std::vector<std::vector<DataType>> stdmat;
 
     std::ifstream file_in(fp);
@@ -28,19 +33,15 @@ std::tuple<arma::mat, arma::vec> loadtxt(const std::string &fp) {
         stdmat.push_back(row);
     }
 
-    std::size_t n_samples = stdmat.size(), n_features = stdmat[0].size();
-    arma::mat data;
-    for (std::size_t i = 0; i < n_samples; i++) {
-        arma::rowvec row = arma::conv_to<arma::rowvec>::from(stdmat[i]);
-        data.insert_rows(i, row);
+    std::size_t n_rows = stdmat.size(), n_cols = stdmat[0].size();
+    Matrix mat(n_rows, n_cols);
+    for (std::size_t i = 0; i < n_rows; i++) {
+        mat.row(i) = Vector::Map(&stdmat[i][0], n_cols);
     }
-
-    arma::mat X = data.head_cols(n_features - 1);
-    arma::vec y = data.tail_cols(1);
-    
-    return std::make_tuple(X, y);
+    data = mat;
     
 };
 
+}
 }
 #endif
