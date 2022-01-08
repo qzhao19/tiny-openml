@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <random>
@@ -17,9 +18,11 @@
 #include <tuple>
 #include <utility>
 #include <unordered_map>
+#include <numeric>
 #include <vector>
 
-#include <armadillo>
-#include <ensmallen.hpp>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/unsupported/Eigen/MatrixFunctions>
+
 
 #endif
