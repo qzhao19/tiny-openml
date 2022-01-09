@@ -3,117 +3,113 @@
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
+namespace openml{
 namespace regression {
 
+template <typename DataType>
 class LinearRegression {
-public:
-
+private:
+    // define matrix and vector Eigen type
+    using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
+    using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+    
     /**
-     * empty constructor, we initialize the default value of 
-     * the lambda and intercedpt 0.0 and true
-    */
-    LinearRegression(): lambda(0.1), 
-        intercept(true), 
-        penalty("l2") {};
-
-    /**
-     * Non-empty constructor, create the model with lamnda and intercept
-     * 
-     * @param lambda, regularization constant for ridge regression
-     * @param intercept, whether or not to include an intercept term
-    */
-    LinearRegression(const double lambda_, 
-                     const bool intercept_, 
-                     const std::string penalty_): 
-        lambda(lambda_), intercept(intercept_), penalty(penalty_) {};
-
-    /**deconstructor*/
-    ~LinearRegression() {};
-
-    /**
-     * train the lenaer regression model on given dataset, this function 
-     * requires to input the dataset ans the relative label
-     * 
-     * @param X, the matrix of dataset
-     * @param y, the label vector
+     * @param W: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
+     *           calculate, initialized and filled by constructor for the least square method
+     * @param intercept: bool, default = True. whether to fit the intercept for the model. 
      * 
     */
-    void fit(const arma::mat &X, 
-             const arma::vec &y);
+    VecType W;
+    bool intercept;
 
+protected:
     /**
      * Train the linear regression model, using the sample weights
      * 
      * @param X, the matrix of dataset 
      * @param y, the label vector
-     * @param weights, Individual weights for each sample
     */
-    void fit(const arma::mat &X, 
-             const arma::vec &y, 
-             const arma::vec &weights);
+    void fit_(const MatType& X, 
+        const VecType& y) {
+        
+        std::size_t n_samples = X.rows();
+
+        MatType X_new = X;
+        VecType y_new = y;
+
+        // if intercept term exists, append a colmun into X
+        if (intercept) {
+            VecType one_mat(n_samples);
+            one_mat.fill(1.0);
+            X_new = math::hstack<MatType>(X, one_mat);
+        }
+        
+        std::size_t n_features = X_new.cols();
+        // theta = (X.T * X)^(-1) * X.T * y
+        MatType pseudo_inv(n_features, n_features);
+        pseudo_inv = X_new.transpose() * X_new;
+        pseudo_inv = pseudo_inv.inverse();
+
+        W = pseudo_inv * X_new.transpose() * y_new;
+    };
 
     /**
      * Calculate the predicted value y_pred for test dataset
      * 
      * @param X the test sample
-     * @param y the targetedt value 
-     * 
      * @return Returns predicted values, ndarray of shape (n_samples,)
     */
-    const arma::vec predict(const arma::mat &X) const;
+    const VecType predict_(const MatType& X) const {
+        // y_pred = X * theta
+        std::size_t n_samples = X.rows();
+        VecType y_pred(n_samples);
+        if (intercept) {
+            y_pred = X * W.topRows(n_samples - 1)
+            y_pred += W.bottomRows(1);
+            return y_pred;
+        }
+        else {
+            y_pred = X * W;
+            return y_pred;
+        }
+    }
+
+public:
+    /**
+     * *empty constructor, we initialize the default value of 
+     * the lambda and intercedpt 0.0 and true
+    */
+    LinearRegression(): intercept(true){};
 
     /**
-     * Return the coefficient of determination R^2 of the prediction
-     * The coefficeint R^2 is defined as (1 - u/v), where u is the residual 
-     * sum of square ((y_pred - y_true) ** 2).sum() and v is the total sum
-     * of square ((y_true - y_true.mean()) ** 2).sum() The best possible score 
-     * is 1.0 and it can be negative (because the model can be arbitrarily worse). 
-     * A constant model that always predicts the expected value of y, disregarding 
-     * the input features, would get a R^2 score of 0.0.
+     * Non-empty constructor, create the model with lamnda and intercept
+     * @param intercept, whether or not to include an intercept term
     */
-    const double score(const arma::vec &y_true, 
-                       const arma::vec &y_pred) const;
-	
-	/**
-     * Return the training params theta, 
-    */
-    const arma::vec& get_coef() const;
-    
-protected:
+    LinearRegression(const bool intercept_): 
+        intercept(intercept_) {};
 
-    /**
-     * Train the linear regression model on the given dataset, and weights.
-     * 
-     * @param X the matrix of dataset to train model
-     * @param y the label to the dataset
-     * @param weights observation weights 
-    */
-    void fit_(const arma::mat &X, 
-        const arma::vec &y, 
-        const arma::vec &weights);
+    /**deconstructor*/
+    ~LinearRegression() {};
 
-private:
-    /**
-     * @param W: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
-     * calculate, initialized and filled by constructor for the least square method
-     * 
-     * @param lambda: double, default = 0.0. the Tikhonov regularization parameter for ridge 
-     * regression, 0 for linear regression. Regularization improves the conditioning of the 
-     * problem and reduces the variance of the estimate.
-     * 
-     * @param intercept: bool, default = True. whether to fit the intercept for the model. 
-     * 
-     * @param penalty  string, Specify the norm of the penalty, {"l2"}
-    */
-    arma::vec W;
+    /**call fit_ method*/
+    void fit(const MatType& X, 
+        const VecType& y) {
+        fit_(X, y);
+    }
 
-    double lambda;
+    const VecType predict(const MatType& X) const{
+        VecType y_pred;
+        y_pred = predict_(X);
+        return y_pred;
+    };
 
-    std::string penalty ;
-    
-    bool intercept;
-
+    const VecType get_coef() const {
+        return W;
+    };
+ 
 };
-}
+
+} // namespace openml
+} // namespace regression
 
 #endif /*LINEAR_REGRESSION_LINEAR_REGRESSION_HPP*/
