@@ -1,37 +1,70 @@
-#ifndef CORE_MATH_SHUFFLE_DATA_HPP
-#define CORE_MATH_SHUFFLE_DATA_HPP
+#ifndef CORE_MATH_SHUFFLE_HPP
+#define CORE_MATH_SHUFFLE_HPP
 #include "../../prereqs.hpp"
 
+namespace openml {
 namespace math {
 
 /**
- * shuffle dataset and assciated labels. It is expected that input_x 
- * and input_y must have the same number of rows.
+ * Shuffle 2d matrices along a specific axis.
  * 
- * @param input_X The input dataset
- * @param input_y Vector of lable associated dataset
- * @param output_X The shuffled output dataset 
- * @param output_y Shuffled vector of lable associated dataset
+ * @param X ndarray of shape (n_samples, n_features), input matrix
+ * @param shuffled_X output shuffled matrix with the same dims of input matrix
+ * @param axis int Axis along which a shuffle is performed, default is 1 
 */
-template<typename MatType, 
-         typename VecType>
-void shuffle_data(const MatType& input_X, 
-                  const VecType &input_y, 
-                  MatType &output_X, 
-                  VecType &output_y) {
+template<typename MatType>
+void shuffle_data(const MatType& X, 
+    MatType& shuffled_X, 
+    int axis = 1) {
     
-    
-    // get samples numbers
-    int n_samples = input_X.n_rows;
-    
-    // generate shuffled index 
-    arma::uvec shuffled_idx = arma::shuffle(arma::linspace<arma::uvec>(0, 
-        n_samples - 1, n_samples));
+    std::size_t permut_size;
+    if (axis == 0) {
+        permut_size = X.cols();
+    } 
+    else if (axis = 1) {
+        permut_size = X.rows();
+    }
+    // define a index permutation
+    Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> idx_permut(permut_size);
+    idx_permut.setIdentity();
 
-    output_X = input_X.rows(shuffled_idx);
-    output_y = input_y.rows(shuffled_idx);
+    // generate random seed for shuffle 
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();;
+    std::shuffle(idx_permut.indices().data(), 
+        idx_permut.indices().data() + idx_permut.indices().size(), 
+        std::default_random_engine(seed)
+    );
+    std::cout << idx_permut.indices() << std::endl;
+    if (axis == 0) {
+        // permute columns
+        shuffled_X = X * idx_permut;
+    } 
+    else if (axis = 1) {
+        // permute rows
+        shuffled_X = idx_permut * X;
+    } 
+};
+
+template<typename MatType, typename VecType>
+void shuffle_data(const MatType& X,
+    const VecType& y, 
+    MatType& shuffled_X, 
+    VecType& shuffled_y) {
+    
+    std::size_t n_rows = X.rows();
+    Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> idx_permut(n_rows);
+    idx_permut.setIdentity();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();;
+    std::shuffle(idx_permut.indices().data(), 
+        idx_permut.indices().data() + idx_permut.indices().size(), 
+        std::default_random_engine(seed)
+    );
+
+    shuffled_X = idx_permut * X;
+    shuffled_y = idx_permut * y;
+};
 
 }
+}
 
-};
-#endif
+#endif /*CORE_MATH_SHUFFLE_HPP*/
