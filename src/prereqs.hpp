@@ -2,8 +2,10 @@
 #define PREREQS_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cfloat>
+#include <chrono>
 #include <climits>
 #include <cstdint>
 #include <cstdio>
@@ -22,7 +24,6 @@
 #include <vector>
 
 #include <eigen3/Eigen/Dense>
-#include <eigen3/unsupported/Eigen/MatrixFunctions>
+// #include <eigen3/unsupported/Eigen/MatrixFunctions>
 
-
-#endif
+#endif /*PREREQS_HPP*/
