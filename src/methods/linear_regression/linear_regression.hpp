@@ -2,6 +2,7 @@
 #define METHOD_LINEAR_REGRESSION_LINEAR_REGRESSION_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
+using namespace openml;
 
 namespace openml{
 namespace regression {
@@ -17,7 +18,6 @@ private:
      * @param W: ndarray_like data of shape [n_samples,]. the parameters that we want ot 
      *           calculate, initialized and filled by constructor for the least square method
      * @param intercept: bool, default = True. whether to fit the intercept for the model. 
-     * 
     */
     VecType W;
     bool intercept;
@@ -31,9 +31,7 @@ protected:
     */
     void fit_(const MatType& X, 
         const VecType& y) {
-        
         std::size_t n_samples = X.rows();
-
         MatType X_new = X;
         VecType y_new = y;
 
@@ -41,7 +39,7 @@ protected:
         if (intercept) {
             VecType one_mat(n_samples);
             one_mat.fill(1.0);
-            X_new = math::hstack<MatType>(X, one_mat);
+            X_new = utils::hstack<MatType>(X, one_mat);
         }
         
         std::size_t n_features = X_new.cols();
@@ -61,11 +59,14 @@ protected:
     */
     const VecType predict_(const MatType& X) const {
         // y_pred = X * theta
-        std::size_t n_samples = X.rows();
+        std::size_t n_samples = X.rows(), n_features = X.cols();
+        
         VecType y_pred(n_samples);
         if (intercept) {
-            y_pred = X * W.topRows(n_samples - 1)
-            y_pred += W.bottomRows(1);
+            y_pred = X * W.topRows(n_features);
+            VecType b(n_samples);
+            b = utils::repeat<VecType>(W.bottomRows(1), n_samples, 0);
+            y_pred += b;
             return y_pred;
         }
         else {
@@ -91,18 +92,20 @@ public:
     /**deconstructor*/
     ~LinearRegression() {};
 
-    /**call fit_ method*/
+    /**public fit interface*/
     void fit(const MatType& X, 
         const VecType& y) {
         fit_(X, y);
     }
 
+    /**public predict interface*/
     const VecType predict(const MatType& X) const{
         VecType y_pred;
         y_pred = predict_(X);
         return y_pred;
     };
 
+    /**public get_coef interface*/
     const VecType get_coef() const {
         return W;
     };
