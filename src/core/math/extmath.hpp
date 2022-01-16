@@ -10,14 +10,15 @@ namespace math {
 //     return DataType(1.0) / (DataType(1.0) + exp(-z));
 // }
 
-double sigmoid(const double z) {
-    return 1.0 / (1.0 + exp(-z));
+template<typename MatType, 
+    typename DataType = typename MatType::value_type>
+MatType sigmoid(const MatType& mat) {
+    return (static_cast<DataType>(1) / 
+        (static_cast<DataType>(1) + (-mat.array()).exp())).matrix();
 }
 
 
-
-
 }
 }
 
-#endif /*CORE_MATH_EXTMATH_HPP*/
+#endif
