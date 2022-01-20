@@ -90,7 +90,7 @@ public:
         VecType grad(num_features);
         // grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
         if (penalty == "None") {
-            grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
+            grad = (X.transpose() * (y_hat - y)) / num_samples;
         }
         else if (penalty == "l2") {
             grad = (X.transpose() * (y_hat - y)) / num_samples + 
@@ -100,7 +100,6 @@ public:
         return grad;
     };
 };
-
 
 }
 }
