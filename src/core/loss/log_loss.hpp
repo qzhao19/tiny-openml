@@ -26,10 +26,7 @@ public:
     */
     LogLoss(const DataType lambda_ = static_cast<DataType>(0), 
         const std::string penalty_ = "None"): lambda(lambda_), 
-            penalty(penalty_) {
-                // std::size_t num_samples = X_.rows();
-                // std::size_t num_features = X_.cols();
-            };
+            penalty(penalty_) {};
 
     ~LogLoss() {};
 
@@ -49,13 +46,15 @@ public:
         std::size_t num_samples = X.rows();
         std::size_t num_features = X.cols();
 
-        DataType error;
+        DataType error, sum1;
         DataType penalty_val;
+
+        // np.sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
         for (std::size_t i = 0; i < num_samples; i++) {
-            double x_w = X.row(i) * W;
-            error += ((y(i, 0) * x_w) - 
-                    std::log(1.0 + std::exp(x_w)));
+            DataType x_w = X.row(i) * W;
+            error += (std::log(1.0 + std::exp(x_w)) - (y(i, 0) * x_w));
         }
+
         // regularization term
         if (penalty == "None") {
             penalty_val = static_cast<DataType>(0);
@@ -65,7 +64,7 @@ public:
             // penalty_val = penalty_val * lambda;
         }
         penalty_val = (penalty_val * lambda) / (static_cast<double>(num_samples));
-        error = error / (-static_cast<double>(num_samples));
+        error = error / (static_cast<double>(num_samples));
         return error + penalty_val;
     };
 
