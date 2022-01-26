@@ -17,6 +17,14 @@ MatType sigmoid(const MatType& mat) {
         (static_cast<DataType>(1) + (-mat.array()).exp())).matrix();
 }
 
+template<typename AnyType>
+AnyType var(const AnyType& mat) {
+    AnyType centered = mat.rowwise() - mat.colwise().mean();
+    AnyType cov = (centered.adjoint() * centered) / static_cast<double>(mat.rows() - 1);
+    return cov;
+};
+
+
 
 }
 }
