@@ -24,7 +24,7 @@ protected:
      * 
     */
     VecType W;
-    DataType lambda;
+    double lambda;
     bool intercept;
 
     /**
@@ -90,14 +90,14 @@ public:
      * *empty constructor, we initialize the default value of 
      * the lambda and intercedpt 0.0 and true
     */
-    RidgeRegression(): lambda(static_cast<DataType>(0.5)),
+    RidgeRegression(): lambda(0.5),
         intercept(true){};
 
     /**
      * Non-empty constructor, create the model with lamnda and intercept
      * @param intercept, whether or not to include an intercept term
     */
-    RidgeRegression(const DataType lambda_, 
+    RidgeRegression(const double lambda_, 
         const bool intercept_): lambda(lambda_),
         intercept(intercept_) {};
 
