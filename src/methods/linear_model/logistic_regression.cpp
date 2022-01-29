@@ -17,10 +17,10 @@ private:
     
     bool shuffle;
     bool verbose;
-    DataType alpha;
-    DataType lambda;
-    DataType tol;
-    DataType mu;
+    double alpha;
+    double lambda;
+    double tol;
+    double mu;
     std::size_t batch_size;
     std::size_t max_iter;
     std::string solver;
@@ -36,7 +36,7 @@ protected:
      * intercept term does not exist, the decision boundary no doubt 
      * pass through the origin point.
     */
-    void fit_data(const MatType& X, 
+    void sgd_fit_data(const MatType& X, 
         const VecType& y) {
         
         MatType X_new = X;
@@ -93,6 +93,28 @@ protected:
         return decision_boundary;
     }
 
+    /** Predict class labels for samples in X.*/
+    const VecType LogisticRegression::predict_data(const MatType& X) const{
+    
+        // calculate the desicion boundary func
+        std::size_t num_samples = X.rows();
+        VecType decision_boundary(num_samples);
+        VecType y_pred(num_samples);
+
+        decision_boundary = compute_decision_function(X);
+        y_pred = math::sigmoid(decision_boundary);
+        for(auto& value:y_pred) {
+            if (value > 0.5) {
+                value = 1;
+            }
+            else {
+                value = 0;
+            }
+        }
+
+        return y_pred;
+    }
+
 public:
 
     /**
@@ -115,10 +137,10 @@ public:
     */
     LogisticRegression(const bool shuffle_, 
         const bool verbose_, 
-        const DataType alpha_, 
-        const DataType lambda_,
-        const DataType tol_, 
-        const DataType mu_,
+        const double alpha_, 
+        const double lambda_,
+        const double tol_, 
+        const double mu_,
         const std::size_t batch_size_, 
         const std::size_t max_iter_, 
         const std::string solver_,
@@ -137,13 +159,30 @@ public:
             update_policy(update_policy_), 
             decay_policy(decay_policy_) {};
 
+    LogisticRegression(): shuffle(true), 
+            verbose(false), 
+            alpha(0.001), 
+            lambda(0.5), 
+            tol(0.0001), 
+            mu(0.6),
+            batch_size(32), 
+            max_iter(1000), 
+            solver("sgd"),
+            penalty("l2"), 
+            update_policy("vanilla"), 
+            decay_policy("constant") {};
+
+
     ~LogisticRegression() {};
 
     /**public fit interface*/
     void fit(const MatType& X, 
         const VecType& y) {
-        fit_data(X, y);
+        sgd_fit_data(X, y);
     }
+
+
+
 
 };
 
