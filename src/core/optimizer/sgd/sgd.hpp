@@ -57,7 +57,7 @@ public:
         UpdatePolicy& update_policy,
         VecType& W) {
         
-        DataType total_error = static_cast<DataType>(0.0);
+        double total_error = 0.0;
         VecType grad(num_features);
         
         for (std::size_t i = 0; i < max_iter; i++) {
@@ -73,12 +73,9 @@ public:
                 std::size_t begin = j * batch_size;
                 X_batch = X.middleRows(begin, batch_size);
                 y_batch = y.middleRows(begin, batch_size);
-
                 grad = loss_fn.gradient(X_batch, y_batch, W);
-                
                 // W = W - alpha * grad;
                 update_policy.update(W, grad, W);
-
                 error += loss_fn.evaluate(X_batch, y_batch, W);
             }
 
