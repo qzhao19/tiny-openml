@@ -11,15 +11,17 @@ class VanillaUpdate {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    DataType alpha;
 
+    double alpha;
 public:
-    VanillaUpdate(const DataType alpha_): alpha(alpha_) {};
+
+    VanillaUpdate(const double alpha_): alpha(alpha_) {};
     ~VanillaUpdate() {}; 
 
     void update(const VecType& W, const VecType& grad, VecType& updated_W) {
         updated_W = W - alpha * grad;
     };
+
 };
 
 }
