@@ -19,8 +19,8 @@ private:
     VecType y;
     std::size_t max_iter;
     std::size_t batch_size;
-    DataType alpha;
-    DataType tol;
+    double alpha;
+    double tol;
     bool shuffle;
     bool verbose;
 
@@ -32,11 +32,11 @@ private:
 public:
     SGD(const MatType& X_, 
         const VecType& y_,
-        const std::size_t max_iter_ = 200, 
-        const std::size_t batch_size_ = 1,
-        const DataType alpha_ = static_cast<DataType>(0.001),  
-        const DataType tol_ = static_cast<DataType>(0.0001), 
-        const bool shuffle_ = true,
+        const std::size_t max_iter_ = 20000, 
+        const std::size_t batch_size_ = 16,
+        const double alpha_ = 0.1,  
+        const double tol_ = 0.0001, 
+        const bool shuffle_ = false,
         const bool verbose_ = true): X(X_), y(y_), 
             max_iter(max_iter_), 
             batch_size(batch_size_), 
@@ -67,7 +67,7 @@ public:
 
             MatType X_batch(batch_size, num_features);
             VecType y_batch(batch_size);
-            DataType error = static_cast<DataType>(0.0);
+            double error = 0.0;
 
             for (std::size_t j = 0; j < num_batch; j++) {
                 std::size_t begin = j * batch_size;
@@ -82,18 +82,17 @@ public:
                 error += loss_fn.evaluate(X_batch, y_batch, W);
             }
 
-            DataType average_error = error / num_batch;
+            double average_error = error / static_cast<double>(num_batch);
             if (std::abs(total_error - average_error) < tol) {
                 break;
             } 
             total_error = average_error;
             if (verbose) {
-                if ((i % 20) == 0) {
+                if ((i % 10) == 0) {
                     std::cout << "iter = " << i << ", loss value = " << average_error << std::endl;
                 }
             }
         }
-        std::cout << W << std::endl;
     }
 };
 
