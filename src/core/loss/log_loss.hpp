@@ -24,7 +24,7 @@ public:
      * @param penalty string, specify the norm of the penalty {‘l2’, ‘none’}, default='None'
      * 
     */
-    LogLoss(const DataType lambda_ = static_cast<DataType>(0), 
+    LogLoss(const double lambda_ = 0.0, 
         const std::string penalty_ = "None"): lambda(lambda_), 
             penalty(penalty_) {};
 
@@ -46,21 +46,21 @@ public:
         std::size_t num_samples = X.rows();
         std::size_t num_features = X.cols();
 
-        DataType error, sum1;
-        DataType penalty_val;
+        double error;
+        double penalty_val;
 
         // np.sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
         for (std::size_t i = 0; i < num_samples; i++) {
-            DataType x_w = X.row(i) * W;
+            double x_w = static_cast<double>(X.row(i) * W);
             error += (std::log(1.0 + std::exp(x_w)) - (y(i, 0) * x_w));
         }
 
         // regularization term
         if (penalty == "None") {
-            penalty_val = static_cast<DataType>(0);
+            penalty_val = 0.0;
         }
         else if (penalty == "l2") {
-            penalty_val = W.transpose() * W;
+            penalty_val = static_cast<double>(W.transpose() * W);
             // penalty_val = penalty_val * lambda;
         }
         penalty_val = (penalty_val * lambda) / (static_cast<double>(num_samples));
@@ -89,11 +89,11 @@ public:
         VecType grad(num_features);
         // grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
         if (penalty == "None") {
-            grad = (X.transpose() * (y_hat - y)) / num_samples;
+            grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples));
         }
         else if (penalty == "l2") {
-            grad = (X.transpose() * (y_hat - y)) / num_samples + 
-                static_cast<DataType>(2) * lambda * W;
+            grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples)) + 
+                2 * lambda * W;
         }
 
         return grad;
