@@ -12,13 +12,13 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    DataType alpha;
-    DataType beta;
+    double alpha;
+    double mu;
 
 public:
 
-    MomentumUpdate(const DataType alpha_, 
-        const DataType beta_): alpha(alpha_), beta(beta_) {};
+    MomentumUpdate(const double alpha_, 
+        const double mu_): alpha(alpha_), mu(mu_) {};
 
     ~MomentumUpdate() {}; 
 
@@ -29,7 +29,7 @@ public:
         std::size_t num_rows = W.rows();
         VecType V(num_rows);
         V.setZero();
-        V = beta * V + alpha * grad;
+        V = mu * V + alpha * grad;
         updated_W = W - V;
     };
 
