@@ -53,8 +53,8 @@ protected:
 
         loss::LogLoss<DataType> log_loss(lambda, penalty);
         if (update_policy == "vanilla") {
-            optimizer::VanillaUpdate<double> weight_update(alpha);
-            optimizer::SGD<double> sgd(X_new, y_new, 
+            optimizer::VanillaUpdate<DataType> weight_update(alpha);
+            optimizer::SGD<DataType> sgd(X_new, y_new, 
                 max_iter, 
                 batch_size, 
                 alpha, 
@@ -64,8 +64,8 @@ protected:
             sgd.optimize(log_loss, weight_update, W_);   
         }
         else if (update_policy == "momentum") {
-            optimizer::MomentumUpdate<double> weight_update(alpha, mu);
-            optimizer::SGD<double> sgd(X_new, y_new,
+            optimizer::MomentumUpdate<DataType> weight_update(alpha, mu);
+            optimizer::SGD<DataType> sgd(X_new, y_new,
             max_iter, 
             batch_size, 
             alpha, 
@@ -94,7 +94,7 @@ protected:
     }
 
     /** Predict class labels for samples in X.*/
-    const VecType LogisticRegression::predict_data(const MatType& X) const{
+    const VecType LogisticRegression::predict_label(const MatType& X) const{
     
         // calculate the desicion boundary func
         std::size_t num_samples = X.rows();
@@ -114,6 +114,17 @@ protected:
 
         return y_pred;
     }
+
+    const VecType LogisticRegression::predict_label_prob(const MatType& X) const {
+        // calculate the desicion boundary func
+        std::size_t num_samples = X.rows();
+        VecType decision_boundary(num_samples);
+        VecType y_pred(num_samples);
+
+        decision_boundary = compute_decision_function(X);
+        y_pred = math::sigmoid(decision_boundary);
+    }
+
 
 public:
 
