@@ -5,7 +5,7 @@
 using namespace openml;
 
 namespace openml{
-namespace regression {
+namespace linear_model {
 
 template<typename DataType>
 class LogisticRegression {
@@ -94,7 +94,7 @@ protected:
     }
 
     /** Predict class labels for samples in X.*/
-    const VecType LogisticRegression::predict_label(const MatType& X) const{
+    const VecType predict_label(const MatType& X) const{
     
         // calculate the desicion boundary func
         std::size_t num_samples = X.rows();
@@ -111,18 +111,32 @@ protected:
                 value = 0;
             }
         }
-
         return y_pred;
     }
 
-    const VecType LogisticRegression::predict_label_prob(const MatType& X) const {
+    /**
+     * Probability estimates. The returned estimates for all 
+     * classes are ordered by the label of classes.
+    */
+    const MatType predict_label_prob(const MatType& X) const {
         // calculate the desicion boundary func
         std::size_t num_samples = X.rows();
         VecType decision_boundary(num_samples);
-        VecType y_pred(num_samples);
-
         decision_boundary = compute_decision_function(X);
-        y_pred = math::sigmoid(decision_boundary);
+
+
+        VecType ones(num_samples);
+        ones.setOnes();
+
+        VecType y_pred_class_1(num_samples);
+        VecType y_pred_class_2(num_samples);
+
+        y_pred_class_1 = math::sigmoid(decision_boundary);
+        y_pred_class_2 = ones - y_pred_class_1;
+
+        MatType prob(num_samples, 2);
+        prob = utils::hstack(y_pred_class_1, y_pred_class_2);
+        return prob;
     }
 
 
@@ -192,7 +206,27 @@ public:
         sgd_fit_data(X, y);
     }
 
+    /**
+     * Predict interface class labels for samples in X.
+    */
+    const VecType predict(const MatType& X) const {
+        std::size_t num_samples = X.rows();
+        VecType y_pred(num_samples);
 
+        y_pred = predict_label(X);
+
+        return y_pred;
+    }
+
+    const MatType predict_prob(const MatType& X) const {
+        std::size_t num_samples = X.rows();
+
+        MatType prob(num_samples, 2);
+
+        prob = predict_label_prob(X);
+
+        return prob;
+    }
 
 
 };
