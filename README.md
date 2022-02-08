@@ -10,6 +10,5 @@ In order to provide efficient implementations, the core algorithms of open-ml-pa
 
 # Dependencies
 
-- Armadillo
-- ensmallen
+- Eigen3
 - NumPy
