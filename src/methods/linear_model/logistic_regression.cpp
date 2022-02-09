@@ -105,43 +105,35 @@ protected:
         y_pred = math::sigmoid(decision_boundary);
         for(auto& value:y_pred) {
             if (value > 0.5) {
-                value = 1;
+                value = 0;
             }
             else {
-                value = 0;
+                value = 1;
             }
         }
         return y_pred;
     }
 
-    /**
-     * Probability estimates. The returned estimates for all 
-     * classes are ordered by the label of classes.
-    */
     const MatType predict_label_prob(const MatType& X) const {
         // calculate the desicion boundary func
         std::size_t num_samples = X.rows();
         VecType decision_boundary(num_samples);
         decision_boundary = compute_decision_function(X);
 
-
         VecType ones(num_samples);
         ones.setOnes();
 
-        VecType y_pred_class_1(num_samples);
-        VecType y_pred_class_2(num_samples);
-
-        y_pred_class_1 = math::sigmoid(decision_boundary);
-        y_pred_class_2 = ones - y_pred_class_1;
+        VecType y_pred(num_samples);
+        y_pred = math::sigmoid(decision_boundary);
 
         MatType prob(num_samples, 2);
-        prob = utils::hstack(y_pred_class_1, y_pred_class_2);
+        prob = utils::hstack<MatType>(y_pred, ones - y_pred);
+
         return prob;
     }
 
 
 public:
-
     /**
      * Default constructor of logistic regression. it could custom optimizer
      * parameters. 
@@ -200,31 +192,47 @@ public:
 
     ~LogisticRegression() {};
 
-    /**public fit interface*/
+    /**
+     * Fit the model according to the given training data
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      Training vector, where n_samples is the number of 
+     *      samples and n_features is the number of features.
+     * @param y ndarray of shape [num_samples,]
+     *      Target vector relative to X.
+    */
     void fit(const MatType& X, 
         const VecType& y) {
         sgd_fit_data(X, y);
     }
 
     /**
-     * Predict interface class labels for samples in X.
+     * Predict class labels for samples in X.
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      The data matrix for which we want to get the predictions.
+     * 
+     * @return Vector containing the class labels for each sample.
     */
     const VecType predict(const MatType& X) const {
         std::size_t num_samples = X.rows();
         VecType y_pred(num_samples);
-
         y_pred = predict_label(X);
-
         return y_pred;
     }
 
+    /**
+     * Probability estimates. The returned estimates for all 
+     * classes are ordered by the label of classes.
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      The data matrix for which we want to get the predictions.
+     * @return Returns the probability of the sample for each class in the model
+    */
     const MatType predict_prob(const MatType& X) const {
         std::size_t num_samples = X.rows();
-
         MatType prob(num_samples, 2);
-
         prob = predict_label_prob(X);
-
         return prob;
     }
 
