@@ -24,14 +24,14 @@ auto max_element(Container const &x)
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
- * @param mat1_mat2 ndarray of shape (n_rows, n_cols) The arrays must have the same shape along all 
+ * @param mat1_mat2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
  * @return stacke dndarray
 */
 template<typename MatType>
 MatType hstack(const MatType& mat1, const MatType& mat2) {
     assert(mat1.rows() == mat2.rows() && "hstack with mismatching number of rows");
-    std::size_t n_rows = mat1.rows(), n_cols1 = mat1.cols(), n_cols2 = mat2.cols();
-    MatType retval(n_rows, (n_cols1 + n_cols2));
+    std::size_t num_rows = mat1.rows(), num_cols1 = mat1.cols(), num_cols2 = mat2.cols();
+    MatType retval(num_rows, (num_cols1 + num_cols2));
     retval << mat1, mat2;
     return retval;
 };
@@ -40,14 +40,14 @@ MatType hstack(const MatType& mat1, const MatType& mat2) {
  * Stack arrays in sequence vertically (row wise). This is equivalent to concatenation 
  * along the first axis after 1-D arrays of shape (N,) have been reshaped to (1,N).
  * 
- * @param mat1_mat2 ndarray of shape (n_rows, n_cols) The arrays must have the same shape along all 
+ * @param mat1_mat2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
  * @return stacke dndarray
 */
 template<typename MatType>
 MatType vstack(const MatType& mat1, const MatType& mat2) {
     assert(mat1.cols() == mat2.cols() && "vstack with mismatching number of columns");
-    std::size_t n_cols = mat1.cols(), n_rows1 = mat1.rows(), n_rows2 = mat2.rows();
-    MatType retval((n_rows1 + n_rows2), n_cols);
+    std::size_t num_cols = mat1.cols(), num_rows1 = mat1.rows(), num_rows2 = mat2.rows();
+    MatType retval((num_rows1 + num_rows2), num_cols);
     retval << mat1, 
               mat2;
     return retval;
@@ -86,6 +86,34 @@ MatType repeat(const MatType& mat,
     }
     return retval;
 };
+
+
+/**
+ * Returns the indices of the maximum values along an axis.
+*/
+template<typename MatType, typename IndexType>
+IndexType argmax(const MatType& mat, int axis = 0) {
+
+    if (axis == 1) {
+        std::size_t num_rows = mat.rows();
+        IndexType argmax{num_rows};
+        for (std::size_t i = 0; i < num_rows; i++) {
+            mat.row(i).maxCoeff(&argmax[i]);
+        }
+        return argmax;
+    }
+    else if (axis == 0) {
+        std::size_t num_cols = mat.cols();
+        IndexType argmax{num_cols};
+        for (std::size_t j = 0; j < num_cols; j++) {
+            mat.col(j).maxCoeff(&argmax[j]);
+        }
+        return argmax;
+    }
+}
+
+
+
 
 
 
