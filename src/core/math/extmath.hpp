@@ -10,7 +10,6 @@ namespace math {
 //     return DataType(1.0) / (DataType(1.0) + exp(-z));
 // }
 
-
 /**
  * compute the matrix sigmoid value
  *      s(z) = 1 / (1 + exp(-z))
@@ -39,7 +38,6 @@ AnyType var(const AnyType& mat) {
     return cov;
 };
 
-
 /**
  * Calculate centered matrix, where cerntering is done by substracting the mean 
  * over the colnum from each col of the matrix.
@@ -49,9 +47,12 @@ AnyType var(const AnyType& mat) {
 */
 template<typename MatType>
 void center(const MatType& mat, MatType& center_mat) {
-    std::size_t num_samples = mat.rows();
-    center_mat = repeat<MatType>(mat.colwise().mean(), num_samples, 0);
+    std::size_t num_rows = mat.rows();
+    center_mat = repeat<MatType>(mat.colwise().mean(), num_rows, 0);
 };
+
+
+
 
 
 }
