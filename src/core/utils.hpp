@@ -65,6 +65,20 @@ DataType flatten(const std::vector<DataType>& v) {
 };
 
 /**
+ * flatten a matrix of 2d to a vector
+ * 
+ * @param mat Eigen matrix type ndarray 
+ * @return one dim vector of Eigrn type
+*/
+template<typename MatType, typename VecType>
+VecType flatten(const MatType& mat) {
+    std::size_t num_rows = mat.rows(), num_cols = mat.cols();
+    MatType trans_mat = mat.transpose();
+    VecType flatten_vec(Eigen::Map<VecType>(trans_mat.data(), num_rows * num_cols));
+    return flatten_vec;
+};
+
+/**
  * Repeat elements of an matrix.
  * 
  * @param mat Input array.
@@ -87,13 +101,16 @@ MatType repeat(const MatType& mat,
     return retval;
 };
 
-
 /**
  * Returns the indices of the maximum values along an axis.
+ *
+ *  @param mat 2darray of input data3
+ * @param axis int, the given specified axis.
+ * 
+ * @return the indices of the maximum values along an axis
 */
 template<typename MatType, typename IndexType>
 IndexType argmax(const MatType& mat, int axis = 0) {
-
     if (axis == 1) {
         std::size_t num_rows = mat.rows();
         IndexType argmax{num_rows};
@@ -110,8 +127,10 @@ IndexType argmax(const MatType& mat, int axis = 0) {
         }
         return argmax;
     }
-}
-
+    else {
+        throw std::invalid_argument("Got an invalid axis value.");
+    }
+};
 
 
 
