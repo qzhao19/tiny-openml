@@ -24,15 +24,15 @@ auto max_element(Container const &x)
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
- * @param mat1_mat2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
+ * @param x1_x2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
  * @return stacke dndarray
 */
 template<typename MatType>
-MatType hstack(const MatType& mat1, const MatType& mat2) {
-    assert(mat1.rows() == mat2.rows() && "hstack with mismatching number of rows");
-    std::size_t num_rows = mat1.rows(), num_cols1 = mat1.cols(), num_cols2 = mat2.cols();
+MatType hstack(const MatType& x1, const MatType& x2) {
+    assert(x1.rows() == x2.rows() && "hstack with mismatching number of rows");
+    std::size_t num_rows = x1.rows(), num_cols1 = x1.cols(), num_cols2 = x2.cols();
     MatType retval(num_rows, (num_cols1 + num_cols2));
-    retval << mat1, mat2;
+    retval << x1, x2;
     return retval;
 };
 
@@ -40,16 +40,16 @@ MatType hstack(const MatType& mat1, const MatType& mat2) {
  * Stack arrays in sequence vertically (row wise). This is equivalent to concatenation 
  * along the first axis after 1-D arrays of shape (N,) have been reshaped to (1,N).
  * 
- * @param mat1_mat2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
+ * @param x1_x2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
  * @return stacke dndarray
 */
 template<typename MatType>
-MatType vstack(const MatType& mat1, const MatType& mat2) {
-    assert(mat1.cols() == mat2.cols() && "vstack with mismatching number of columns");
-    std::size_t num_cols = mat1.cols(), num_rows1 = mat1.rows(), num_rows2 = mat2.rows();
+MatType vstack(const MatType& x1, const MatType& x2) {
+    assert(x1.cols() == x2.cols() && "vstack with mismatching number of columns");
+    std::size_t num_cols = x1.cols(), num_rows1 = x1.rows(), num_rows2 = x2.rows();
     MatType retval((num_rows1 + num_rows2), num_cols);
-    retval << mat1, 
-              mat2;
+    retval << x1, 
+              x2;
     return retval;
 };
 
@@ -67,70 +67,105 @@ DataType flatten(const std::vector<DataType>& v) {
 /**
  * flatten a matrix of 2d to a vector
  * 
- * @param mat Eigen matrix type ndarray 
+ * @param x Eigen matrix type ndarray 
  * @return one dim vector of Eigrn type
 */
 template<typename MatType, typename VecType>
-VecType flatten(const MatType& mat) {
-    std::size_t num_rows = mat.rows(), num_cols = mat.cols();
-    MatType trans_mat = mat.transpose();
-    VecType flatten_vec(Eigen::Map<VecType>(trans_mat.data(), num_rows * num_cols));
+VecType flatten(const MatType& x) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    MatType trans_x = x.transpose();
+    VecType flatten_vec(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
     return flatten_vec;
 };
+
 
 /**
  * Repeat elements of an matrix.
  * 
- * @param mat Input array.
+ * @param x Input array.
  * @param repeats int. The number of repetitions for each element. 
  * @param axis int. The axis along which to repeat values. 
  * 
  * @return  Output array which has the same shape as a, except along the given axis.
 */
 template<typename MatType>
-MatType repeat(const MatType& mat, 
+MatType repeat(const MatType& x, 
     int repeats, int axis) {
     
     MatType retval;
     if (axis == 0) {
-        retval = mat.colwise().replicate(repeats);
+        retval = x.colwise().replicate(repeats);
     }
     else if (axis == 1) {
-        retval = mat.rowwise().replicate(repeats);
+        retval = x.rowwise().replicate(repeats);
     }
     return retval;
 };
 
+
 /**
  * Returns the indices of the maximum values along an axis.
  *
- *  @param mat 2darray of input data3
+ * @param x 2darray of input data
  * @param axis int, the given specified axis.
  * 
  * @return the indices of the maximum values along an axis
 */
 template<typename MatType, typename IndexType>
-IndexType argmax(const MatType& mat, int axis = 0) {
+IndexType argmax(const MatType& x, int axis = 0) {
+
     if (axis == 1) {
-        std::size_t num_rows = mat.rows();
-        IndexType argmax{num_rows};
+        std::size_t num_rows = x.rows();
+        IndexType max_index{num_rows};
         for (std::size_t i = 0; i < num_rows; i++) {
-            mat.row(i).maxCoeff(&argmax[i]);
+            x.row(i).maxCoeff(&max_index[i]);
         }
-        return argmax;
+        return max_index;
     }
     else if (axis == 0) {
-        std::size_t num_cols = mat.cols();
-        IndexType argmax{num_cols};
+        std::size_t num_cols = x.cols();
+        IndexType max_index{num_cols};
         for (std::size_t j = 0; j < num_cols; j++) {
-            mat.col(j).maxCoeff(&argmax[j]);
+            x.col(j).maxCoeff(&max_index[j]);
         }
-        return argmax;
+        return max_index;
     }
     else {
         throw std::invalid_argument("Got an invalid axis value.");
     }
 };
+
+/**
+ * Returns the indices of the minimum values along an axis.
+ * @param x 2darray of input data
+ * @param axis int, the given specified axis.
+ * 
+ * @return the indices of the minimum values along an axis
+*/
+template<typename MatType, typename IndexType>
+IndexType argmin(const MatType& x, int axis = 0) {
+
+    if (axis == 1) {
+        std::size_t num_rows = x.rows();
+        IndexType min_index{num_rows};
+        for (std::size_t i = 0; i < num_rows; i++) {
+            x.row(i).minCoeff(&min_index[i]);
+        }
+        return min_index;
+    }
+    else if (axis == 0) {
+        std::size_t num_cols = x.cols();
+        IndexType min_index{num_cols};
+        for (std::size_t j = 0; j < num_cols; j++) {
+            x.col(j).minCoeff(&min_index[j]);
+        }
+        return min_index;
+    }
+    else {
+        throw std::invalid_argument("Got an invalid axis value.");
+    }
+};
+
 
 
 
