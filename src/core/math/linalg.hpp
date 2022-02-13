@@ -20,7 +20,7 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
     bool full_matrix = false) {
     MatType U;
     VecType s; 
-    MatType Vt;
+    MatType V;
 
     std::size_t num_features = x.cols();
     // control the switching size, default is 16
@@ -31,13 +31,13 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
             Eigen::JacobiSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeFullU | Eigen::ComputeFullV);
             U = svd.matrixU();
             s = svd.singularValues();
-            Vt = svd.matrixV();
+            V = svd.matrixV();
         }
         else {
             Eigen::JacobiSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeThinU | Eigen::ComputeThinV);
             U = svd.matrixU();
             s = svd.singularValues();
-            Vt = svd.matrixV();
+            V = svd.matrixV();
         }
     }
     else {
@@ -45,17 +45,17 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
             Eigen::BDCSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeFullU | Eigen::ComputeFullV);
             U = svd.matrixU();
             s = svd.singularValues();
-            Vt = svd.matrixV();
+            V = svd.matrixV();
         } 
         else {
             Eigen::BDCSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeThinU | Eigen::ComputeThinV);
             U = svd.matrixU();
             s = svd.singularValues();
-            Vt = svd.matrixV();
+            V = svd.matrixV();
         }
     }
 
-    return std::make_tuple(U, s, Vt);
+    return std::make_tuple(U, s, V);
 };
 
 /**
@@ -94,6 +94,11 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
     MatType pinv_mat = Vt * s_inv * U.transpose();
     return pinv_mat;
 }
+
+
+
+
+
 
 
 
