@@ -22,7 +22,7 @@ template<typename MatType,
 MatType sigmoid(const MatType& x) {
     return (static_cast<DataType>(1) / 
         (static_cast<DataType>(1) + (-x.array()).exp())).matrix();
-}
+};
 
 /**
  * compute the data variance, if input data is a vector,
@@ -33,10 +33,56 @@ MatType sigmoid(const MatType& x) {
  * @return scalar or 2darray
 */
 template<typename AnyType>
-AnyType var(const AnyType& x) {
+auto var(const AnyType& x, int axis) {
+
+    if (axis == 0) {
+
+    }
+    else if (axis == 1) {
+
+    }
+    else if (axis == -1) {
+        
+    }
+
+
+    return 0;
+}
+
+
+
+
+
+
+
+/**
+ * Estimate a covariance matrix, given data.
+ * Covariance indicates the level to which two variables vary together. 
+ * If we examine N-dimensional samples, X = [x1, x2, .. x_n].T , 
+ * then the covariance matrix element C_ij is the covariance of x_i and x_j. 
+ * The element C_ii is the variance of x_i.
+ * 
+ * @param x input data of type vector or matrix 
+ * @return scalar or 2darray
+*/
+template<typename AnyType>
+AnyType cov(const AnyType& x) {
     AnyType centered = x.rowwise() - x.colwise().mean();
     AnyType cov = (centered.adjoint() * centered) / static_cast<double>(x.rows() - 1);
     return cov;
+};
+
+/**
+ * First array elements raised to powers from second param, element wise
+ * Negative values raised to a non-integral value will return nan.
+ * @param x input data of ndarray type
+ * @param exponent double type 
+ * 
+ * @return The bases in x1 raised to the exponents
+*/
+template<typename AnyType>
+AnyType power(const AnyType& x, double exponents) {
+    return x.array().pow(exponents).matrix();
 };
 
 /**
@@ -44,12 +90,11 @@ AnyType var(const AnyType& x) {
  * over the colnum from each col of the matrix.
  * 
  * @param x Input matrix
- * @param center_mat Matrix to write centered output
+ * @return centered matrix to write centered output
 */
 template<typename MatType>
-void center(const MatType& x, MatType& center_x) {
-    std::size_t num_rows = x.rows();
-    center_x = repeat<MatType>(x.colwise().mean(), num_rows, 0);
+MatType center(const MatType& x) {
+    return x.rowwise() - x.colwise().mean();
 };
 
 /**
@@ -60,7 +105,7 @@ void center(const MatType& x, MatType& center_x) {
 template<typename AnyType>
 AnyType abs(const AnyType& x) {
     return x.array().abs().matrix();
-}
+};
 
 /**
  * Returns an element-wise indication of the sign of a number.
@@ -71,7 +116,7 @@ AnyType abs(const AnyType& x) {
 template<typename AnyType>
 AnyType sign(const AnyType& x) {
     return x.array().sign().matrix();
-}
+};
 
 /**
  * Sign correction to ensure deterministic output from SVD. 
