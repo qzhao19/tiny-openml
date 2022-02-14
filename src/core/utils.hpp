@@ -20,7 +20,6 @@ auto max_element(Container const &x)
     return *std::max_element(x.begin(), x.end(), compare);
 };
 
-
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
@@ -78,7 +77,6 @@ VecType flatten(const MatType& x) {
     return flatten_vec;
 };
 
-
 /**
  * Repeat elements of an matrix.
  * 
@@ -102,7 +100,6 @@ MatType repeat(const MatType& x,
     return retval;
 };
 
-
 /**
  * Returns the indices of the maximum values along an axis.
  *
@@ -110,13 +107,15 @@ MatType repeat(const MatType& x,
  * @param axis int, the given specified axis.
  * 
  * @return the indices of the maximum values along an axis
+ *      if axis = 0, return index vector of max element along horizontal
+ *      if axis = 1, retunn index vector of max element along vertical
+ *      if axis = -1, return the max index scalar element of 2d 
 */
-template<typename MatType, typename IndexType>
-IndexType argmax(const MatType& x, int axis = 0) {
-
+template<typename MatType, typename VecType, typename IdxType>
+IdxType argmax(const MatType& x, int axis = 0) {
     if (axis == 1) {
         std::size_t num_rows = x.rows();
-        IndexType max_index{num_rows};
+        IdxType max_index{num_rows};
         for (std::size_t i = 0; i < num_rows; i++) {
             x.row(i).maxCoeff(&max_index[i]);
         }
@@ -124,10 +123,21 @@ IndexType argmax(const MatType& x, int axis = 0) {
     }
     else if (axis == 0) {
         std::size_t num_cols = x.cols();
-        IndexType max_index{num_cols};
+        IdxType max_index{num_cols};
         for (std::size_t j = 0; j < num_cols; j++) {
             x.col(j).maxCoeff(&max_index[j]);
         }
+        return max_index;
+    }
+    else if (axis == -1) {
+        // flayyen a 2d matrix into 1d verctor
+        VecType flatten_vec;
+        flatten_vec = flatten<MatType, VecType>(x);
+        
+        // get the max index of flattened vector
+        IdxType max_index{1};
+        flatten_vec.maxCoeff(&max_index[0]);
+
         return max_index;
     }
     else {
@@ -141,13 +151,16 @@ IndexType argmax(const MatType& x, int axis = 0) {
  * @param axis int, the given specified axis.
  * 
  * @return the indices of the minimum values along an axis
+ *      if axis = 0, return index vector of min element along horizontal
+ *      if axis = 1, retunn index vector of min element along vertical
+ *      if axis = -1, return the min index scalar element of 2d 
 */
-template<typename MatType, typename IndexType>
-IndexType argmin(const MatType& x, int axis = 0) {
+template<typename MatType, typename VecType, typename IdxType>
+IdxType argmin(const MatType& x, int axis = 0) {
 
     if (axis == 1) {
         std::size_t num_rows = x.rows();
-        IndexType min_index{num_rows};
+        IdxType min_index{num_rows};
         for (std::size_t i = 0; i < num_rows; i++) {
             x.row(i).minCoeff(&min_index[i]);
         }
@@ -155,10 +168,20 @@ IndexType argmin(const MatType& x, int axis = 0) {
     }
     else if (axis == 0) {
         std::size_t num_cols = x.cols();
-        IndexType min_index{num_cols};
+        IdxType min_index{num_cols};
         for (std::size_t j = 0; j < num_cols; j++) {
             x.col(j).minCoeff(&min_index[j]);
         }
+        return min_index;
+    }
+    else if (axis == -1) {
+        VecType flatten_vec;
+        flatten_vec = flatten<MatType, VecType>(x);
+        
+        // get the max index of flattened vector
+        IdxType min_index{1};
+        flatten_vec.maxCoeff(&min_index[0]);
+
         return min_index;
     }
     else {
