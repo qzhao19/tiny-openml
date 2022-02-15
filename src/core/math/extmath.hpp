@@ -25,40 +25,63 @@ MatType sigmoid(const MatType& x) {
 };
 
 /**
- * compute the data variance, if input data is a vector,
- * return is a scalar, if input data is a matrtix, return 
- * is the covariamce matrix of ndarray.
+ * Axis or axes along which the variance is computed, 
+ * if input data is a vector, return is a scalar, 
+ * if input data is a matrtix, return is the covariamce 
+ * matrix of ndarray.
+ * 
+ * The default is to compute the variance of the flattened array.
  * 
  * @param x input data of type vector or matrix 
+ * @param axis int. default -1 The axis along which to calculate variance. 
  * @return scalar or 2darray
 */
-template<typename AnyType>
-auto var(const AnyType& x, int axis) {
+template<typename MatType, 
+    typename VecType, 
+    typename DataType = typename MatType::value_type>
+auto var(const MatType& x, int axis = -1) {
 
+    // Var(X)=E[X^2]-(E[X])^2
     if (axis == 0) {
-
+        
+        std::size_t num_cols = x.cols();
+        // compute means and element-wise square along to axis 1
+        VecType col_mean(num_cols);
+        col_mean = x.colwise().mean();
+        VecType mean_x_squared(num_cols);
+        mean_x_squared = x.array().square().colwise().mean().transpose().matrix();
+        VecType col_var(num_cols);
+        col_var = mean_x_squared - col_mean.array().square().matrix();
+        return col_var;
     }
     else if (axis == 1) {
-
+        std::size_t num_rows = x.rows();
+        VecType row_mean(num_rows);
+        row_mean = x.rowwise().mean();
+        VecType mean_x_squared(num_rows);
+        mean_x_squared = x.array().square().rowwise().mean().matrix();
+        VecType row_var(num_rows);
+        row_var = mean_x_squared - row_mean.array().square().matrix();
+        return row_var;
     }
     else if (axis == -1) {
-        
+        std::size_t num_rows = x.rows(), num_cols = x.cols();
+        MatType trans_x = x.transpose();
+        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+        VecType mean(1);
+        mean = flatten_x.colwise().mean();
+        VecType mean_x_squared(1);
+        mean_x_squared = flatten_x.array().square().colwise().mean().matrix();
+        VecType var(1);
+        var = mean_x_squared - mean.array().square().matrix();
+        return var;
     }
-
-
-    return 0;
 }
-
-
-
-
-
-
 
 /**
  * Estimate a covariance matrix, given data.
  * Covariance indicates the level to which two variables vary together. 
- * If we examine N-dimensional samples, X = [x1, x2, .. x_n].T , 
+ * If we examine N-dimensional samples, X = [x1, x2, .. x_n]_T , 
  * then the covariance matrix element C_ij is the covariance of x_i and x_j. 
  * The element C_ii is the variance of x_i.
  * 
