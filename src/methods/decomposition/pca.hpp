@@ -29,9 +29,6 @@ protected:
         const VecType& y) {
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
-
-        VecType explained_var_;
-
         if (solver == "svd") {
 
             MatType U;
@@ -43,7 +40,7 @@ protected:
             MatType Vt = V.transpose();
             std::tie(U, Vt) = math::svd_flip(U, Vt);
 
-            explained_var_ = math::power(s, 2.0) / (static_cast<DataType>(num_samples) - 1.);
+            explained_var = math::power(s, 2.0) / (static_cast<DataType>(num_samples) - 1.);
 
             if (num_components > Vt.cols()) {
                 throw std::invalid_argument(
@@ -54,20 +51,18 @@ protected:
             else {
                 components = Vt.leftCols(num_components);
             }
+        };
+
+        VecType total_var = math::sum<MatType, VecType>(explained_var);
+        explained_var_ratio = explained_var / total_var(0, 0);
+
+        if (num_components < std::min(num_samples, num_features)) {
+            VecType noise_var_ = math::mean(explained_var.leftCols(num_components));
+            noise_var = noise_var_(0, 0);
         }
-
-        auto total_var = 
-
-
-
-
-
-
-
-
-
-
-
+        else {
+            noise_var = 0.0;
+        }
 
     }
 
@@ -77,8 +72,8 @@ public:
      * Default constructor to create PCA object, linear dimesionality reduction using SVD 
      * of the data to project it to a lower dimesional space, input data shoule be centered 
      * 
-     * @param solver the matrix decomnposition policies, if eig, will run eigen vector
-     * decomposition, if svd, will run full svd via arma::svd
+     * @param solver the matrix decomnposition policies, 
+     *      if svd, will run full svd via arma::svd
      * 
      * @param n_components Number of components to keep
      * @param scale Whether or not to scale the data.
