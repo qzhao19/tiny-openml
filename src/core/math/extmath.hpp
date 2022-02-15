@@ -36,9 +36,7 @@ MatType sigmoid(const MatType& x) {
  * @param axis int. default -1 The axis along which to calculate variance. 
  * @return scalar or 2darray
 */
-template<typename MatType, 
-    typename VecType, 
-    typename DataType = typename MatType::value_type>
+template<typename MatType, typename VecType>
 auto var(const MatType& x, int axis = -1) {
 
     // Var(X)=E[X^2]-(E[X])^2
@@ -48,32 +46,41 @@ auto var(const MatType& x, int axis = -1) {
         // compute means and element-wise square along to axis 1
         VecType col_mean(num_cols);
         col_mean = x.colwise().mean();
+
         VecType mean_x_squared(num_cols);
         mean_x_squared = x.array().square().colwise().mean().transpose().matrix();
+
         VecType col_var(num_cols);
         col_var = mean_x_squared - col_mean.array().square().matrix();
+
         return col_var;
     }
     else if (axis == 1) {
         std::size_t num_rows = x.rows();
         VecType row_mean(num_rows);
         row_mean = x.rowwise().mean();
+
         VecType mean_x_squared(num_rows);
         mean_x_squared = x.array().square().rowwise().mean().matrix();
+
         VecType row_var(num_rows);
         row_var = mean_x_squared - row_mean.array().square().matrix();
+
         return row_var;
     }
     else if (axis == -1) {
         std::size_t num_rows = x.rows(), num_cols = x.cols();
         MatType trans_x = x.transpose();
         VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+
         VecType mean(1);
         mean = flatten_x.colwise().mean();
         VecType mean_x_squared(1);
         mean_x_squared = flatten_x.array().square().colwise().mean().matrix();
+
         VecType var(1);
         var = mean_x_squared - mean.array().square().matrix();
+
         return var;
     }
 }
@@ -94,6 +101,41 @@ AnyType cov(const AnyType& x) {
     AnyType cov = (centered.adjoint() * centered) / static_cast<double>(x.rows() - 1);
     return cov;
 };
+
+/**
+ * Sum of array elements over a given axis.
+ * @param x input data of type vector or matrix 
+ * @param axis int. Axis or axes along which a sum is performed. 
+ *      The default is -1, 
+*/
+template<typename MatType, 
+    typename VecType>
+auto sum(const MatType& x, int axis = -1) {
+    if (axis == 0) {
+        std::size_t num_cols = x.cols();
+        // compute means and element-wise square along to axis 1
+        VecType col_sum(num_cols);
+        col_sum = x.colwise().sum();
+
+        return col_sum;
+    }
+    else if (axis == 1) {
+        std::size_t num_rows = x.rows();
+        VecType row_sum(num_rows);
+        row_sum = x.rowwise().sum();
+
+        return row_sum;
+    }
+    else if (axis == -1) {
+        std::size_t num_rows = x.rows(), num_cols = x.cols();
+        MatType trans_x = x.transpose();
+        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+
+        VecType sum(1);
+        sum = flatten_x.colwise().sum();
+        return sum;
+    }
+}
 
 /**
  * First array elements raised to powers from second param, element wise
