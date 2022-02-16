@@ -20,6 +20,7 @@ auto max_element(Container const &x)
     return *std::max_element(x.begin(), x.end(), compare);
 };
 
+
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
@@ -77,6 +78,7 @@ VecType flatten(const MatType& x) {
     return flatten_vec;
 };
 
+
 /**
  * Repeat elements of an matrix.
  * 
@@ -99,6 +101,7 @@ MatType repeat(const MatType& x,
     }
     return retval;
 };
+
 
 /**
  * Returns the indices of the maximum values along an axis.
@@ -180,7 +183,7 @@ IdxType argmin(const MatType& x, int axis = 0) {
         
         // get the max index of flattened vector
         IdxType min_index{1};
-        flatten_vec.maxCoeff(&min_index[0]);
+        flatten_vec.minCoeff(&min_index[0]);
 
         return min_index;
     }
