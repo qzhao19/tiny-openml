@@ -25,67 +25,6 @@ MatType sigmoid(const MatType& x) {
 };
 
 /**
- * Axis or axes along which the variance is computed, 
- * if input data is a vector, return is a scalar, 
- * if input data is a matrtix, return is the covariamce 
- * matrix of ndarray.
- * 
- * The default is to compute the variance of the flattened array.
- * 
- * @param x input data of type vector or matrix 
- * @param axis int. default -1 The axis along which to calculate variance. 
- * @return scalar or 2darray
-*/
-template<typename MatType, typename VecType>
-auto var(const MatType& x, int axis = -1) {
-
-    // Var(X)=E[X^2]-(E[X])^2
-    if (axis == 0) {
-        
-        std::size_t num_cols = x.cols();
-        // compute means and element-wise square along to axis 1
-        VecType col_mean(num_cols);
-        col_mean = x.colwise().mean();
-
-        VecType mean_x_squared(num_cols);
-        mean_x_squared = x.array().square().colwise().mean().transpose().matrix();
-
-        VecType col_var(num_cols);
-        col_var = mean_x_squared - col_mean.array().square().matrix();
-
-        return col_var;
-    }
-    else if (axis == 1) {
-        std::size_t num_rows = x.rows();
-        VecType row_mean(num_rows);
-        row_mean = x.rowwise().mean();
-
-        VecType mean_x_squared(num_rows);
-        mean_x_squared = x.array().square().rowwise().mean().matrix();
-
-        VecType row_var(num_rows);
-        row_var = mean_x_squared - row_mean.array().square().matrix();
-
-        return row_var;
-    }
-    else if (axis == -1) {
-        std::size_t num_rows = x.rows(), num_cols = x.cols();
-        MatType trans_x = x.transpose();
-        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
-
-        VecType mean(1);
-        mean = flatten_x.colwise().mean();
-        VecType mean_x_squared(1);
-        mean_x_squared = flatten_x.array().square().colwise().mean().matrix();
-
-        VecType var(1);
-        var = mean_x_squared - mean.array().square().matrix();
-
-        return var;
-    }
-}
-
-/**
  * Estimate a covariance matrix, given data.
  * Covariance indicates the level to which two variables vary together. 
  * If we examine N-dimensional samples, X = [x1, x2, .. x_n]_T , 
@@ -103,6 +42,57 @@ AnyType cov(const AnyType& x) {
 };
 
 /**
+ * Axis or axes along which the variance is computed, 
+ * if input data is a vector, return is a scalar, 
+ * if input data is a matrtix, return is the covariamce 
+ * matrix of ndarray.
+ * 
+ * The default is to compute the variance of the flattened array.
+ * 
+ * @param x input data of type vector or matrix 
+ * @param axis int. default -1 The axis along which to calculate variance. 
+ * @return scalar or 2darray
+*/
+template<typename MatType, typename VecType>
+VecType var(const MatType& x, int axis = -1) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    // Var(X)=E[X^2]-(E[X])^2
+    if (axis == 0) {
+        // compute means and element-wise square along to axis 1
+        VecType col_mean(num_cols);
+        col_mean = x.colwise().mean();
+        VecType mean_x_squared(num_cols);
+        mean_x_squared = x.array().square().colwise().mean().transpose().matrix();
+        VecType col_var(num_cols);
+        col_var = mean_x_squared - col_mean.array().square().matrix();
+
+        return col_var;
+    }
+    else if (axis == 1) {
+        VecType row_mean(num_rows);
+        row_mean = x.rowwise().mean();
+        VecType mean_x_squared(num_rows);
+        mean_x_squared = x.array().square().rowwise().mean().matrix();
+        VecType row_var(num_rows);
+        row_var = mean_x_squared - row_mean.array().square().matrix();
+
+        return row_var;
+    }
+    else if (axis == -1) {
+        MatType trans_x = x.transpose();
+        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+        VecType mean(1);
+        mean = flatten_x.colwise().mean();
+        VecType mean_x_squared(1);
+        mean_x_squared = flatten_x.array().square().colwise().mean().matrix();
+        VecType var(1);
+        var = mean_x_squared - mean.array().square().matrix();
+
+        return var;
+    }
+};
+
+/**
  * Sum of array elements over a given axis.
  * @param x input data of type vector or matrix 
  * @param axis int. Axis or axes along which a sum is performed. 
@@ -110,32 +100,57 @@ AnyType cov(const AnyType& x) {
 */
 template<typename MatType, 
     typename VecType>
-auto sum(const MatType& x, int axis = -1) {
+VecType sum(const MatType& x, int axis = -1) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
     if (axis == 0) {
-        std::size_t num_cols = x.cols();
         // compute means and element-wise square along to axis 1
         VecType col_sum(num_cols);
         col_sum = x.colwise().sum();
-
         return col_sum;
     }
     else if (axis == 1) {
-        std::size_t num_rows = x.rows();
         VecType row_sum(num_rows);
         row_sum = x.rowwise().sum();
-
         return row_sum;
     }
     else if (axis == -1) {
-        std::size_t num_rows = x.rows(), num_cols = x.cols();
         MatType trans_x = x.transpose();
         VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
-
         VecType sum(1);
         sum = flatten_x.colwise().sum();
         return sum;
     }
-}
+};
+
+/**
+ * Mean of array elements over a given axis.
+ * @param x input data of type vector or matrix 
+ * @param axis int. Axis or axes along which a mean is performed. 
+ *      The default is -1, 
+*/
+template<typename MatType, 
+    typename VecType>
+VecType mean(const MatType& x, int axis = -1) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    if (axis == 0) {
+        // compute means and element-wise square along to axis 1
+        VecType col_mean(num_cols);
+        col_mean = x.colwise().mean();
+        return col_mean;
+    }
+    else if (axis == 1) {
+        VecType row_mean(num_rows);
+        row_mean = x.rowwise().mean();
+        return row_mean;
+    }
+    else if (axis == -1) {
+        MatType trans_x = x.transpose();
+        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+        VecType mean(1);
+        mean = flatten_x.colwise().mean();
+        return mean;
+    }
+};
 
 /**
  * First array elements raised to powers from second param, element wise
@@ -197,7 +212,7 @@ AnyType sign(const AnyType& x) {
  * 
  * @return u_adjusted, v_adjusted : arrays with the same dimensions as the input.
 */
-template<typename MatType, typename VecType, typename IndexType>
+template<typename MatType, typename VecType, typename IdxType>
 std::tuple<MatType, MatType> svd_flip(const MatType& U, 
     const MatType &Vt, 
     bool u_based_decision = true) {
@@ -207,7 +222,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     if (u_based_decision) {
         // columns of u, rows of v
         MatType abs_U = abs<MatType>(U);
-        IndexType max_abs_index = argmax<MatType, IndexType>(abs_U, 0);
+        IdxType max_abs_index = argmax<MatType, IdxType>(abs_U, 0);
 
         std::size_t num_elems = max_abs_index.rows();
         VecType max_abs_cols(num_elems);
@@ -216,14 +231,14 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
             std::size_t i = max_abs_index(j);
             max_abs_cols(j) = U(i, j);
         }
-        VecType signs = sign(max_abs_cols);
+        VecType signs = sign<VecType>(max_abs_cols);
         U_ = (U.array().rowwise() * signs.transpose().array()).matrix();        
         Vt_ = (Vt.array().colwise() * signs.array()).matrix();
     }
     else {
         // rows of v, columns of u
         MatType abs_Vt = abs<MatType>(Vt);
-        IndexType max_abs_index = argmax<MatType, IndexType>(abs_Vt, 1);
+        IdxType max_abs_index = argmax<MatType, IdxType>(abs_Vt, 1);
 
         std::size_t num_elems = max_abs_index.rows();
         VecType max_abs_rows(num_elems);
@@ -233,7 +248,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
             max_abs_rows(i) = Vt(i, j);
         }
 
-        VecType signs = sign(max_abs_rows);
+        VecType signs = sign<VecType>(max_abs_rows);
         U_ = (U.array().rowwise() * signs.transpose().array()).matrix();        
         Vt_ = (Vt.array().colwise() * signs.array()).matrix();
     }
