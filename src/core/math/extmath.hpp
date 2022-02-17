@@ -150,7 +150,23 @@ VecType mean(const MatType& x, int axis = -1) {
         mean = flatten_x.colwise().mean();
         return mean;
     }
+
 };
+
+/**
+ * transform a vector to diagonal matrix 
+ * @param x vector of shape (num_rows)
+ *      input data
+ * @return a diagonal matrix of shape (num_rows, num_rows)
+*/
+template<typename MatType, typename VecType>
+MatType diagmat(const VecType& x) {
+    std::size_t num_rows = x.rows();
+    MatType diag_mat(num_rows, num_rows);
+    diag_mat = x.asDiagonal();
+    return diag_mat;
+}
+
 
 /**
  * First array elements raised to powers from second param, element wise
