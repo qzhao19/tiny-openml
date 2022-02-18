@@ -1,6 +1,7 @@
 #ifndef CORE_MATH_EXTMATH_HPP
 #define CORE_MATH_EXTMATH_HPP
 #include "../../prereqs.hpp"
+#include "../../core.hpp"
 
 namespace openml {
 namespace math {
@@ -168,6 +169,16 @@ MatType diagmat(const VecType& x) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
 /**
  * First array elements raised to powers from second param, element wise
  * Negative values raised to a non-integral value will return nan.
@@ -238,7 +249,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     if (u_based_decision) {
         // columns of u, rows of v
         MatType abs_U = abs<MatType>(U);
-        IdxType max_abs_index = argmax<MatType, IdxType>(abs_U, 0);
+        IdxType max_abs_index = utils::argmax<MatType, VecType, IdxType>(abs_U, 0);
 
         std::size_t num_elems = max_abs_index.rows();
         VecType max_abs_cols(num_elems);
@@ -254,7 +265,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     else {
         // rows of v, columns of u
         MatType abs_Vt = abs<MatType>(Vt);
-        IdxType max_abs_index = argmax<MatType, IdxType>(abs_Vt, 1);
+        IdxType max_abs_index = utils::argmax<MatType, VecType, IdxType>(abs_Vt, 1);
 
         std::size_t num_elems = max_abs_index.rows();
         VecType max_abs_rows(num_elems);
