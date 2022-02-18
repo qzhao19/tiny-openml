@@ -193,10 +193,6 @@ IdxType argmin(const MatType& x, int axis = 0) {
 };
 
 
-
-
-
-
 }
 }
 #endif /**/
