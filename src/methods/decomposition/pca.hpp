@@ -61,7 +61,8 @@ protected:
         explained_var_ratio_ = explained_var_ / total_var(0, 0);
 
         if (num_components < std::min(num_samples, num_features)) {
-            VecType noise_var_ = math::mean<MatType, VecType>(explained_var_.bottomRows(num_components));
+            std::size_t num_noise_var = std::min(num_samples, num_features) - num_components;
+            VecType noise_var_ = math::mean<MatType, VecType>(explained_var_.bottomRows(num_noise_var));
             noise_var = static_cast<double>(noise_var_(0, 0));
         }
         else {
@@ -125,7 +126,6 @@ protected:
 
         return log_like.matrix();
     }
-
 
 public:
     /**
@@ -204,8 +204,14 @@ public:
         return precision;
     }
 
-    /***/
-    const MatType score_samples(const MatType& X) const {
+    /**
+     * Return the average log-likelihood of all samples.
+     * @param X array-like of shape (n_samples, n_features)
+     *      the data
+     * @return Average log-likelihood of the samples 
+     *      under the current model.
+    */
+    const double score(const MatType& X) const {
         std::size_t num_samples = X.rows();
         
         MatType centered_X;
@@ -214,9 +220,10 @@ public:
         VecType log_like(num_samples);
         log_like = compute_score_samples(centered_X);
 
-        return log_like;
-    }
+        auto average_log_like = math::mean<MatType, VecType>(log_like);
 
+        return average_log_like(0, 0);
+    }
 };
 
 } // namespace openml
