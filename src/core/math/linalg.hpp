@@ -96,6 +96,30 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
 }
 
 
+/**
+ * Compute log(det(A)) for A symmetric.
+ * 
+ * @param x ndarray of shape (num_rows, num_cols)
+ *      input array, has to be a SQUARE 2d array
+ * @return -Inf if det(A) is non positive or is not defined.
+*/
+template <typename MatType, 
+    typename DataType = typename MatType::value_type>
+DataType logdet(const MatType& x) {
+    DataType ld = static_cast<DataType>(0);
+    Eigen::PartialPivLU<MatType> lu(x);
+    auto& LU = lu.matrixLU();
+    DataType c = lu.permutationP().determinant(); // -1 or 1
+    for (std::size_t i = 0; i < LU.rows(); ++i) {
+        const auto& lii = LU(i,i);
+        if (lii < static_cast<DataType>(0)) {
+            c *= -1;
+        }
+        ld += std::log(std::abs(lii));
+    }
+    ld += std::log(c);
+    return std::isnan(ld) ? (-std::numeric_limits<DataType>::infinity()) : ld;
+}
 
 
 
