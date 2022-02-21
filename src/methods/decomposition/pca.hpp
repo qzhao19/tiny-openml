@@ -182,6 +182,27 @@ public:
     }
 
     /**
+     * Return the average log-likelihood of all samples.
+     * @param X array-like of shape (n_samples, n_features)
+     *      the data
+     * @return Average log-likelihood of the samples 
+     *      under the current model.
+    */
+    const double score(const MatType& X) const {
+        std::size_t num_samples = X.rows();
+        
+        MatType centered_X;
+        centered_X = math::center<MatType>(X);
+
+        VecType log_like(num_samples);
+        log_like = compute_score_samples(centered_X);
+
+        auto average_log_like = math::mean<MatType, VecType>(log_like);
+
+        return average_log_like(0, 0);
+    }
+
+     /**
      * Compute data covariance with the generative model.
      * ``cov = components_.T * S**2 * components_ + sigma2 * eye(n_features)``
      * where S**2 contains the explained variances, and sigma2 contains the noise variances.
@@ -204,26 +225,19 @@ public:
         return precision;
     }
 
-    /**
-     * Return the average log-likelihood of all samples.
-     * @param X array-like of shape (n_samples, n_features)
-     *      the data
-     * @return Average log-likelihood of the samples 
-     *      under the current model.
-    */
-    const double score(const MatType& X) const {
-        std::size_t num_samples = X.rows();
-        
-        MatType centered_X;
-        centered_X = math::center<MatType>(X);
+    /**override get_coef interface*/
+    const VecType get_components() const {
+        return components;
+    };
 
-        VecType log_like(num_samples);
-        log_like = compute_score_samples(centered_X);
+    const VecType get_explained_var() const {
+        return explained_var;
+    };
 
-        auto average_log_like = math::mean<MatType, VecType>(log_like);
+    const VecType get_explained_var_ratio() const {
+        return explained_var_ratio;
+    };
 
-        return average_log_like(0, 0);
-    }
 };
 
 } // namespace openml
