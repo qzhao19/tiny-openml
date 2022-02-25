@@ -31,10 +31,10 @@ protected:
             label_map[y[i]]++;
         }
         std::size_t i = 0;
-        // num_classes = 0;
+        std::vector<double> prior_prob_;
         for (auto &label : label_map) {
             num_classes++;
-            prior_prob(i, 0) = static_cast<DataType>(label.second / num_samples);
+            prior_prob_.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
             i++;
         }
     }
