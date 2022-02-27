@@ -15,11 +15,17 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-
+    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    
 protected:
     VecType prior_prob;
     std::size_t num_classes;
     std::map<DataType, std::size_t> label_map;
+
+    /**
+     * 
+    */
+    virtual const MatType joint_log_likelihood(const MatType& X) const = 0;
 
     /**
      * compute the class prior probability P(y)
@@ -32,20 +38,20 @@ protected:
         }
         std::size_t i = 0;
         std::vector<double> prior_prob_;
+        num_classes = 0;
         for (auto &label : label_map) {
             num_classes++;
             prior_prob_.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
             i++;
         }
+        prior_prob = utils::vec2mat<VecType>(prior_prob_);
     }
+
+    
 
 
 public:
-    BaseNB(const VecType& prior_prob_, 
-        const std::map<DataType, std::size_t>& label_map_): num_classes(0), 
-            prior_prob(prior_prob_), 
-            label_map(label_map_) {};
-
+    BaseNB() {};
     ~BaseNB() {};
 
 };
