@@ -6,12 +6,6 @@
 namespace openml {
 namespace math {
 
-// template<typename DataType>
-// double sigmoid(const DataType z) {
-//     return DataType(1.0) / (DataType(1.0) + exp(-z));
-// }
-
-
 /**
  * compute the matrix sigmoid value
  *      s(z) = 1 / (1 + exp(-z))
@@ -22,7 +16,7 @@ template<typename MatType,
     typename DataType = typename MatType::value_type>
 MatType sigmoid(const MatType& x) {
     return (static_cast<DataType>(1) / 
-        (static_cast<DataType>(1) + (-x.array()).exp())).matrix();
+        (static_cast<DataType>(1) + (-x.array()).exp()));
 };
 
 /**
@@ -281,6 +275,39 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     }
     return std::make_tuple(U_, Vt_);
 };
+
+
+/**
+ * Compute the log of the sum of exponentials of input elements.
+ * @param x ndarray input data
+ * @param axis, int
+ *      Axis or axes over which the sum is taken.
+*/
+template<typename MatType, typename VecType>
+VecType logsumexp(const MatType& x, int axis){
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    if (axis == 1) {
+        VecType c = x.rowwise().maxCoeff();
+        MatType repeated_c = repeat<MatType>(c, num_cols, 1);
+        VecType log_sum_exp = (x - repeated_c).array().exp().rowwise().sum().log();
+        return log_sum_exp + c;
+    }
+    else if (axis == 0) {
+        VecType c = x.colwise().maxCoeff();
+        MatType repeated_c = repeat<MatType>(c.transpose(), num_rows, 0);
+        VecType log_sum_exp = (x - repeated_c).array().exp().colwise().sum().log();
+        return log_sum_exp + c;
+    }
+    else if (axis == -1) {
+        auto c = x.maxCoeff();
+        auto log_sum_exp_val = std::log((x.array() - c).exp().sum()) + c;
+        VecType log_sum_exp(1);
+        log_sum_exp(0, 0) = log_sum_exp_val;
+        return log_sum_exp;
+    }
+};
+
+
 
 
 }
