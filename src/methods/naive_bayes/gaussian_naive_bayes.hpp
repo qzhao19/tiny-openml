@@ -16,20 +16,24 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
+    double var_smoothing;
+
     /**
      * @param means Matrix of shape [n_classes, n_feature], 
      *      measn of each feature for different class
      * @param vars  Matrix of shape [n_classes, n_feature], 
      *      variances of each feature for different class
     */
-    double var_smoothing;
-    double alpha;
-
     MatType mean;
     MatType var;
 
 protected:
 
+    /**
+     * compute log posterior prbabilty, P(c|x) = P(c)P(x|c)
+     * log(P(c|x)) = log(P(C)) + log(P(x|c)) for all rows x of X, 
+     * as an array-like of shape (n_classes, n_samples).
+    */
     const MatType joint_log_likelihood(const MatType& X) const {
         std::size_t num_samples = X.rows();
         MatType jll(num_samples, this->num_classes);
@@ -59,7 +63,9 @@ protected:
         return jll;
     };
     
-
+    /**
+     * Compute Gaussian mean and variance
+    */
     void update_mean_variance(const MatType& X, 
         const VecType& y) {
         std::size_t num_samples = X.rows(), num_features = X.cols();
@@ -97,30 +103,24 @@ protected:
 
 
 public:
+    /**
+     * @param var_smoothing float, default=1e-9
+     *      Portion of the largest variance of all features.
+    */
      GaussianNB(): BaseNB<DataType>(), 
-        var_smoothing(1e-9), 
-        alpha(0.0) {};
+        var_smoothing(1e-9){};
 
-    GaussianNB(const double var_smoothing_, 
-        const double alpha_) : BaseNB<DataType>(),
-            var_smoothing(var_smoothing_), 
-            alpha(alpha_){};
+    GaussianNB(const double var_smoothing_) : BaseNB<DataType>(),
+            var_smoothing(var_smoothing_){};
     
     ~GaussianNB() {};
 
-    void test_func(const MatType& X, 
+    void fit(const MatType& X, 
         const VecType& y) {
         
         this->get_prior_prob(y);
         this->update_mean_variance(X, y);
-
-        std::cout << this->joint_log_likelihood(X);
-        
-        // std::cout << this->prior_prob.array().log() << std::endl;
-        // std::cout << mean << std::endl;
-        // std::cout << var << std::endl;
-
-
+        var = var.array() + var_smoothing * var.maxCoeff();
     };
 
 };
