@@ -57,7 +57,7 @@ VecType var(const MatType& x, int axis = -1) {
         VecType col_mean(num_cols);
         col_mean = x.colwise().mean();
         VecType mean_x_squared(num_cols);
-        mean_x_squared = x.array().square().colwise().mean().transpose().matrix();
+        mean_x_squared = x.array().square().colwise().mean().transpose();
         VecType col_var(num_cols);
         col_var = mean_x_squared - col_mean.array().square().matrix();
 
@@ -67,7 +67,7 @@ VecType var(const MatType& x, int axis = -1) {
         VecType row_mean(num_rows);
         row_mean = x.rowwise().mean();
         VecType mean_x_squared(num_rows);
-        mean_x_squared = x.array().square().rowwise().mean().matrix();
+        mean_x_squared = x.array().square().rowwise().mean();
         VecType row_var(num_rows);
         row_var = mean_x_squared - row_mean.array().square().matrix();
 
@@ -79,7 +79,7 @@ VecType var(const MatType& x, int axis = -1) {
         VecType mean(1);
         mean = flatten_x.colwise().mean();
         VecType mean_x_squared(1);
-        mean_x_squared = flatten_x.array().square().colwise().mean().matrix();
+        mean_x_squared = flatten_x.array().square().colwise().mean();
         VecType var(1);
         var = mean_x_squared - mean.array().square().matrix();
 
@@ -162,17 +162,6 @@ MatType diagmat(const VecType& x) {
     return diag_mat;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /**
  * First array elements raised to powers from second param, element wise
  * Negative values raised to a non-integral value will return nan.
@@ -183,7 +172,7 @@ MatType diagmat(const VecType& x) {
 */
 template<typename AnyType>
 AnyType power(const AnyType& x, double exponents) {
-    return x.array().pow(exponents).matrix();
+    return x.array().pow(exponents);
 };
 
 /**
@@ -205,7 +194,7 @@ MatType center(const MatType& x) {
 */
 template<typename AnyType>
 AnyType abs(const AnyType& x) {
-    return x.array().abs().matrix();
+    return x.array().abs();
 };
 
 /**
@@ -216,7 +205,7 @@ AnyType abs(const AnyType& x) {
 */
 template<typename AnyType>
 AnyType sign(const AnyType& x) {
-    return x.array().sign().matrix();
+    return x.array().sign();
 };
 
 /**
@@ -253,8 +242,8 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
             max_abs_cols(j) = U(i, j);
         }
         VecType signs = sign<VecType>(max_abs_cols);
-        U_ = (U.array().rowwise() * signs.transpose().array()).matrix();        
-        Vt_ = (Vt.array().colwise() * signs.array()).matrix();
+        U_ = U.array().rowwise() * signs.transpose().array();        
+        Vt_ = Vt.array().colwise() * signs.array();
     }
     else {
         // rows of v, columns of u
@@ -270,8 +259,8 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
         }
 
         VecType signs = sign<VecType>(max_abs_rows);
-        U_ = (U.array().rowwise() * signs.transpose().array()).matrix();        
-        Vt_ = (Vt.array().colwise() * signs.array()).matrix();
+        U_ = U.array().rowwise() * signs.transpose().array();        
+        Vt_ = Vt.array().colwise() * signs.array();
     }
     return std::make_tuple(U_, Vt_);
 };
@@ -288,13 +277,13 @@ VecType logsumexp(const MatType& x, int axis){
     std::size_t num_rows = x.rows(), num_cols = x.cols();
     if (axis == 1) {
         VecType c = x.rowwise().maxCoeff();
-        MatType repeated_c = repeat<MatType>(c, num_cols, 1);
+        MatType repeated_c = utils::repeat<MatType>(c, num_cols, 1);
         VecType log_sum_exp = (x - repeated_c).array().exp().rowwise().sum().log();
         return log_sum_exp + c;
     }
     else if (axis == 0) {
         VecType c = x.colwise().maxCoeff();
-        MatType repeated_c = repeat<MatType>(c.transpose(), num_rows, 0);
+        MatType repeated_c = utils::repeat<MatType>(c.transpose(), num_rows, 0);
         VecType log_sum_exp = (x - repeated_c).array().exp().colwise().sum().log();
         return log_sum_exp + c;
     }
