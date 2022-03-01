@@ -57,7 +57,6 @@ protected:
             VecType n_ij = repeated_sum_log_var.array() - 0.5 * math::sum<MatType, VecType>(X_minus_mean_div_var, 1).array();
 
             jll.col(i) = n_ij.array() + jointi.array();
-            
         }
 
         return jll;
@@ -100,8 +99,6 @@ protected:
         var = var_.transpose();
     }
 
-
-
 public:
     /**
      * @param var_smoothing float, default=1e-9
@@ -115,6 +112,12 @@ public:
     
     ~GaussianNB() {};
 
+    /**
+     * Fit the model with X.
+     * @param X array-like of shape (num_samples, num_features)
+     *      Training data, where num_samples is the number of 
+     *      samples and num_features is the number of features.
+    */
     void fit(const MatType& X, 
         const VecType& y) {
         
@@ -122,6 +125,21 @@ public:
         this->update_mean_variance(X, y);
         var = var.array() + var_smoothing * var.maxCoeff();
     };
+
+
+    /**
+     * get the mean attributes
+    */
+    const VecType get_mean() const {
+        return mean;
+    }
+
+    /**
+     * get the var attributes
+    */
+    const VecType get_var() const {
+        return var;
+    }
 
 };
 
