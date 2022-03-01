@@ -118,6 +118,20 @@ public:
         return pred_y;
     }
 
+    /**
+     * get the prior prbabilties attributes
+    */
+    const VecType get_prior_prob() const {
+        return prior_prob;
+    }
+
+    /**
+     * get the classes attributes
+    */
+    const VecType get_classes() const {
+        return classes;
+    }
+
 };
 
 } // naive_bayes
