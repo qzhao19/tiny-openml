@@ -16,7 +16,20 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
-    
+
+    MatType feature_count;
+    VecType class_count;
+
+
+protected:
+    void compute_feature_prob(const MatType& X, 
+        const VecType& y) {
+        
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+
+
+    }
+
 
 public:
     
