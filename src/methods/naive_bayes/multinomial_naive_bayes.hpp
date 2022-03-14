@@ -16,12 +16,13 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
+    double alpha;
+
+protected:
 
     MatType feature_count;
     VecType class_count;
 
-
-protected:
     void compute_feature_prob(const MatType& X, 
         const VecType& y) {
         
@@ -45,19 +46,73 @@ protected:
             }
             IdxType keep_cols = IdxType::LinSpaced(X_y.cols(), 0, X_y.cols());
 
-
             partial_X_y = X_y(keep_rows, keep_cols); 
             feature_count_.col(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
-            class_count_.col(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features));
+            class_count_.row(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features));
+
+            new_i++;
         }
 
-        std::cout << feature_count_ << std::endl;
-        std::cout << class_count_ << std::endl;
+        feature_count = feature_count_.transpose();
+        class_count = class_count_.transpose();
     }
 
 
+
+
+
+    const double log_likelihood(const VecType& x, const std::size_t c) {
+
+        double retval = 0.0;
+        for (std::size_t i = 0; i < x.rows(); i++) {
+            DataType numerator = feature_count(c, i)
+        }
+
+
+    }
+
+
+    const MatType joint_log_likelihood(const MatType& X) const {
+        std::size_t num_samples = X.rows();
+        MatType jll(num_samples, this->num_classes);
+        jll.setZero();
+
+        for (std::size_t i = 0; i < this->num_classes; i++) {
+            
+            VecType log_prior = this->prior_prob.array().log();
+            MatType log_prior_mat = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
+
+            
+
+
+
+        }
+
+        return jll;
+    };
+
 public:
+    /**
+     * @param alpha float, default=1e-9
+     *      Portion of the largest variance of all features.
+    */
+    MultinomialNB(): BaseNB<DataType>(), 
+        alpha(1.0){};
+
+    MultinomialNB(const double alpha_) : BaseNB<DataType>(),
+            alpha(alpha_){};
     
+    ~MultinomialNB() {};
+
+
+    void test_func(const MatType& X, 
+        const VecType& y) {
+        
+        this->compute_prior_prob(y);
+
+        compute_feature_prob(X, y);
+
+    }
 
 };
 
