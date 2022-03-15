@@ -18,6 +18,7 @@ private:
 
     double var_smoothing;
 
+protected:
     /**
      * @param means Matrix of shape [n_classes, n_feature], 
      *      measn of each feature for different class
@@ -27,7 +28,6 @@ private:
     MatType mean;
     MatType var;
 
-protected:
 
     /**
      * compute log posterior prbabilty, P(c|x) = P(c)P(x|c)
@@ -39,13 +39,11 @@ protected:
         MatType jll(num_samples, this->num_classes);
         jll.setZero();
 
+        VecType log_prior = this->prior_prob.array().log();
+        MatType jointi = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
         for (std::size_t i = 0; i < this->num_classes; i++) {
             
-            VecType log_prior = this->prior_prob.array().log();
-            MatType jointi = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
-
             auto val1 = var.row(i) * 2.0 * M_PI;
-
             VecType sum_log_var = math::sum<MatType, VecType>(val1.array().log().matrix()) * (-0.5);
             MatType repeated_sum_log_var = utils::repeat<MatType>(sum_log_var, num_samples, 0);
             
@@ -70,9 +68,7 @@ protected:
         std::size_t num_samples = X.rows(), num_features = X.cols();
 
         MatType mean_(num_features, this->num_classes);
-        // mean_.setZero();
         MatType var_(num_features, this->num_classes);
-        // var_.setZero();
 
         MatType X_y(num_samples, num_features + 1);
         X_y = utils::hstack<MatType>(X, y);
@@ -121,7 +117,7 @@ public:
     void fit(const MatType& X, 
         const VecType& y) {
         
-        this->get_prior_prob(y);
+        this->compute_prior_prob(y);
         this->update_mean_variance(X, y);
         var = var.array() + var_smoothing * var.maxCoeff();
     };
