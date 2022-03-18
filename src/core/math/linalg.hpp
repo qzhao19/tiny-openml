@@ -118,12 +118,8 @@ DataType logdet(const MatType& x) {
         ld += std::log(std::abs(lii));
     }
     ld += std::log(c);
-    return std::isnan(ld) ? (-std::numeric_limits<DataType>::infinity()) : ld;
+    return std::isnan(ld) ? (-ConstType<DataType>::infinity()) : ld;
 }
-
-
-
-
 
 
 }
