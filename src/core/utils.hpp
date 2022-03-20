@@ -228,7 +228,7 @@ MatType vec2mat(std::vector<std::vector<DataType>> vec) {
 };
 
 /**
- * 
+ * override vec2mat function
 */
 template<typename VecType, 
     typename DataType = typename VecType::value_type>
@@ -237,6 +237,53 @@ VecType vec2mat(std::vector<DataType> vec) {
     Eigen::Map<VecType> retvec(vec.data(), num_elems);
     return retvec;
 }
+
+
+/**
+ * Find the unique elements of an 1d array.
+ * @param x vector of shape (num_rows, 1)
+ *      input vector
+ * @return a tuple of (VecType, VecType)
+ *    returns the unsorted unique elements of an array and 
+ *    the indices of the input array that give the unique values
+*/
+template<typename VecType, 
+    typename DataType = typename VecType::value_type>
+std::tuple<VecType, VecType> unique(const VecType& x){
+
+    if (x.cols() != 1) {
+        throw std::out_of_range("Rows of vector should be equal to 1.");
+    }
+
+    std::vector<DataType> stdvec_index;
+    std::vector<DataType> stdvec_value;
+
+    // convert the input vector to std vector
+    std::vector<DataType>  stdvec_x;
+    for (std::size_t i = 0; i < x.rows(); i++) {
+        stdvec_x.push_back(x(i, 0));
+    }
+    // std::sort(stdvec_x.begin(), stdvec_x.end());
+    auto first = std::begin(stdvec_x), last = std::end(stdvec_x);
+    std::set<std::size_t> hash_set;
+    std::map<DataType, std::size_t> hash_map;
+    for(std::size_t i = 0; first != last; ++i, ++first){
+        auto iter_pair = hash_map.insert(std::make_pair(*first, i));
+        if(iter_pair.second){
+            stdvec_value.push_back(iter_pair.first->first);
+            hash_set.insert(iter_pair.first->second);
+            hash_set.insert(i);
+        }
+    }
+    stdvec_index = {hash_set.begin(), hash_set.end()};
+
+    VecType retvec_value = Eigen::Map<VecType>(stdvec_value.data(), stdvec_value.size(), 1);
+    VecType retvec_index = Eigen::Map<VecType>(stdvec_index.data(), stdvec_index.size(), 1);
+
+    return std::make_tuple(retvec_value, retvec_index);
+}
+
+
 
 }
 }
