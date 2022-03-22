@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <random>
 #include <set>
