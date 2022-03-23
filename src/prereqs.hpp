@@ -23,6 +23,7 @@
 #include <string>
 #include <stdexcept>
 #include <tuple>
+#include <typeinfo>
 #include <utility>
 #include <unordered_map>
 #include <unordered_set>
