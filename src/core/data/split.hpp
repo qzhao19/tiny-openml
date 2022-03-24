@@ -33,13 +33,13 @@ std::tuple<MatType, MatType, VecType, VecType> train_test_split(const MatType& X
         math::shuffle_data(X, y, X_, y_);
     }
 
-    int n_trainum_samples = num_samples * train_size;
-    int n_test_samples = num_samples - n_trainum_samples;
+    int num_train_samples = num_samples * train_size;
+    int num_test_samples = num_samples - num_train_samples;
 
-    MatType X_train = X_.topRows(n_trainum_samples);
-    MatType X_test = X_.bottomRows(n_test_samples);
-    VecType y_train = y_.topRows(n_trainum_samples);
-    VecType y_test = y_.bottomRows(n_test_samples);
+    MatType X_train = X_.topRows(num_train_samples);
+    MatType X_test = X_.bottomRows(num_test_samples);
+    VecType y_train = y_.topRows(num_train_samples);
+    VecType y_test = y_.bottomRows(num_test_samples);
 
     return std::make_tuple(X_train, X_test, y_train, y_test);
 };
