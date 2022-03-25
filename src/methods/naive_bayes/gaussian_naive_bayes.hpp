@@ -28,6 +28,7 @@ protected:
     MatType mean;
     MatType var;
 
+
     /**
      * compute log posterior prbabilty, P(c|x) = P(c)P(x|c)
      * log(P(c|x)) = log(P(C)) + log(P(x|c)) for all rows x of X, 
@@ -102,7 +103,7 @@ public:
      GaussianNB(): BaseNB<DataType>(), 
         var_smoothing(1e-9){};
 
-    GaussianNB(const double var_smoothing_) : BaseNB<DataType>(),
+    explicit GaussianNB(const double var_smoothing_) : BaseNB<DataType>(),
             var_smoothing(var_smoothing_){};
     
     ~GaussianNB() {};
@@ -120,6 +121,7 @@ public:
         this->update_mean_variance(X, y);
         var = var.array() + var_smoothing * var.maxCoeff();
     };
+
 
     /**
      * get the mean attributes
