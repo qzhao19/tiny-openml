@@ -296,6 +296,39 @@ VecType logsumexp(const MatType& x, int axis){
     }
 };
 
+/**
+ * compute the entropy of a vector
+ * Ent(D) = -sum(P_k * log2(P_k))
+ * 
+ * @param x the vector of shape (num_rows, 1)
+ *    input data to compute the entropy
+*/
+template<typename VecType, 
+    typename DataType = typename VecType::value_type>
+double entropy(const VecType& x) {
+    // VecType prob = x.array() / x.array().sum();
+    // return -(prob.array() * prob.array().log2()).sum();
+
+    double entropy_val = 0.0;
+    std::map<DataType, std::size_t> label_map;
+
+    std::size_t num_samples = x.rows();
+    for (std::size_t i = 0; i < num_samples; ++i) {
+        label_map[x[i]]++;
+    }
+
+    for (auto& label : label_map) {
+        double prob = static_cast<double>(label.second) / 
+            static_cast<double>(num_samples);
+        
+        entropy_val -= (prob * std::log2(prob));
+    }
+
+    return entropy_val;
+
+};
+
+
 
 
 
