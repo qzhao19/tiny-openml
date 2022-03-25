@@ -13,24 +13,23 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    
+
+protected:
     /**
      * @param W: ndarray_like data of shape [num_samples,]. the parameters that we want ot 
      *           calculate, initialized and filled by constructor for the least square method
-     * @param intercept: bool, default = True. whether to fit the intercept for the model. 
-     * 
+     * @param intercept: bool, default = True. whether to fit the intercept for the model.  
     */
     VecType W;
     bool intercept;
-
-protected:
+    
     /**
      * Train the linear regression model, using the sample weights
      * 
      * @param X, the matrix of dataset 
      * @param y, the label vector
     */
-    void fit_(const MatType& X, 
+    void fit_data(const MatType& X, 
         const VecType& y) {
         
         std::size_t num_samples = X.rows();
@@ -60,11 +59,11 @@ protected:
      * @param X the test sample
      * @return Returns predicted values, ndarray of shape (num_samples,)
     */
-    const VecType predict_(const MatType& X) const {
+    const VecType predict_label(const MatType& X) const {
         // y_pred = X * theta
         std::size_t num_samples = X.rows(), num_features = X.cols();
-        
         VecType y_pred(num_samples);
+
         if (intercept) {
             y_pred = X * W.topRows(num_features);
             VecType b(num_samples);
@@ -89,7 +88,7 @@ public:
      * Non-empty constructor, create the model with lamnda and intercept
      * @param intercept, whether or not to include an intercept term
     */
-    LinearRegression(const bool intercept_): 
+    explicite LinearRegression(const bool intercept_):
         intercept(intercept_) {};
 
     /**deconstructor*/
@@ -98,17 +97,17 @@ public:
     /**public fit interface*/
     void fit(const MatType& X, 
         const VecType& y) {
-        fit_(X, y);
+        fit_data(X, y);
     }
 
     /**public predict interface*/
     const VecType predict(const MatType& X) const{
         VecType y_pred;
-        y_pred = predict_(X);
+        y_pred = predict_label(X);
         return y_pred;
     };
 
-    /**public get_coef interface*/
+    /**override get_coef interface*/
     const VecType get_coef() const {
         return W;
     };
