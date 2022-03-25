@@ -98,7 +98,8 @@ protected:
         const VecType& left_y, 
         const VecType& right_y) const = 0;
 
-    const SplitRecordsType best_split(const MatType& X, const VecType& y,) const {
+
+    const SplitRecordsType best_split(const MatType& X, const VecType& y) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
         MatType X_y(num_samples, num_features + 1);
@@ -124,7 +125,7 @@ protected:
                     left_y = left_X_y.col(num_features);
                     right_y = right_X_y.col(num_features);
 
-                    double impurity = compute_impurity(y, left_y, right_y);
+                    double impurity = this->compute_impurity(y, left_y, right_y);
 
                     if (impurity > best_impurity) {
                         best_impurity = impurity;
