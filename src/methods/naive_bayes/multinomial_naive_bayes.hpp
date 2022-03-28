@@ -46,14 +46,18 @@ protected:
                 }
             }
             IdxType keep_cols = IdxType::LinSpaced(X_y.cols(), 0, X_y.cols());
+
             partial_X_y = X_y(keep_rows, keep_cols); 
             feature_count_.col(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
             class_count_.row(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features));
+
             new_i++;
         }
+
         feature_count = feature_count_.transpose();
         class_count = class_count_.transpose();
     }
+
 
     /**
      * compute log likelihood function 
@@ -67,7 +71,7 @@ protected:
     const double compute_log_likelihood(const VecType& x, const std::size_t c) const {
 
         double retval = 0.0;
-        for (std::size_t i = 0; i < x.rows(); i++) {
+        for (std::size_t i = 0; i < x.rows(); ++i) {
             DataType numerator = feature_count(c, i) + alpha;
             DataType denominator = class_count(c, 0) + (alpha * num_features);
             retval += x(i) * std::log(numerator / denominator);
@@ -84,8 +88,8 @@ protected:
 
         VecType log_prior = this->prior_prob.array().log();
         MatType lp = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
-        for (std::size_t i = 0; i < num_samples; i++) {        
-            for (std::size_t c = 0; c < this->num_classes; c++) {
+        for (std::size_t i = 0; i < num_samples; ++i) {        
+            for (std::size_t c = 0; c < this->num_classes; ++c) {
                 VecType row = X.row(i).transpose();
                 ll(i, c) = compute_log_likelihood(row, c);
             }
@@ -101,7 +105,7 @@ public:
     MultinomialNB(): BaseNB<DataType>(), 
         alpha(10.0) {};
 
-    MultinomialNB(const double alpha_) : BaseNB<DataType>(),
+    explicit MultinomialNB(const double alpha_) : BaseNB<DataType>(),
             alpha(alpha_) {};
     
     ~MultinomialNB() {};
