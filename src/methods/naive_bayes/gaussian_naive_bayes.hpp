@@ -28,7 +28,6 @@ protected:
     MatType mean;
     MatType var;
 
-
     /**
      * compute log posterior prbabilty, P(c|x) = P(c)P(x|c)
      * log(P(c|x)) = log(P(C)) + log(P(x|c)) for all rows x of X, 
@@ -121,7 +120,6 @@ public:
         this->update_mean_variance(X, y);
         var = var.array() + var_smoothing * var.maxCoeff();
     };
-
 
     /**
      * get the mean attributes
