@@ -85,6 +85,9 @@ VecType var(const MatType& x, int axis = -1) {
 
         return var;
     }
+    else {
+        throw std::invalid_argument("Got an invalid axis value.");
+    }
 };
 
 /**
@@ -115,6 +118,9 @@ VecType sum(const MatType& x, int axis = -1) {
         sum = flatten_x.colwise().sum();
         return sum;
     }
+    else {
+        throw std::invalid_argument("Got an invalid axis value.");
+    }
 };
 
 /**
@@ -144,6 +150,9 @@ VecType mean(const MatType& x, int axis = -1) {
         VecType mean(1);
         mean = flatten_x.colwise().mean();
         return mean;
+    }
+    else {
+        throw std::invalid_argument("Got an invalid axis value.");
     }
 
 };
@@ -305,27 +314,48 @@ VecType logsumexp(const MatType& x, int axis){
 */
 template<typename VecType, 
     typename DataType = typename VecType::value_type>
-double entropy(const VecType& x) {
-    // VecType prob = x.array() / x.array().sum();
-    // return -(prob.array() * prob.array().log2()).sum();
+double entropy(const VecType& x, VecType& sample_weight) {
 
-    double entropy_val = 0.0;
-    std::map<DataType, std::size_t> label_map;
+    std::size_t num_rows = x.rows();
+    if (sample_weight.size() == 0) {
+        sample_weight.resize(num_rows);
+        sample_weight.setOnes();
+    }  
 
-    std::size_t num_samples = x.rows();
-    for (std::size_t i = 0; i < num_samples; ++i) {
-        label_map[x[i]]++;
+    if (sample_weight.size() != 0 && sample_weight.rows() != num_rows) {
+        char buffer[200];
+        std::snprintf(buffer, 200, 
+            "Size of sample weights must be equal to x, but got (%ld)",
+            sample_weight.rows());
+        std::string err_mesg = static_cast<std::string>(buffer);
+        throw std::invalid_argument(err_mesg);
     }
 
-    for (auto& label : label_map) {
-        double prob = static_cast<double>(label.second) / 
-            static_cast<double>(num_samples);
+    double retval = 0.0;
+    std::map<DataType, std::size_t> x_count_map;
+    std::map<DataType, std::vector<DataType>> w_count_map;
+
+    for (std::size_t i = 0; i < num_rows; ++i) {
+        x_count_map[x(i)]++;
+        w_count_map[x(i)].push_back(sample_weight(i));
+    }
+
+    for (auto x_count = x_count_map.begin(), w_count = w_count_map.begin();
+        x_count != x_count_map.end(), w_count != w_count_map.end(); 
+        ++x_count, ++w_count) {
         
-        entropy_val -= (prob * std::log2(prob));
+        double sum = 0.0;
+        std::size_t num_w_counts = w_count->second.size();
+        for (std::size_t i = 0; i < num_w_counts; ++i) {
+            sum += static_cast<double>(w_count->second[i]);
+        }
+
+        double mean = sum / static_cast<double>(num_w_counts);
+        double p_i = 1.0 * static_cast<double>(x_count->second) * mean / static_cast<double>(num_rows);
+
+        retval += (-p_i) * std::log2(p_i);
     }
-
-    return entropy_val;
-
+    return retval;
 };
 
 
