@@ -358,7 +358,38 @@ double entropy(const VecType& x, VecType& sample_weight) {
     return retval;
 };
 
+template<typename VecType, 
+    typename DataType = typename VecType::value_type>
+double joint_entropy(const VecType& x, const VecType& y, VecType& sample_weight) {
 
+    std::size_t x_num_rows = x.rows();
+    std::size_t y_num_rows = y.rows();
+
+    if (x_num_rows != y_num_rows) {
+        char buffer[200];
+        std::snprintf(buffer, 200, 
+            "Size of x (%ld) is not equal to y (%ld)",
+            x_num_rows, y_num_rows);
+        std::string err_mesg = static_cast<std::string>(buffer);
+        throw std::out_of_range(err_mesg);
+    }
+
+    if (sample_weight.size() == 0) {
+        sample_weight.resize(x_num_rows);
+        sample_weight.setOnes();
+    }  
+
+    if (sample_weight.size() != 0 && sample_weight.rows() != x_num_rows) {
+        char buffer[200];
+        std::snprintf(buffer, 200, 
+            "Size of sample weights must be equal to x, but got (%ld)",
+            sample_weight.rows());
+        std::string err_mesg = static_cast<std::string>(buffer);
+        throw std::out_of_range(err_mesg);
+    }
+
+   
+};
 
 
 
