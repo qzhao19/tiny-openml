@@ -47,7 +47,7 @@ std::tuple<MatType, MatType, VecType, VecType> train_test_split(const MatType& X
 
 /**
  * Divide dataset based on if sample value on feature 
- * index is larger than the given threshold
+ * index is smaller than the given threshold
 */
 template<typename MatType, typename IdxType,
     typename DataType = typename MatType::value_type>
@@ -61,29 +61,13 @@ std::tuple<MatType, MatType> divide_on_feature(const MatType& X,
     std::vector<std::size_t> drop_rows;
 
     for (std::size_t i = 0; i < num_rows; ++i) {
-        if (typeid(DataType) == typeid(double) || typeid(DataType) == typeid(float)) {
-            if (X(i, feature_idx) >= threshold) {
-                keep_rows.push_back(i);
-            } 
-            else {
-                drop_rows.push_back(i);
-            }
-        }
-        else if (typeid(DataType) == typeid(int)) {
-            if (X(i, feature_idx) == threshold) {
-                keep_rows.push_back(i);
-            } 
-            else {
-                drop_rows.push_back(i);
-            }
-        }
+        if (X(i, feature_idx) <= threshold) {
+            keep_rows.push_back(i);
+        } 
         else {
-            throw std::invalid_argument(
-                "Wrong data value type, only support double/float or int types."
-            );
-        }  
+            drop_rows.push_back(i);
+        }
     }
-
     IdxType cols = IdxType::LinSpaced(num_cols, 0, num_cols);
     keep_X = X(keep_rows, cols);
     drop_X = X(drop_rows, cols);
