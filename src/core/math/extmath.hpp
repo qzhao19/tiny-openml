@@ -390,8 +390,7 @@ double cond_entropy(const VecType& x, const VecType& y, VecType& sample_weight) 
 template<typename VecType, 
     typename DataType = typename VecType::value_type>
 double joint_entropy(const VecType& x, 
-    const VecType& y, 
-    const VecType& weight = VecType()) {
+    const VecType& y) {
     
     VecType sample_weight = weight;
     std::size_t x_num_rows = x.rows();
@@ -405,21 +404,7 @@ double joint_entropy(const VecType& x,
         std::string err_msg = static_cast<std::string>(buffer);
         throw std::out_of_range(err_msg);
     }
-
-    if (sample_weight.size() == 0) {
-        sample_weight.resize(x_num_rows);
-        sample_weight.setOnes();
-    }  
-
-    if (sample_weight.rows() != x_num_rows) {
-        char buffer[200];
-        std::snprintf(buffer, 200, 
-            "Size of sample weights must be equal to x, but got (%ld)",
-            sample_weight.rows());
-        std::string err_msg = static_cast<std::string>(buffer);
-        throw std::out_of_range(err_msg);
-    }
-
+    
     double joint_ent = 0.0;
     std::map<std::string, std::size_t> x_y_count_map;
     std::map<std::string, std::vector<DataType>> w_count_map;
@@ -427,35 +412,12 @@ double joint_entropy(const VecType& x,
     for (std::size_t i = 0; i < x_num_rows; ++i) {
         // x_y_count_map[x(i)]++;
         std::string str_x_y = std::to_string(x(i)) + std::to_string(y(i));
-
-        std::cout << "str_x_y: " << str_x_y << std::endl;
-
-
         x_y_count_map[str_x_y]++;
-
-        w_count_map[str_x_y].push_back(sample_weight(i));
     }
 
-    for (auto x_y_count = x_y_count_map.begin(), w_count = w_count_map.begin();
-        x_y_count != x_y_count_map.end(), w_count != w_count_map.end(); 
-        ++x_y_count, ++w_count) {
-        
-        double sum = 0.0;
-        std::size_t num_w_counts = w_count->second.size();
-        for (std::size_t i = 0; i < num_w_counts; ++i) {
-            sum += static_cast<double>(w_count->second[i]);
-        }
-        
-        std::cout << "x_y_count: " << x_y_count->first << "=" << x_y_count->second << std::endl;
-        
-
-
-        double mean = sum / static_cast<double>(num_w_counts);
-
-        std::cout << "mean: " << mean << std::endl;
-
-        double p_i = static_cast<double>(x_y_count->second) * mean / static_cast<double>(x_num_rows);
-
+    for (auto x_y_count = x_y_count_map.begin(); x_y_count != x_y_count_map.end(); ++x_y_count) {
+        double sum = 0.0;       
+        double p_i = static_cast<double>(x_y_count->second) / static_cast<double>(x_num_rows);
         joint_ent += (-p_i) * std::log2(p_i);
     }
     return joint_ent;
