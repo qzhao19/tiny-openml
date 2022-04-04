@@ -238,7 +238,6 @@ VecType vec2mat(std::vector<DataType> vec) {
     return retvec;
 }
 
-
 /**
  * Find the unique elements of an 1d array.
  * @param x vector of shape (num_rows, 1)
@@ -263,6 +262,7 @@ std::tuple<VecType, VecType> unique(const VecType& x){
     for (std::size_t i = 0; i < x.rows(); i++) {
         stdvec_x.push_back(x(i, 0));
     }
+
     // std::sort(stdvec_x.begin(), stdvec_x.end());
     auto first = std::begin(stdvec_x), last = std::end(stdvec_x);
     std::set<std::size_t> hash_set;
@@ -281,7 +281,65 @@ std::tuple<VecType, VecType> unique(const VecType& x){
     VecType retvec_index = Eigen::Map<VecType>(stdvec_index.data(), stdvec_index.size(), 1);
 
     return std::make_tuple(retvec_value, retvec_index);
-}
+};
+
+/**
+ * Returns the indices that would sort an array.
+ * Perform an indirect sort along the given axis
+ * It returns an array of indices of the same shape 
+ * as a that index data along the given axis in sorted order.
+ * 
+ * @param x ndarray like data
+ *      array to sort
+ * @param axis int, default 1
+ *      Axis along which to sort. 
+ * @param order string, default 'asc'
+ *      his argument specifies which fields to compare first
+ * @return index array
+ *      Array of indices that sort a along the specified axis
+*/
+template<typename AnyType, typename IdxType>
+IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
+
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    if (order == "asc") {
+        IdxType index ;
+        if (axis == 1) {
+            index = IdxType::LinSpaced(num_rows, 0, num_rows);
+        }
+        else if (axis == 0) {
+            index = IdxType::LinSpaced(num_cols, 0, num_cols);
+        }
+        std::stable_sort(index.data(), index.data() + index.size(), 
+            [&x](std::size_t i, std::size_t j) -> bool {
+                return x(i, 0) < x(j, 0);
+            }
+        );
+        return index;
+    }
+    else if (order == "desc") {
+        IdxType index;
+        if (axis == 1) {
+            index = IdxType::LinSpaced(num_rows, 0, num_rows);
+        }
+        else if (axis == 0) {
+            index = IdxType::LinSpaced(num_cols, 0, num_cols);
+        }
+        std::stable_sort(index.data(), index.data() + index.size(), 
+            [&x](std::size_t i, std::size_t j) -> bool {
+                return x(i, 0) > x(j, 0);
+            }
+        );
+        return index;
+    }
+    else {
+        char buffer[200];
+        std::snprintf(buffer, 200, 
+            "Invalid given sort order (%s)", order.c_str());
+        std::string err_msg = static_cast<std::string>(buffer);
+        throw std::out_of_range(err_msg);
+    }
+};
 
 
 
