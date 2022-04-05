@@ -63,18 +63,10 @@ private:
         /* data */
         double best_impurity;
         std::size_t best_feature_index;
-        DataType best_threshold; 
-        MatType best_left_X;
-        VecType best_left_y;
-        MatType best_right_X; 
-        VecType best_right_y;
+        DataType best_feature_value; 
         SplitRecords(): best_impurity(0.0), 
             best_feature_index(ConstType<std::size_t>::max()),
-            best_threshold(ConstType<DataType>::quiet_NaN()),
-            best_left_X(MatType()),
-            best_left_y(VecType()),
-            best_right_X(MatType()),
-            best_right_y(VecType()) {};
+            best_feature_value(ConstType<DataType>::quiet_NaN()),
         ~SplitRecords(){};
     };
     using SplitRecordsType = SplitRecords;
@@ -97,6 +89,39 @@ protected:
         const VecType& y, 
         const VecType& left_y, 
         const VecType& right_y) const = 0;
+
+
+
+
+
+    VecType choose_split_feature(const VecType& x, const VecType& y) {
+        std::size_t num_samples = y.rows();
+        IdxType sorted_index = argsort<VecType, IdxType>(x);
+        VecType sorted_x = x(sorted_index);
+        VecType sorted_y = y(sorted_index);
+
+        std::vector<Eigen::Index> split_index_vec;
+        std::size_t count = 0;
+        for (std::size_t i = 1; i < num_samples; ++i) {
+            if (sorted_y(i - 1) != sorted_y(i)) {
+                split_index_vec.push_back(i - 1);
+                if (count > 1) {
+                    split_index_vec.push_back(i);
+                }
+                ++count;
+            }
+            else {
+                count = 0;
+            }
+        }
+        // auto last = std::unique(split_index.begin(), split_index.end());
+        // split_index.erase(last, v.end());
+
+        Eigen::Map<IdxType> split_index(split_index_vec.data(), split_index_vec.size());
+        return sorted_x(split_index);
+    }
+
+
 
 
     const SplitRecordsType best_split(const MatType& X, const VecType& y) const {
@@ -131,12 +156,8 @@ protected:
                         best_impurity = impurity;
 
                         split_records.best_impurity = best_impurity;
-                        split_records.best_feature_index =feature_index;
-                        split_records.best_threshold = threshold;
-                        split_records.best_left_X = left_X_y.leftCols(num_features);
-                        split_records.best_left_y = left_y;
-                        split_records.best_right_X = right_X_y.leftCols(num_features);
-                        split_records.best_right_y = right_y;
+                        split_records.best_feature_index = feature_index;
+                        split_records.best_feature_value = threshold;
 
                     }
                 }
