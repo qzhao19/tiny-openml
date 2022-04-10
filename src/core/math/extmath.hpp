@@ -363,6 +363,15 @@ double entropy(const VecType& x,
 };
 
 
+/**
+ * compute gini index
+ * Gini(p) = 1 - sum(p_i), i = 1 : k
+ * 
+ * @param x the vector of shape (num_rows, 1)
+ *    input data to compute the entropy
+ * @param sample_weight input sample weight matrix
+ *    it can be an empty constructor of matrix
+*/
 template<typename VecType, 
     typename DataType = typename VecType::value_type>
 double gini(const VecType& x, 
@@ -396,6 +405,7 @@ double gini(const VecType& x,
     for (auto x_count = x_count_map.begin(), w_count = w_count_map.begin();
         x_count != x_count_map.end(), w_count != w_count_map.end(); 
         ++x_count, ++w_count) {
+        
         double sum = 0.0;
         std::size_t num_w_counts = w_count->second.size();
         for (std::size_t i = 0; i < num_w_counts; ++i) {
@@ -409,7 +419,6 @@ double gini(const VecType& x,
     }
     return 1.0 - g;
 };
-
 
 
 
