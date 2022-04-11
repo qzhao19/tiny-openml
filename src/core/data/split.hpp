@@ -48,12 +48,20 @@ std::tuple<MatType, MatType, VecType, VecType> train_test_split(const MatType& X
 /**
  * Divide dataset based on if sample value on feature 
  * index is smaller than the given threshold
+ * @param X ndarray of shape (num_samples, num_features)
+ *      input matrix dataset
+ * @param feature_index int
+ *      the col number we want to divide
+ * @param threshold DataType
+ *      the given threshold value for dividing features
+ * @return the result of a tuple of vectors
 */
-template<typename MatType, typename IdxType,
+template<typename MatType, 
     typename DataType = typename MatType::value_type>
-std::tuple<MatType, MatType> divide_on_feature(const MatType& X, 
-    std::size_t feature_idx, 
-    DataType threshold) {
+std::tuple<std::vector<std::size_t>, 
+    std::vector<std::size_t>> divide_on_feature(const MatType& X, 
+        std::size_t feature_index, 
+        DataType threshold) {
     
     MatType keep_X, drop_X;
     std::size_t num_rows = X.rows(), num_cols = X.cols();
@@ -61,18 +69,18 @@ std::tuple<MatType, MatType> divide_on_feature(const MatType& X,
     std::vector<std::size_t> drop_rows;
 
     for (std::size_t i = 0; i < num_rows; ++i) {
-        if (X(i, feature_idx) <= threshold) {
+        if (X(i, feature_index) <= threshold) {
             keep_rows.push_back(i);
         } 
         else {
             drop_rows.push_back(i);
         }
     }
-    IdxType cols = IdxType::LinSpaced(num_cols, 0, num_cols);
-    keep_X = X(keep_rows, cols);
-    drop_X = X(drop_rows, cols);
+    // IdxType cols = IdxType::LinSpaced(num_cols, 0, num_cols);
+    // keep_X = X(keep_rows, cols);
+    // drop_X = X(drop_rows, cols);
 
-    return std::make_tuple(keep_X, drop_X);
+    return std::make_tuple(keep_rows, drop_rows);
 };
 
 
