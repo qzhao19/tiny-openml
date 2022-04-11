@@ -59,18 +59,6 @@ private:
     };
     using NodeType = Node;
 
-    struct SplitRecords {
-        /* data */
-        double best_impurity;
-        std::size_t best_feature_index;
-        DataType best_feature_value; 
-        SplitRecords(): best_impurity(0.0), 
-            best_feature_index(ConstType<std::size_t>::max()),
-            best_feature_value(ConstType<DataType>::quiet_NaN()),
-        ~SplitRecords(){};
-    };
-    using SplitRecordsType = SplitRecords;
-    
     std::unique_ptr<NodeType> root;
 
     void delete_tree(std::unique_ptr<NodeType>& node) {
@@ -91,80 +79,58 @@ protected:
         const VecType& right_y) const = 0;
 
 
-
-
-
-    VecType choose_split_feature(const VecType& x, const VecType& y) {
-        std::size_t num_samples = y.rows();
-        IdxType sorted_index = argsort<VecType, IdxType>(x);
+    /**
+     * choose a threshold from a given features vector, first we sort
+     * this sample vector, then find the unique threshold
+    */
+    VecType choose_feature_threshold(const VecType& x) {
+        std::size_t num_samples = x.rows();
+        IdxType sorted_index = utils::argsort<VecType, IdxType>(x);
         VecType sorted_x = x(sorted_index);
-        VecType sorted_y = y(sorted_index);
+        
+        VecType unique_x_values, unique_x_index;
+        std::tie(unique_x_values, unique_x_index) = utils::unique<VecType>(sorted_x);
 
-        std::vector<Eigen::Index> split_index_vec;
-        std::size_t count = 0;
-        for (std::size_t i = 1; i < num_samples; ++i) {
-            if (sorted_y(i - 1) != sorted_y(i)) {
-                split_index_vec.push_back(i - 1);
-                if (count > 1) {
-                    split_index_vec.push_back(i);
-                }
-                ++count;
-            }
-            else {
-                count = 0;
-            }
-        }
-        // auto last = std::unique(split_index.begin(), split_index.end());
-        // split_index.erase(last, v.end());
-
-        Eigen::Map<IdxType> split_index(split_index_vec.data(), split_index_vec.size());
-        return sorted_x(split_index);
+        return unique_x_values;
     }
 
-
-
-
-    const SplitRecordsType best_split(const MatType& X, const VecType& y) const {
+    /**
+     * Iterate through all unique values of feature column i and 
+     * calculate the impurity. If this threshold resulted in a 
+     * higher information gain than previously recorded save 
+     * the threshold value and the feature index
+    */
+    const std::tuple<double, std::size_t, DataType> best_split(const MatType& X, 
+            const VecType& y) const {
         
-        std::size_t num_samples = X.rows(), num_features = X.cols();
-        MatType X_y(num_samples, num_features + 1);
-        X_y = utils::hstack<MatType>(X, y);
-                
+        std::size_t num_features = X.cols();
         double best_impurity = 0.0;
-        
-        SplitRecordsType split_records;
+        std::size_t best_feature_index;
+        DataType best_feature_value;
 
         for (std::size_t feature_index = 0; feature_index < num_features; ++feature_index) {
+            VecType feature_values;
+            feature_values = choose_feature_threshold(X.col(feature_index));
+            for (auto& threshold : feature_values) {
+                std::vector<std::size_t> left_index, right_index;
+                std::tie(left_index, right_index) = data::divide_on_feature<MatType>(X, feature_index, threshold);
 
-            VecType feature_values = X_y.col(feature_index);
-            VecType unique_values, unique_index;
-            std::tie(unique_values, unique_index) = utils::unique<VecType>(feature_values);
+                VecType left_y, right_y;
+                left_y = y(left_index);
+                right_y = y(right_index);
 
-            for (auto& threshold : unique_values) {
-                MatType left_X_y, right_X_y;
-                std::tie(left_X_y, right_X_y) = data::divide_on_feature<MatType>(X_y, feature_index, threshold);
+                double impurity = this->compute_impurity(y, left_y, right_y);
 
-                if (left_X_y.rows() >= min_samples_split && right_X_y.rows() >= min_samples_split) {
-
-                    VecType left_y, right_y;
-                    left_y = left_X_y.col(num_features);
-                    right_y = right_X_y.col(num_features);
-
-                    double impurity = this->compute_impurity(y, left_y, right_y);
-
-                    if (impurity > best_impurity) {
-                        best_impurity = impurity;
-
-                        split_records.best_impurity = best_impurity;
-                        split_records.best_feature_index = feature_index;
-                        split_records.best_feature_value = threshold;
-
-                    }
+                if (impurity > best_impurity) {
+                    best_impurity = impurity;
+                    best_feature_index = feature_index;
+                    best_feature_value = threshold;
                 }
+                
             }
         }
 
-        return split_records;
+        return std::make_tuple(best_impurity, best_feature_index, best_feature_value);
 
     }
 
