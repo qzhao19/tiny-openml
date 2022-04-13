@@ -16,27 +16,20 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
-    
-    std::size_t min_samples_split;
-    std::size_t max_depth; 
-    double min_impurity;
-
     struct Node {
         bool is_leaf;
         std::size_t num_samples_per_class;
         std::size_t num_samples;
         std::size_t feature_index;
-        DataType threshold;
-        DataType value;
+        DataType feature_value;
         std::unique_ptr<Node> left_child;
         std::unique_ptr<Node> right_child;
 
-        Node():is_leaf(false),
+        Node():is_leaf(true),
             num_samples_per_class(0),
             num_samples(0), 
             feature_index(ConstType<std::size_t>::max()),
-            threshold(ConstType<DataType>::quiet_NaN()),
-            value(ConstType<DataType>::quiet_NaN()),
+            feature_value(ConstType<DataType>::quiet_NaN()),
             left_child(std::unique_ptr<Node>()), 
             right_child(std::unique_ptr<Node>()) {};
 
@@ -44,14 +37,12 @@ private:
             std::size_t num_samples_per_class_ = 0, 
             std::size_t num_samples_ = 0, 
             std::size_t feature_index_ = ConstType<std::size_t>::max(), 
-            DataType threshold_ = ConstType<DataType>::quiet_NaN(), 
-            DataType value_ = ConstType<DataType>::quiet_NaN()): 
+            DataType feature_value_ = ConstType<DataType>::quiet_NaN()): 
                 is_leaf(is_leaf_),
                 num_samples_per_class(num_samples_per_class_),
                 num_samples(num_samples_), 
                 feature_index(feature_index_),
-                threshold(threshold_),
-                value(value_),
+                feature_value(feature_value_),
                 left_child(std::unique_ptr<Node>()), 
                 right_child(std::unique_ptr<Node>()){};
 
@@ -71,9 +62,14 @@ private:
 
 
 protected:
+    std::size_t min_samples_split_;
+    std::size_t min_samples_leaf_;
+    std::size_t max_depth_; 
+    double min_impurity_;
+
 
     /** pure virtual function to compute the inpurity */
-    virtual const double compute_impurity(
+    virtual const double compute_impurity (
         const VecType& y, 
         const VecType& left_y, 
         const VecType& right_y) const = 0;
@@ -83,7 +79,7 @@ protected:
      * choose a threshold from a given features vector, first we sort
      * this sample vector, then find the unique threshold
     */
-    VecType choose_feature_threshold(const VecType& x) {
+    const VecType choose_feature_threshold(const VecType& x) const {
         std::size_t num_samples = x.rows();
         IdxType sorted_index = utils::argsort<VecType, IdxType>(x);
         VecType sorted_x = x(sorted_index);
@@ -104,9 +100,9 @@ protected:
             const VecType& y) const {
         
         std::size_t num_features = X.cols();
-        double best_impurity = 0.0;
-        std::size_t best_feature_index;
-        DataType best_feature_value;
+        double best_impurity = -ConstType<double>::infinity();
+        std::size_t best_feature_index = ConstType<std::size_t>::max();
+        DataType best_feature_value = ConstType<DataType>::quiet_NaN();
 
         for (std::size_t feature_index = 0; feature_index < num_features; ++feature_index) {
             VecType feature_values;
@@ -120,33 +116,39 @@ protected:
                 right_y = y(right_index);
 
                 double impurity = this->compute_impurity(y, left_y, right_y);
-
+                // std::cout << "impurity = " << impurity << std::endl;
                 if (impurity > best_impurity) {
                     best_impurity = impurity;
                     best_feature_index = feature_index;
                     best_feature_value = threshold;
                 }
-                
             }
         }
-
         return std::make_tuple(best_impurity, best_feature_index, best_feature_value);
-
     }
 
     
+    // void build_tree() {
+        
+    // }
+
+
+
 
 public:
-    DecisionTree(): min_samples_split(2), 
-        max_depth(3), 
-        min_impurity(1e7) {};
+    DecisionTree(): min_samples_split_(2), 
+        min_samples_leaf_(1),
+        max_depth_(3), 
+        min_impurity_(1e7) {};
 
-    DecisionTree(std::size_t min_samples_split_,
-        std::size_t max_depth_,
-        double min_impurity_): 
-            min_samples_split(min_samples_split_), 
-            max_depth(max_depth_), 
-            min_impurity(min_impurity_) {};
+    DecisionTree(std::size_t min_samples_split, 
+        std::size_t min_samples_leaf,
+        std::size_t max_depth,
+        double min_impurity): 
+            min_samples_split_(min_samples_split), 
+            min_samples_leaf_(min_samples_leaf),
+            max_depth_(max_depth), 
+            min_impurity_(min_impurity) {};
 
 
     ~DecisionTree() {};
