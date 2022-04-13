@@ -12,13 +12,14 @@ template<typename DataType>
 class DecisionTreeClassifier : public DecisionTree<DataType> {
 
 private:
-    std::string criterion_;
-    // std::size_t min_samples_split;
-    // std::size_t min_samples_leaf;
-    // std::size_t max_depth; 
-    // double min_impurity;
-
+    // define matrix and vector Eigen type
+    using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
+    using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    
 protected:
+    std::string criterion_;
+    
     const double compute_impurity(const VecType& y, 
         const VecType& left_y, 
         const VecType& right_y) const {
@@ -30,9 +31,9 @@ protected:
         if (criterion_ == "gini") {
             double left_gini = math::gini<VecType>(left_y);
             double right_gini = math::gini<VecType>(right_y);
-            double impurity = static_cast<double>(left_num_samples) / static_cast<double>(num_samples) * left_gini +
+            double g = static_cast<double>(left_num_samples) / static_cast<double>(num_samples) * left_gini +
                 static_cast<double>(right_num_samples) / static_cast<double>(num_samples) * right_gini;
-            return 1.0 - impurity;
+            return 1.0 - g;
         }
         else if (criterion_ == "entropy") {
             double empirical_ent = math::entropy<VecType>(y);
@@ -41,10 +42,8 @@ protected:
             double ent = empirical_ent - 
                 static_cast<double>(left_num_samples) / static_cast<double>(num_samples) * left_ent -
                     static_cast<double>(right_num_samples) / static_cast<double>(num_samples) * right_ent;
-            
             return ent;
         }
-
     }
 
 public:
@@ -70,7 +69,16 @@ public:
 
 
     void test_func(const MatType& X, const VecType& y){
-        this->best_split(X, y);
+
+        double best_impurity;
+        std::size_t best_feature_index;
+        DataType best_feature_value;
+
+        std::tie(best_impurity, best_feature_index, best_feature_value) = this->best_split(X, y);
+
+        std::cout << best_impurity << std::endl;
+        std::cout << best_feature_value << std::endl;
+        std::cout << best_feature_index << std::endl;
     }
 
 
