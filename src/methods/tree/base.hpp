@@ -18,31 +18,39 @@ private:
     
     struct Node {
         bool is_leaf;
-        std::size_t num_samples_per_class;
+        double impurity;
         std::size_t num_samples;
+        std::size_t num_samples_per_class;
         std::size_t feature_index;
         DataType feature_value;
+        DataType predict_class;
         std::unique_ptr<Node> left_child;
         std::unique_ptr<Node> right_child;
 
         Node():is_leaf(true),
+            impurity(0.0),
+            num_samples(0),
             num_samples_per_class(0),
-            num_samples(0), 
             feature_index(ConstType<std::size_t>::max()),
             feature_value(ConstType<DataType>::quiet_NaN()),
+            predict_class(ConstType<DataType>::quiet_NaN()),
             left_child(std::unique_ptr<Node>()), 
             right_child(std::unique_ptr<Node>()) {};
 
         explicit Node(bool is_leaf_,
+            double impurity_ = 0.0,
+            std::size_t num_samples_ = 0,
             std::size_t num_samples_per_class_ = 0, 
-            std::size_t num_samples_ = 0, 
             std::size_t feature_index_ = ConstType<std::size_t>::max(), 
-            DataType feature_value_ = ConstType<DataType>::quiet_NaN()): 
+            DataType feature_value_ = ConstType<DataType>::quiet_NaN(), 
+            DataType predict_class_ = ConstType<DataType>::quiet_NaN()): 
                 is_leaf(is_leaf_),
-                num_samples_per_class(num_samples_per_class_),
+                impurity(impurity_),
                 num_samples(num_samples_), 
+                num_samples_per_class(num_samples_per_class_),
                 feature_index(feature_index_),
                 feature_value(feature_value_),
+                predict_class(predict_class_),
                 left_child(std::unique_ptr<Node>()), 
                 right_child(std::unique_ptr<Node>()){};
 
@@ -84,10 +92,20 @@ protected:
         IdxType sorted_index = utils::argsort<VecType, IdxType>(x);
         VecType sorted_x = x(sorted_index);
         
-        VecType unique_x_values, unique_x_index;
-        std::tie(unique_x_values, unique_x_index) = utils::unique<VecType>(sorted_x);
 
-        return unique_x_values;
+        std::vector<DataType> stdvec_x;
+        for (std::size_t i = 1; i < num_samples; ++i) {
+            DataType mean = (sorted_x(i - 1) + sorted_x(i)) / 2;
+            stdvec_x.push_back(mean);
+        }
+
+        std::sort(stdvec_x.begin(), stdvec_x.end());
+        auto last = std::unique(stdvec_x.begin(), stdvec_x.end());
+        stdvec_x.erase(last, stdvec_x.end());
+        // VecType unique_x_values;
+        Eigen::Map<VecType> unique_x(stdvec_x.data(), stdvec_x.size());
+
+        return unique_x;
     }
 
     /**
