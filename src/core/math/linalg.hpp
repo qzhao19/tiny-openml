@@ -16,45 +16,31 @@ namespace math {
  *      {(M, M), (M, K)}, (K), {(N, N), (K, N)}
 */
 template<typename MatType, typename VecType>
-std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x, 
+std::tuple<MatType, VecType, MatType> exact_svd_test(const MatType& x, 
     bool full_matrix = false) {
     MatType U;
     VecType s; 
     MatType V;
 
     std::size_t num_features = x.cols();
+    int options = full_matrix ? Eigen::ComputeFullU | Eigen::ComputeFullV 
+                              : Eigen::ComputeThinU | Eigen::ComputeThinV;
+
     // control the switching size, default is 16
     // For small matrice (<16), it is thus preferable to directly use JacobiSVD. 
     // For larger matrice, BDCSVD
     if (num_features < 16) {
-        if (full_matrix) {
-            Eigen::JacobiSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            U = svd.matrixU();
-            s = svd.singularValues();
-            V = svd.matrixV();
-        }
-        else {
-            Eigen::JacobiSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeThinU | Eigen::ComputeThinV);
-            U = svd.matrixU();
-            s = svd.singularValues();
-            V = svd.matrixV();
-        }
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(x, options);
+        U = svd.matrixU();
+        s = svd.singularValues();
+        V = svd.matrixV();
     }
     else {
-        if (full_matrix) {
-            Eigen::BDCSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            U = svd.matrixU();
-            s = svd.singularValues();
-            V = svd.matrixV();
-        } 
-        else {
-            Eigen::BDCSVD<Eigen::MatrixXd> svd(x, Eigen::ComputeThinU | Eigen::ComputeThinV);
-            U = svd.matrixU();
-            s = svd.singularValues();
-            V = svd.matrixV();
-        }
+        Eigen::BDCSVD<Eigen::MatrixXd> svd(x, options);
+        U = svd.matrixU();
+        s = svd.singularValues();
+        V = svd.matrixV();
     }
-
     return std::make_tuple(U, s, V);
 };
 
@@ -90,11 +76,9 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
             s_inv(i, i) = static_cast<DataType>(0);
         }
     }
-
     MatType pinv_mat = Vt * s_inv * U.transpose();
     return pinv_mat;
 }
-
 
 /**
  * Compute log(det(A)) for A symmetric.
@@ -120,6 +104,10 @@ DataType logdet(const MatType& x) {
     ld += std::log(c);
     return std::isnan(ld) ? (-ConstType<DataType>::infinity()) : ld;
 }
+
+
+
+
 
 
 }
