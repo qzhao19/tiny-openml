@@ -20,7 +20,6 @@ auto max_element(Container const &x)
     return *std::max_element(x.begin(), x.end(), compare);
 };
 
-
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
@@ -78,7 +77,6 @@ VecType flatten(const MatType& x) {
     return flatten_vec;
 };
 
-
 /**
  * Repeat elements of an matrix.
  * 
@@ -101,7 +99,6 @@ MatType repeat(const MatType& x,
     }
     return retval;
 };
-
 
 /**
  * Returns the indices of the maximum values along an axis.
@@ -136,7 +133,6 @@ IdxType argmax(const MatType& x, int axis = 0) {
         // flayyen a 2d matrix into 1d verctor
         VecType flatten_vec;
         flatten_vec = flatten<MatType, VecType>(x);
-        
         // get the max index of flattened vector
         IdxType max_index{1};
         flatten_vec.maxCoeff(&max_index[0]);
@@ -189,6 +185,66 @@ IdxType argmin(const MatType& x, int axis = 0) {
     }
     else {
         throw std::invalid_argument("Got an invalid axis value.");
+    }
+};
+
+/**
+ * Returns the indices that would sort an array.
+ * Perform an indirect sort along the given axis
+ * It returns an array of indices of the same shape 
+ * as a that index data along the given axis in sorted order.
+ * 
+ * @param x ndarray like data
+ *      array to sort
+ * @param axis int, default 1
+ *      Axis along which to sort. 
+ * @param order string, default 'asc'
+ *      his argument specifies which fields to compare first
+ * @return index array
+ *      Array of indices that sort a along the specified axis
+*/
+template<typename AnyType, typename IdxType>
+IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
+
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    
+    if (order == "asc") {
+        IdxType index ;
+        if (axis == 1) {
+            index = IdxType::LinSpaced(num_rows, 0, num_rows);
+        }
+        else if (axis == 0) {
+            index = IdxType::LinSpaced(num_cols, 0, num_cols);
+        }
+        
+        std::stable_sort(index.data(), index.data() + index.size(), 
+            [&x](std::size_t i, std::size_t j) -> bool {
+                return x(i, 0) < x(j, 0);
+            }
+        );
+        return index;
+    }
+    else if (order == "desc") {
+        IdxType index;
+        if (axis == 1) {
+            index = IdxType::LinSpaced(num_rows, 0, num_rows);
+        }
+        else if (axis == 0) {
+            index = IdxType::LinSpaced(num_cols, 0, num_cols);
+        }
+        std::stable_sort(index.data(), index.data() + index.size(), 
+            [&x](std::size_t i, std::size_t j) -> bool {
+                return x(i, 0) > x(j, 0);
+            }
+        );
+        return index;
+    }
+    else {
+        char buffer[200];
+        std::snprintf(buffer, 200, 
+            "Invalid given sort order (%s)", order.c_str());
+        std::string err_msg = static_cast<std::string>(buffer);
+        throw std::out_of_range(err_msg);
     }
 };
 
@@ -263,7 +319,7 @@ std::tuple<VecType, VecType> unique(const VecType& x){
         stdvec_x.push_back(x(i, 0));
     }
 
-    // std::sort(stdvec_x.begin(), stdvec_x.end());
+    std::sort(stdvec_x.begin(), stdvec_x.end());
     auto first = std::begin(stdvec_x), last = std::end(stdvec_x);
     std::set<std::size_t> hash_set;
     std::map<DataType, std::size_t> hash_map;
@@ -284,63 +340,21 @@ std::tuple<VecType, VecType> unique(const VecType& x){
 };
 
 /**
- * Returns the indices that would sort an array.
- * Perform an indirect sort along the given axis
- * It returns an array of indices of the same shape 
- * as a that index data along the given axis in sorted order.
- * 
- * @param x ndarray like data
- *      array to sort
- * @param axis int, default 1
- *      Axis along which to sort. 
- * @param order string, default 'asc'
- *      his argument specifies which fields to compare first
- * @return index array
- *      Array of indices that sort a along the specified axis
+ * Return index of elements chosen depending on condition.
+ * @param x condition array_like, bool
+ * @return An array with index of elements 
 */
-template<typename AnyType, typename IdxType>
-IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
-
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
-    if (order == "asc") {
-        IdxType index ;
-        if (axis == 1) {
-            index = IdxType::LinSpaced(num_rows, 0, num_rows);
+template<typename VecType, typename IdxType>
+IdxType where(const VecType& x) {
+    std::vector<Eigen::Index> index_vec;
+    for (std::size_t i = 0; i < x.size(); ++i) {
+        if (x(i)) {
+            index_vec.push_back(i);
         }
-        else if (axis == 0) {
-            index = IdxType::LinSpaced(num_cols, 0, num_cols);
-        }
-        std::stable_sort(index.data(), index.data() + index.size(), 
-            [&x](std::size_t i, std::size_t j) -> bool {
-                return x(i, 0) < x(j, 0);
-            }
-        );
-        return index;
     }
-    else if (order == "desc") {
-        IdxType index;
-        if (axis == 1) {
-            index = IdxType::LinSpaced(num_rows, 0, num_rows);
-        }
-        else if (axis == 0) {
-            index = IdxType::LinSpaced(num_cols, 0, num_cols);
-        }
-        std::stable_sort(index.data(), index.data() + index.size(), 
-            [&x](std::size_t i, std::size_t j) -> bool {
-                return x(i, 0) > x(j, 0);
-            }
-        );
-        return index;
-    }
-    else {
-        char buffer[200];
-        std::snprintf(buffer, 200, 
-            "Invalid given sort order (%s)", order.c_str());
-        std::string err_msg = static_cast<std::string>(buffer);
-        throw std::out_of_range(err_msg);
-    }
+    Eigen::Map<IdxType> index(index_vec.data(), index_vec.size());
+    return index;
 };
-
 
 
 }
