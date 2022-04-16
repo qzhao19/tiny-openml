@@ -16,7 +16,7 @@ namespace math {
  *      {(M, M), (M, K)}, (K), {(N, N), (K, N)}
 */
 template<typename MatType, typename VecType>
-std::tuple<MatType, VecType, MatType> exact_svd_test(const MatType& x, 
+std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x, 
     bool full_matrix = false) {
     MatType U;
     VecType s; 
@@ -76,9 +76,11 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
             s_inv(i, i) = static_cast<DataType>(0);
         }
     }
+
     MatType pinv_mat = Vt * s_inv * U.transpose();
     return pinv_mat;
 }
+
 
 /**
  * Compute log(det(A)) for A symmetric.
