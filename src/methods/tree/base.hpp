@@ -23,8 +23,8 @@ private:
         std::size_t feature_index;
         DataType feature_value;
         DataType predict_class;
-        std::unique_ptr<Node> left_child;
-        std::unique_ptr<Node> right_child;
+        std::shared_ptr<Node> left_child;
+        std::shared_ptr<Node> right_child;
 
         Node():is_leaf(true),
             impurity(0.0),
@@ -33,8 +33,8 @@ private:
             feature_index(ConstType<std::size_t>::max()),
             feature_value(ConstType<DataType>::quiet_NaN()),
             predict_class(ConstType<DataType>::quiet_NaN()),
-            left_child(std::unique_ptr<Node>()), 
-            right_child(std::unique_ptr<Node>()) {};
+            left_child(std::shared_ptr<Node>()), 
+            right_child(std::shared_ptr<Node>()) {};
 
         explicit Node(bool is_leaf_,
             double impurity_ = 0.0,
@@ -50,16 +50,16 @@ private:
                 feature_index(feature_index_),
                 feature_value(feature_value_),
                 predict_class(predict_class_),
-                left_child(std::unique_ptr<Node>()), 
-                right_child(std::unique_ptr<Node>()){};
+                left_child(std::shared_ptr<Node>()), 
+                right_child(std::shared_ptr<Node>()) {};
 
         ~Node(){};
     };
     using NodeType = Node;
 
-    std::unique_ptr<NodeType> root_;
+    std::shared_ptr<NodeType> root_;
     
-    void delete_tree(std::unique_ptr<NodeType>& node) {
+    void delete_tree(std::shared_ptr<NodeType>& node) {
         if (node != nullptr) {
             delete_tree(node->left_child);
             delete_tree(node->right_child);
@@ -145,9 +145,11 @@ protected:
         return std::make_tuple(best_impurity, best_feature_index, best_feature_value);
     }
 
-    
-    void build_tree(const MatType& X, const VecType& y, 
-        NodeType& cur_node, std::size_t cur_depth = 0) const {
+    /** Build a decision tree by recursively finding the best split. */
+    void build_tree(const MatType& X, 
+        const VecType& y, 
+        std::shared_ptr<NodeType>& cur_node, 
+        std::size_t cur_depth) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
@@ -162,14 +164,16 @@ protected:
         for (auto& label : label_count) {
             num_samples_per_class_vec.push_back(label.second);
         }
-        num_samples_per_class = utils::vec2mat<VecType>(num_samples_per_class_vec, -1);
+        num_samples_per_class = utils::vec2mat<VecType>(num_samples_per_class_vec);
         auto predict_class = utils::argmax<MatType, VecType, IdxType>(num_samples_per_class);
 
-        cur_node.is_leaf = true;
-        cur_node.num_samples = num_samples;
-        cur_node.num_samples_per_class = num_samples_per_class;
-        cur_node.predict_class = predict_class.value();
-
+        cur_node->is_leaf = true;
+        cur_node->num_samples = num_samples;
+        cur_node->num_samples_per_class = num_samples_per_class;
+        cur_node->predict_class = predict_class.value();
+        
+        // std::cout << "num_samples = " << num_samples << std::endl;
+        // stopping split condition
         if (num_samples < this->min_samples_split_) {
             return ;
         }
@@ -184,9 +188,9 @@ protected:
 
         std::tie(best_impurity, best_feature_index, best_feature_value) = this->best_split(X, y);
 
-        cur_node.impurity = best_impurity;
-        cur_node.feature_index = best_feature_index;
-        cur_node.feature_value = best_feature_value;
+        cur_node->impurity = best_impurity;
+        cur_node->feature_index = best_feature_index;
+        cur_node->feature_value = best_feature_value;
 
         if (best_feature_index == ConstType<std::size_t>::max()) {
             return ;
@@ -197,26 +201,56 @@ protected:
         }
 
         VecType selected_x = X.col(best_feature_index);
-
         IdxType left_selected_index = utils::where<VecType, IdxType>(
-            (selected_x <= best_feature_value).cast<DataType>()
+            (selected_x.array() <= best_feature_value)
         );
-
         IdxType right_selected_index = utils::where<VecType, IdxType>(
-            (selected_x > best_feature_value).cast<DataType>()
+            (selected_x.array() > best_feature_value)
         );
 
-        
+        MatType left_X = X(left_selected_index, Eigen::all);
+        VecType left_y = y(left_selected_index);
+        MatType right_X = X(right_selected_index, Eigen::all);
+        VecType right_y = y(right_selected_index);
 
+        if (left_X.rows() >= this->min_samples_leaf_) {
+            std::shared_ptr<NodeType> left_child_node = std::make_shared<NodeType>();
+            cur_node->is_leaf = false;
+            cur_node->left_child = left_child_node;
+            build_tree(left_X, left_y, left_child_node, cur_depth + 1);
+        }
+
+        if (right_X.rows() >= this->min_samples_leaf_) {
+            std::shared_ptr<NodeType> right_child_node = std::make_shared<NodeType>();
+            cur_node->is_leaf = false;
+            cur_node->left_child = right_child_node;
+            build_tree(right_X, right_y, right_child_node, cur_depth + 1);
+        }
     }
+    
+    VecType compute_x_prob(const VecType& x) {
+        std::shared_ptr<NodeType> node = root_;
+        while (node->left_child) {
+            if (x(node->best_feature_index) <= node->best_feature_value) {
+                node = node->left_child;
+            }
+            else {
+                node = node->right_child;
+            }
+        }
+        VecType prob = node->num_samples_per_class.array() / 
+            node->num_samples_per_class.array().sum();
 
-
+        return prob;
+    }
 
 public:
     DecisionTree(): min_samples_split_(2), 
-        min_samples_leaf_(1),
-        max_depth_(3), 
-        min_impurity_decrease_(1e7) {};
+        min_samples_leaf_(0),
+        max_depth_(4), 
+        min_impurity_decrease_(1.0e-7) {
+            root_ = nullptr;
+    };
 
     DecisionTree(std::size_t min_samples_split, 
         std::size_t min_samples_leaf,
@@ -225,21 +259,25 @@ public:
             min_samples_split_(min_samples_split), 
             min_samples_leaf_(min_samples_leaf),
             max_depth_(max_depth), 
-            min_impurity_decrease_(min_impurity_decrease) {};
+            min_impurity_decrease_(min_impurity_decrease) {
+                root_ = nullptr;
+    };
 
+    ~DecisionTree() {
+        delete_tree(root_);
+    }
 
-    ~DecisionTree() {};
+    void fit(const MatType& X, 
+        const VecType& y) {
+        
+        root_ = std::make_unique<NodeType>();
 
-
-    void print_node() {
-
-        NodeType cur_node(false);
-
-        std::cout << cur_node.impurity << std::endl;
-        std::cout << cur_node.num_samples_per_class << std::endl;
-        std::cout << cur_node.num_samples << std::endl;
+        build_tree(X, y, root_, 0);
 
     }
+
+
+
 
 
 };
