@@ -13,20 +13,20 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    VecType W;
+    VecType W_;
     
-    bool shuffle;
-    bool verbose;
-    double alpha;
-    double lambda;
-    double tol;
-    double mu;
-    std::size_t batch_size;
-    std::size_t max_iter;
-    std::string solver;
-    std::string penalty;
-    std::string update_policy;
-    std::string decay_policy;
+    bool shuffle_;
+    bool verbose_;
+    double alpha_;
+    double lambda_;
+    double tol_;
+    double mu_;
+    std::size_t batch_size_;
+    std::size_t max_iter_;
+    std::string solver_;
+    std::string penalty_;
+    std::string update_policy_;
+    std::string decay_policy_;
 
 protected:
     /**
@@ -43,51 +43,49 @@ protected:
         VecType y_new = y;
 
         std::size_t num_samples = X.rows();
-        VecType one_mat(num_samples);
-        one_mat.fill(1.0);
-        X_new = utils::hstack<MatType>(X, one_mat);
+        VecType ones(num_samples);
+        ones.fill(1.0);
+        X_new = utils::hstack<MatType>(X, ones);
         
         std::size_t num_features = X_new.cols();
-        VecType W_(num_features);
-        W_.setRandom();
+        VecType W(num_features);
+        W.setRandom();
 
-        loss::LogLoss<DataType> log_loss(lambda, penalty);
-        if (update_policy == "vanilla") {
-            optimizer::VanillaUpdate<DataType> weight_update(alpha);
+        loss::LogLoss<DataType> log_loss(lambda_, penalty_);
+        if (update_policy_ == "vanilla") {
+            optimizer::VanillaUpdate<DataType> weight_update(alpha_);
             optimizer::SGD<DataType> sgd(X_new, y_new, 
-                max_iter, 
-                batch_size, 
-                alpha, 
-                tol, 
-                shuffle, 
-                verbose);
-            sgd.optimize(log_loss, weight_update, W_);   
+                max_iter_, 
+                batch_size_, 
+                alpha_, 
+                tol_, 
+                shuffle_, 
+                verbose_);
+            sgd.optimize(log_loss, weight_update, W);   
         }
-        else if (update_policy == "momentum") {
-            optimizer::MomentumUpdate<DataType> weight_update(alpha, mu);
+        else if (update_policy_ == "momentum") {
+            optimizer::MomentumUpdate<DataType> weight_update(alpha_, mu_);
             optimizer::SGD<DataType> sgd(X_new, y_new,
-            max_iter, 
-            batch_size, 
-            alpha, 
-            tol, 
-            shuffle, 
-            verbose);
-            sgd.optimize(log_loss, weight_update, W_);
+            max_iter_, 
+            batch_size_, 
+            alpha_, 
+            tol_, 
+            shuffle_, 
+            verbose_);
+            sgd.optimize(log_loss, weight_update, W);
         }
-        W = W_;
+        W_ = W;
     };
 
-    /**
-     * Predict confidence scores for samples.
-    */
+    /**Predict confidence scores for samples.*/
     const VecType compute_decision_function(const MatType& X) const{
 
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType decision_boundary(num_samples);
 
-        decision_boundary = X * W.topRows(num_features);
+        decision_boundary = X * W_.topRows(num_features);
         VecType b(num_samples);
-        b = utils::repeat<VecType>(W.bottomRows(1), num_samples, 0);
+        b = utils::repeat<VecType>(W_.bottomRows(1), num_samples, 0);
         decision_boundary += b;
 
         return decision_boundary;
@@ -132,7 +130,6 @@ protected:
         return prob;
     }
 
-
 public:
     /**
      * Default constructor of logistic regression. it could custom optimizer
@@ -152,42 +149,42 @@ public:
      * @param decay_policy weight decay type
      * 
     */
-    LogisticRegression(const bool shuffle_, 
-        const bool verbose_, 
-        const double alpha_, 
-        const double lambda_,
-        const double tol_, 
-        const double mu_,
-        const std::size_t batch_size_, 
-        const std::size_t max_iter_, 
-        const std::string solver_,
-        const std::string penalty_, 
-        const std::string update_policy_, 
-        const std::string decay_policy_): shuffle(shuffle_), 
-            verbose(verbose_), 
-            alpha(alpha_), 
-            lambda(lambda_), 
-            tol(tol_), 
-            mu(mu_),
-            batch_size(batch_size_), 
-            max_iter(max_iter_), 
-            solver(solver_),
-            penalty(penalty_), 
-            update_policy(update_policy_), 
-            decay_policy(decay_policy_) {};
+    LogisticRegression(const bool shuffle, 
+        const bool verbose, 
+        const double alpha, 
+        const double lambda,
+        const double tol, 
+        const double mu,
+        const std::size_t batch_size, 
+        const std::size_t max_iter, 
+        const std::string solver,
+        const std::string penalty, 
+        const std::string update_policy, 
+        const std::string decay_policy): shuffle_(shuffle), 
+            verbose_(verbose), 
+            alpha_(alpha), 
+            lambda_(lambda), 
+            tol_(tol), 
+            mu_(mu),
+            batch_size_(batch_size), 
+            max_iter_(max_iter), 
+            solver_(solver),
+            penalty_(penalty_), 
+            update_policy_(update_policy), 
+            decay_policy_(decay_policy) {};
 
-    LogisticRegression(): shuffle(true), 
-            verbose(false), 
-            alpha(0.001), 
-            lambda(0.5), 
-            tol(0.0001), 
-            mu(0.6),
-            batch_size(32), 
-            max_iter(1000), 
-            solver("sgd"),
-            penalty("l2"), 
-            update_policy("vanilla"), 
-            decay_policy("constant") {};
+    LogisticRegression(): shuffle_(true), 
+            verbose_(false), 
+            alpha_(0.001), 
+            lambda_(0.5), 
+            tol_(0.0001), 
+            mu_(0.6),
+            batch_size_(32), 
+            max_iter_(1000), 
+            solver_("sgd"),
+            penalty_("l2"), 
+            update_policy_("vanilla"), 
+            decay_policy_("constant") {};
 
 
     ~LogisticRegression() {};
@@ -236,6 +233,10 @@ public:
         return prob;
     }
 
+    /**override get_coef interface*/
+    const VecType get_coef() const {
+        return W_;
+    };
 
 };
 
