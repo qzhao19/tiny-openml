@@ -24,26 +24,26 @@ private:
      * @param explained_variance_ratio: ndarray of shape (n_components,)
      *      Percentage of variance explained by each of the selected components.
     */
-    MatType precision;
-    MatType covariance;
-    MatType components;
-    VecType explained_var;
-    VecType explained_var_ratio;
+    MatType precision_;
+    MatType covariance_;
+    MatType components_;
+    VecType explained_var_;
+    VecType explained_var_ratio_;
 
-    std::string solver;
-    std::size_t num_components;
-    double noise_var;
+    std::string solver_;
+    std::size_t num_components_;
+    double noise_var_;
 
 protected:
 
     void fit_data(const MatType& X) {
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
-        MatType components_;
-        VecType explained_var_;
-        VecType explained_var_ratio_;
+        MatType components;
+        VecType explained_var;
+        VecType explained_var_ratio;
 
-        if (solver == "svd") {
+        if (solver_ == "svd") {
             MatType U;
             VecType s; 
             MatType V;
@@ -53,24 +53,24 @@ protected:
             MatType Vt = V.transpose();
             std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxType>(U, Vt);
 
-            explained_var_ = math::power<VecType>(s, 2.0) / (static_cast<DataType>(num_samples) - 1.);
-            components_ = Vt;
+            explained_var = math::power<VecType>(s, 2.0) / (static_cast<DataType>(num_samples) - 1.);
+            components = Vt;
         };
 
-        VecType total_var = math::sum<MatType, VecType>(explained_var_);
-        explained_var_ratio_ = explained_var_ / total_var(0, 0);
+        VecType total_var = math::sum<MatType, VecType>(explained_var);
+        explained_var_ratio = explained_var / total_var(0, 0);
 
-        if (num_components < std::min(num_samples, num_features)) {
-            std::size_t num_noise_var = std::min(num_samples, num_features) - num_components;
-            VecType noise_var_ = math::mean<MatType, VecType>(explained_var_.bottomRows(num_noise_var));
-            noise_var = static_cast<double>(noise_var_(0, 0));
+        if (num_components_ < std::min(num_samples, num_features)) {
+            std::size_t num_noise_var = std::min(num_samples, num_features) - num_components_;
+            VecType noise_var = math::mean<MatType, VecType>(explained_var.bottomRows(num_noise_var));
+            noise_var_ = static_cast<double>(noise_var.value());
         }
         else {
-            noise_var = 0.0;
+            noise_var_ = 0.0;
         }
-        components = components_.topRows(num_components);
-        explained_var = explained_var_.topRows(num_components);
-        explained_var_ratio = explained_var_ratio_.topRows(num_components);
+        components_ = components.topRows(num_components_);
+        explained_var_ = explained_var.topRows(num_components_);
+        explained_var_ratio_ = explained_var_ratio.topRows(num_components_);
 
     }
 
@@ -78,35 +78,35 @@ protected:
     const MatType transform_data(const MatType& X) const{
         std::size_t num_samples = X.rows();
         
-        MatType transformed_X(num_samples, num_components);
-        transformed_X = X * components.transpose();
+        MatType transformed_X(num_samples, num_components_);
+        transformed_X = X * components_.transpose();
         return transformed_X; 
     }
 
     /**calculate the covariance*/
     void compute_data_covariance() {
-        std::size_t num_features = components.cols();
+        std::size_t num_features = components_.cols();
         // MatType components_ = components;
 
-        MatType explained_var_(num_components, num_components);
-        explained_var_ = math::diagmat<MatType, VecType>(explained_var);
+        MatType explained_var(num_components_, num_components_);
+        explained_var = math::diagmat<MatType, VecType>(explained_var_);
 
-        MatType explained_var_diff = explained_var_.array() - noise_var;
+        MatType explained_var_diff = explained_var.array() - noise_var_;
         explained_var_diff = explained_var_diff.matrix().cwiseMax(static_cast<DataType>(0));
 
         MatType cov(num_features, num_features);
-        cov = components.transpose() * explained_var_diff * components; 
+        cov = components_.transpose() * explained_var_diff * components_; 
 
         MatType eye(num_features, num_features);
         eye.setIdentity();
-        cov += eye * noise_var;
+        cov += eye * noise_var_;
 
-        covariance = cov;
+        covariance_ = cov;
     }
 
     /**Compute data precision matrix*/
     void compute_precision_matrix() {
-        precision = math::pinv<MatType, VecType>(covariance);
+        precision_ = math::pinv<MatType, VecType>(covariance_);
     }
 
     /**compute log_likelihood of each sample*/
@@ -114,7 +114,7 @@ protected:
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
         MatType log_like_(num_samples, num_features);
-        log_like_ = (X.array() * (X * precision).array()).matrix();
+        log_like_ = (X.array() * (X * precision_).array());
 
         VecType log_like(num_samples);
         log_like = math::sum<MatType, VecType>(log_like_, 1);
@@ -122,9 +122,9 @@ protected:
 
         log_like.array() -= 0.5 * (static_cast<DataType>(num_features) * \
             std::log(2.0 * M_PI) - \
-                math::logdet<MatType>(precision));
+                math::logdet<MatType>(precision_));
 
-        return log_like.matrix();
+        return log_like;
     }
 
 public:
@@ -132,20 +132,20 @@ public:
      * Default constructor to create PCA object, linear dimesionality reduction using SVD 
      * of the data to project it to a lower dimesional space, input data shoule be centered 
      * 
-     * @param solver the matrix decomnposition policies, 
+     * @param solver_ the matrix decomnposition policies, 
      *      if svd, will run full svd via math::exact_svd
      * 
      * @param n_components Number of components to keep
      * @param scale Whether or not to scale the data.
     */
-    PCA(): solver("svd"), 
-        num_components(2) {};
+    PCA(): solver_("svd"), 
+        num_components_(2) {};
 
 
-    PCA(std::string solver_, 
-        std::size_t num_components_): 
-            solver(solver_), 
-            num_components(num_components_) {};
+    PCA(std::string solver, 
+        std::size_t num_components): 
+            solver_(solver), 
+            num_components_(num_components) {};
 
     /**deconstructor*/
     ~PCA() {};
@@ -212,7 +212,7 @@ public:
     */
     const MatType get_covariance() {
         compute_data_covariance();
-        return covariance;
+        return covariance_;
     }
 
     /**
@@ -222,20 +222,20 @@ public:
     */
     const MatType get_precision() {
         compute_precision_matrix();
-        return precision;
+        return precision_;
     }
 
     /**override get_coef interface*/
     const VecType get_components() const {
-        return components;
+        return components_;
     };
 
     const VecType get_explained_var() const {
-        return explained_var;
+        return explained_var_;
     };
 
     const VecType get_explained_var_ratio() const {
-        return explained_var_ratio;
+        return explained_var_ratio_;
     };
 
 };
