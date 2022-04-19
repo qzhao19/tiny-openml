@@ -16,7 +16,7 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
-    double var_smoothing;
+    double var_smoothing_;
 
 protected:
     /**
@@ -25,8 +25,8 @@ protected:
      * @param vars  Matrix of shape [n_classes, n_feature], 
      *      variances of each feature for different class
     */
-    MatType mean;
-    MatType var;
+    MatType mean_;
+    MatType var_;
 
     /**
      * compute log posterior prbabilty, P(c|x) = P(c)P(x|c)
@@ -35,27 +35,26 @@ protected:
     */
     const MatType joint_log_likelihood(const MatType& X) const {
         std::size_t num_samples = X.rows();
-        MatType jll(num_samples, this->num_classes);
+        MatType jll(num_samples, this->num_classes_);
         jll.setZero();
 
-        VecType log_prior = this->prior_prob.array().log();
+        VecType log_prior = this->prior_prob_.array().log();
         MatType lp = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
-        for (std::size_t i = 0; i < this->num_classes; i++) {
+        for (std::size_t i = 0; i < this->num_classes_; i++) {
             
-            auto val = var.row(i) * 2.0 * M_PI;
+            auto val = var_.row(i) * 2.0 * M_PI;
             VecType sum_log_var = math::sum<MatType, VecType>(val.array().log().matrix()) * (-0.5);
             MatType repeated_sum_log_var = utils::repeat<MatType>(sum_log_var, num_samples, 0);
             
-            MatType X_minus_mean = X.array() - utils::repeat<MatType>(mean.row(i), num_samples, 0).array();
+            MatType X_minus_mean = X.array() - utils::repeat<MatType>(mean_.row(i), num_samples, 0).array();
             MatType X_minus_mean_squared = X_minus_mean.array().square();
-            MatType repeated_var = utils::repeat<MatType>(var.row(i), num_samples, 0);
+            MatType repeated_var = utils::repeat<MatType>(var_.row(i), num_samples, 0);
 
             MatType X_minus_mean_div_var = X_minus_mean_squared.array() / repeated_var.array();
             VecType ll = repeated_sum_log_var.array() - 0.5 * math::sum<MatType, VecType>(X_minus_mean_div_var, 1).array();
 
             jll.col(i) = ll.array() + lp.array();
         }
-
         return jll;
     };
     
@@ -66,14 +65,14 @@ protected:
         const VecType& y) {
         std::size_t num_samples = X.rows(), num_features = X.cols();
 
-        MatType mean_(num_features, this->num_classes);
-        MatType var_(num_features, this->num_classes);
+        MatType mean(num_features, this->num_classes_);
+        MatType var(num_features, this->num_classes_);
 
         MatType X_y(num_samples, num_features + 1);
         X_y = utils::hstack<MatType>(X, y);
         
         std::size_t new_i = 0;
-        for (auto& label : this->label_map) {
+        for (auto& label : this->label_map_) {
             MatType partial_X_y(label.second, num_features + 1);
             
             std::vector<std::size_t> keep_rows;
@@ -85,13 +84,13 @@ protected:
             IdxType keep_cols = IdxType::LinSpaced(X_y.cols(), 0, X_y.cols());
 
             partial_X_y = X_y(keep_rows, keep_cols); 
-            mean_.col(new_i) = math::mean<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
-            var_.col(new_i) = math::var<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
+            mean.col(new_i) = math::mean<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
+            var.col(new_i) = math::var<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
 
             new_i++;
         }
-        mean = mean_.transpose();
-        var = var_.transpose();
+        mean_ = mean.transpose();
+        var_ = var.transpose();
     }
 
 public:
@@ -100,10 +99,10 @@ public:
      *      Portion of the largest variance of all features.
     */
      GaussianNB(): BaseNB<DataType>(), 
-        var_smoothing(1e-9){};
+        var_smoothing_(1e-9){};
 
-    explicit GaussianNB(const double var_smoothing_) : BaseNB<DataType>(),
-            var_smoothing(var_smoothing_){};
+    explicit GaussianNB(double var_smoothing) : BaseNB<DataType>(),
+            var_smoothing_(var_smoothing){};
     
     ~GaussianNB() {};
 
@@ -118,21 +117,17 @@ public:
         
         this->compute_prior_prob(y);
         this->update_mean_variance(X, y);
-        var = var.array() + var_smoothing * var.maxCoeff();
+        var_ = var_.array() + var_smoothing_ * var_.maxCoeff();
     };
 
-    /**
-     * get the mean attributes
-    */
+    /** get the mean attributes */
     const VecType get_mean() const {
-        return mean;
+        return mean_;
     }
 
-    /**
-     * get the var attributes
-    */
+    /** get the var attributes */
     const VecType get_var() const {
-        return var;
+        return var_;
     }
 
 };
