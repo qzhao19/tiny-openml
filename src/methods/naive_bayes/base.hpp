@@ -9,19 +9,17 @@ namespace naive_bayes {
 
 template<typename DataType>
 class BaseNB {
-
 private:
-
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
 protected:
-    VecType classes;
-    VecType prior_prob;
-    std::size_t num_classes;
-    std::map<DataType, std::size_t> label_map;
+    VecType classes_;
+    VecType prior_prob_;
+    std::size_t num_classes_;
+    std::map<DataType, std::size_t> label_map_;
 
     /**
      * compute log posterior prbabilty,
@@ -33,24 +31,23 @@ protected:
      * I.e. ``log P(c)`` as an array-like of shape 
      * (n_classes,).
     */
-    virtual void get_prior_prob(const VecType& y) {
-
+    virtual void compute_prior_prob(const VecType& y) {
         std::size_t num_samples = y.rows();
         for (std::size_t i = 0; i < num_samples; i++) {
-            label_map[y[i]]++;
+            label_map_[y[i]]++;
         }
         std::size_t i = 0;
-        std::vector<DataType> classes_;
-        std::vector<DataType> prior_prob_;
-        num_classes = 0;
-        for (auto &label : label_map) {
-            num_classes++;
-            classes_.push_back(label.first);
-            prior_prob_.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
+        std::vector<DataType> classes;
+        std::vector<DataType> prior_prob;
+        num_classes_ = 0;
+        for (auto &label : label_map_) {
+            ++num_classes_;
+            classes.push_back(label.first);
+            prior_prob.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
             i++;
         }
-        classes = utils::vec2mat<VecType>(classes_);
-        prior_prob = utils::vec2mat<VecType>(prior_prob_);
+        classes_ = utils::vec2mat<VecType>(classes);
+        prior_prob_ = utils::vec2mat<VecType>(prior_prob);
     }
 
 public:
@@ -75,7 +72,7 @@ public:
         log_prob_x = math::logsumexp<MatType, VecType>(jll, 1);
         
         MatType repeated_log_prob_x;
-        repeated_log_prob_x = utils::repeat<MatType>(log_prob_x, num_classes, 1);
+        repeated_log_prob_x = utils::repeat<MatType>(log_prob_x, num_classes_, 1);
 
         return jll.array() - repeated_log_prob_x.array();
     }
@@ -111,7 +108,7 @@ public:
         std::vector<DataType> pred_y_;
         for (std::size_t i = 0; i < num_samples; i++) {
             std::size_t idx = jll_max_idx(i);
-            pred_y_.push_back(classes(idx, 0));
+            pred_y_.push_back(classes_(idx, 0));
         }
 
         pred_y = utils::vec2mat<VecType>(pred_y_);
@@ -122,14 +119,14 @@ public:
      * get the prior prbabilties attributes
     */
     const VecType get_prior_prob() const {
-        return prior_prob;
+        return prior_prob_;
     }
 
     /**
      * get the classes attributes
     */
     const VecType get_classes() const {
-        return classes;
+        return classes_;
     }
 
 };
