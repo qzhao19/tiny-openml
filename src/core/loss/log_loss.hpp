@@ -13,8 +13,8 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    double lambda;
-    std::string penalty;
+    double lambda_;
+    std::string penalty_;
     
 public:
     /**
@@ -24,9 +24,9 @@ public:
      * @param penalty string, specify the norm of the penalty {‘l2’, ‘none’}, default='None'
      * 
     */
-    LogLoss(const double lambda_ = 0.0, 
-        const std::string penalty_ = "None"): lambda(lambda_), 
-            penalty(penalty_) {};
+    LogLoss(const double lambda = 0.0, 
+        const std::string penalty = "None"): lambda_(lambda), 
+            penalty_(penalty) {};
 
     ~LogLoss() {};
 
@@ -56,14 +56,14 @@ public:
         }
 
         // regularization term
-        if (penalty == "None") {
+        if (penalty_ == "None") {
             penalty_val = 0.0;
         }
-        else if (penalty == "l2") {
+        else if (penalty_ == "l2") {
             penalty_val = static_cast<double>(W.transpose() * W);
             // penalty_val = penalty_val * lambda;
         }
-        penalty_val = (penalty_val * lambda) / (static_cast<double>(num_samples));
+        penalty_val = (penalty_val * lambda_) / (static_cast<double>(num_samples));
         error = error / (static_cast<double>(num_samples));
         return error + penalty_val;
     };
@@ -88,12 +88,12 @@ public:
         
         VecType grad(num_features);
         // grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
-        if (penalty == "None") {
+        if (penalty_ == "None") {
             grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples));
         }
-        else if (penalty == "l2") {
+        else if (penalty_ == "l2") {
             grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples)) + 
-                2 * lambda * W;
+                2 * lambda_ * W;
         }
 
         return grad;
