@@ -56,9 +56,10 @@ private:
         ~Node(){};
     };
     using NodeType = Node;
-
     std::shared_ptr<NodeType> root_;
-    
+    std::map<DataType, std::size_t> label_count_;
+    std::size_t num_classes_;
+
     void delete_tree(std::shared_ptr<NodeType>& node) {
         if (node != nullptr) {
             delete_tree(node->left_child);
@@ -66,21 +67,6 @@ private:
             std::move(node);
         }
     }
-
-
-protected:
-    std::size_t min_samples_split_;
-    std::size_t min_samples_leaf_;
-    std::size_t max_depth_; 
-    double min_impurity_decrease_;
-
-
-    /** pure virtual function to compute the inpurity */
-    virtual const double compute_impurity (
-        const VecType& y, 
-        const VecType& left_y, 
-        const VecType& right_y) const = 0;
-
 
     /**
      * choose a threshold from a given features vector, first we sort
@@ -155,16 +141,23 @@ protected:
         
         std::map<DataType, std::size_t> label_count;
         for (std::size_t i = 0; i < y.rows(); i++) {
-            label_count[y[i]]++;
+            label_count[y(i)]++;
         }
 
         std::size_t num_classes = 0;
         VecType num_samples_per_class;
         std::vector<DataType> num_samples_per_class_vec;
-        for (auto& label : label_count) {
-            num_samples_per_class_vec.push_back(label.second);
+        for (auto& label : label_count_) {
+            if (label_count.find(label.first) != label_count.end()) {
+                num_samples_per_class_vec.push_back(label_count.at(label.first));
+            }
+            else {
+                num_samples_per_class_vec.push_back(0);
+            }
         }
+
         num_samples_per_class = utils::vec2mat<VecType>(num_samples_per_class_vec);
+        // std::cout << "num_samples_per_class = " << num_samples_per_class.transpose() << std::endl;
         auto predict_class = utils::argmax<MatType, VecType, IdxType>(num_samples_per_class);
 
         cur_node->is_leaf = true;
@@ -188,10 +181,6 @@ protected:
 
         std::tie(best_impurity, best_feature_index, best_feature_value) = this->best_split(X, y);
 
-        cur_node->impurity = best_impurity;
-        cur_node->feature_index = best_feature_index;
-        cur_node->feature_value = best_feature_value;
-
         if (best_feature_index == ConstType<std::size_t>::max()) {
             return ;
         }
@@ -199,6 +188,10 @@ protected:
         if (best_impurity <= min_impurity_decrease_) {
             return ;
         }
+
+        cur_node->impurity = best_impurity;
+        cur_node->feature_index = best_feature_index;
+        cur_node->feature_value = best_feature_value;
 
         VecType selected_x = X.col(best_feature_index);
         IdxType left_selected_index = utils::where<VecType, IdxType>(
@@ -214,35 +207,50 @@ protected:
         VecType right_y = y(right_selected_index);
 
         if (left_X.rows() >= this->min_samples_leaf_) {
-            std::shared_ptr<NodeType> left_child_node = std::make_shared<NodeType>();
+            std::shared_ptr<NodeType> left_child = std::make_shared<NodeType>();
             cur_node->is_leaf = false;
-            cur_node->left_child = left_child_node;
-            build_tree(left_X, left_y, left_child_node, cur_depth + 1);
+            cur_node->left_child = left_child;
+            build_tree(left_X, left_y, left_child, cur_depth + 1);
         }
 
         if (right_X.rows() >= this->min_samples_leaf_) {
-            std::shared_ptr<NodeType> right_child_node = std::make_shared<NodeType>();
+            std::shared_ptr<NodeType> right_child = std::make_shared<NodeType>();
             cur_node->is_leaf = false;
-            cur_node->left_child = right_child_node;
-            build_tree(right_X, right_y, right_child_node, cur_depth + 1);
+            cur_node->right_child = right_child;
+            build_tree(right_X, right_y, right_child, cur_depth + 1);
         }
+
     }
     
-    VecType compute_x_prob(const VecType& x) {
-        std::shared_ptr<NodeType> node = root_;
-        while (node->left_child) {
-            if (x(node->best_feature_index) <= node->best_feature_value) {
+    const VecType predict_label_prob(const VecType& x, std::shared_ptr<NodeType> node) const{
+        while (node->left_child != nullptr) {
+            if (x(node->feature_index, 0) <= node->feature_value) {
                 node = node->left_child;
             }
             else {
                 node = node->right_child;
             }
         }
-        VecType prob = node->num_samples_per_class.array() / 
-            node->num_samples_per_class.array().sum();
-
+        VecType prob = node->num_samples_per_class.array() / node->num_samples_per_class.array().sum();
         return prob;
     }
+
+
+protected:
+    std::size_t min_samples_split_;
+    std::size_t min_samples_leaf_;
+    std::size_t max_depth_; 
+    double min_impurity_decrease_;
+
+    /** pure virtual function to compute the inpurity */
+    virtual const double compute_impurity (
+        const VecType& y, 
+        const VecType& left_y, 
+        const VecType& right_y) const = 0;
+
+    // void print_tree(const std::shared_ptr<NodeType>& node) {
+    //     print_tree("  ", node);
+    // }
 
 public:
     DecisionTree(): min_samples_split_(2), 
@@ -270,15 +278,51 @@ public:
     void fit(const MatType& X, 
         const VecType& y) {
         
+        num_classes_ = 0;
+        std::size_t num_samples = X.rows();
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            label_count_[y(i)]++;
+        }
+        num_classes_ = label_count_.size();
         root_ = std::make_unique<NodeType>();
-
         build_tree(X, y, root_, 0);
 
     }
 
+    /**
+     * Return probability for the test data X.
+     * @param X ndarray of shape (num_samples, num_features)
+     *      input dataset
+     * @return array-like of shape (num_samples, num_classes)
+     *      Returns the probability of the samples for each class
+     *      The columns correspond to the classes in sorted order
+    */
+    const MatType predict_prob(const MatType& X) const {
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        MatType prob(num_samples, num_classes_);
+        prob.setOnes();
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            std::shared_ptr<NodeType> node = root_;
+            auto row = X.row(i);
+            auto p_i = predict_label_prob(row.transpose(), node);
+            prob.row(i) = p_i.transpose();
+        }
+        return prob;
+    }
 
-
-
+    const VecType predict(const MatType& X) const { 
+        std::size_t num_samples = X.rows();
+        MatType log_prob = predict_prob(X);
+        auto pred_y_index = utils::argmax<MatType, VecType, IdxType>(log_prob, 1);
+        VecType pred_y_value(num_samples);
+        
+        std::size_t i = 0;
+        for (auto& index : pred_y_index) {
+            pred_y_value(i) = static_cast<DataType>(index);
+            i++;
+        }
+        return pred_y_value;
+    }
 
 };
 
