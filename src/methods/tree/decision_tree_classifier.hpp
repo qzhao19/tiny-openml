@@ -67,23 +67,6 @@ public:
                 min_impurity),
             criterion_(criterion) {};
 
-
-    void test_func(const MatType& X, const VecType& y){
-
-        double best_impurity;
-        std::size_t best_feature_index;
-        DataType best_feature_value;
-
-        std::tie(best_impurity, best_feature_index, best_feature_value) = this->best_split(X, y);
-
-        std::cout << best_impurity << std::endl;
-        std::cout << best_feature_value << std::endl;
-        std::cout << best_feature_index << std::endl;
-    }
-
-
-
-
 };
 
 } // decision_tree
