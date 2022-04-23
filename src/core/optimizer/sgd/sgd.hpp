@@ -15,38 +15,38 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    MatType X;
-    VecType y;
-    std::size_t max_iter;
-    std::size_t batch_size;
-    double alpha;
-    double tol;
-    bool shuffle;
-    bool verbose;
+    MatType X_;
+    VecType y_;
+    std::size_t max_iter_;
+    std::size_t batch_size_;
+    double alpha_;
+    double tol_;
+    bool shuffle_;
+    bool verbose_;
 
     // internal callable parameters
-    std::size_t num_samples;
-    std::size_t num_features;
-    std::size_t num_batch;
+    std::size_t num_samples_;
+    std::size_t num_features_;
+    std::size_t num_batch_;
 
 public:
-    SGD(const MatType& X_, 
-        const VecType& y_,
-        const std::size_t max_iter_ = 20000, 
-        const std::size_t batch_size_ = 16,
-        const double alpha_ = 0.1,  
-        const double tol_ = 0.0001, 
-        const bool shuffle_ = false,
-        const bool verbose_ = true): X(X_), y(y_), 
-            max_iter(max_iter_), 
-            batch_size(batch_size_), 
-            tol(tol_), 
-            alpha(alpha_), 
-            shuffle(shuffle_), 
-            verbose(verbose_) {
-                num_samples = X_.rows();
-                num_features = X_.cols();
-                num_batch = num_samples / batch_size;
+    SGD(const MatType& X, 
+        const VecType& y,
+        const std::size_t max_iter = 20000, 
+        const std::size_t batch_size = 16,
+        const double alpha = 0.1,  
+        const double tol = 0.0001, 
+        const bool shuffle = true,
+        const bool verbose = true): X_(X), y_(y), 
+            max_iter_(max_iter), 
+            batch_size_(batch_size), 
+            tol_(tol), 
+            alpha_(alpha), 
+            shuffle_(shuffle), 
+            verbose_(verbose) {
+                num_samples_ = X.rows();
+                num_features_ = X.cols();
+                num_batch_ = num_samples_ / batch_size_;
             };
 
     ~SGD() {};
@@ -58,33 +58,36 @@ public:
         VecType& W) {
         
         double total_error = 0.0;
-        VecType grad(num_features);
+        VecType grad(num_features_);
         
-        for (std::size_t i = 0; i < max_iter; i++) {
-            if (shuffle) {
-                math::shuffle_data(X, y, X, y);
+        for (std::size_t i = 0; i < max_iter_; i++) {
+            if (shuffle_) {
+                math::shuffle_data(X_, y_, X_, y_);
             }
 
-            MatType X_batch(batch_size, num_features);
-            VecType y_batch(batch_size);
+            MatType X_batch(batch_size_, num_features_);
+            VecType y_batch(batch_size_);
             double error = 0.0;
 
-            for (std::size_t j = 0; j < num_batch; j++) {
-                std::size_t begin = j * batch_size;
-                X_batch = X.middleRows(begin, batch_size);
-                y_batch = y.middleRows(begin, batch_size);
+            for (std::size_t j = 0; j < num_batch_; j++) {
+                std::size_t begin = j * batch_size_;
+                X_batch = X.middleRows(begin, batch_size_);
+                y_batch = y.middleRows(begin, batch_size_);
+
                 grad = loss_fn.gradient(X_batch, y_batch, W);
+                
                 // W = W - alpha * grad;
                 update_policy.update(W, grad, W);
+
                 error += loss_fn.evaluate(X_batch, y_batch, W);
             }
 
-            double average_error = error / static_cast<double>(num_batch);
-            if (std::abs(total_error - average_error) < tol) {
+            double average_error = error / static_cast<double>(num_batch_);
+            if (std::abs(total_error - average_error) < tol_) {
                 break;
             } 
             total_error = average_error;
-            if (verbose) {
+            if (verbose_) {
                 if ((i % 10) == 0) {
                     std::cout << "iter = " << i << ", loss value = " << average_error << std::endl;
                 }
@@ -95,4 +98,4 @@ public:
 
 }
 }
-#endif
+#endif /*CORE_OPTIMIZER_SGD_SGD_HPP*/
