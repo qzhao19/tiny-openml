@@ -154,7 +154,77 @@ VecType mean(const MatType& x, int axis = -1) {
     else {
         throw std::invalid_argument("Got an invalid axis value.");
     }
+};
 
+/**
+ * Compute the median of a matrix or vector along the specified axis.
+ * @param x ndarray of shape (num_samples, num_features), Input array
+ * @param axis int optional, Axis or axes along which the medians are computed.
+ *      the default value is 0.
+*/
+template <typename MatType, 
+    typename VecType, 
+    typename DataType = typename VecType::value_type>
+VecType median(const MatType& x, int axis = 0) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+
+    MatType X = x;
+    std::size_t index;
+    DataType value;
+    if (axis == 0) {
+        VecType col_med(num_cols);
+        index = num_rows / 2;
+        for (std::size_t j = 0; j < num_cols; ++j) {
+            VecType col = X.col(j);
+            std::nth_element(col.data(), col.data() + index, col.data() + num_rows);
+            value = col(index);
+            if (num_rows%2 == 0) {
+                std::nth_element(col.data(), col.data() + index - 1, col.data() + num_rows);
+                col_med(j) = (value + col(index - 1)) / 2;
+            }
+            else {
+                col_med(j) = value;
+            }
+        }
+        return col_med;
+    }
+    else if (axis == 1) {
+        VecType row_med(num_rows);
+        index = num_cols / 2;
+        for (std::size_t i = 0; i < num_rows; ++i) {
+            VecType row = X.row(i).transpose();
+            std::nth_element(row.data(), row.data() + index, row.data() + num_cols);
+            value = row(index);
+            if (num_cols%2 == 0) {
+                std::nth_element(row.data(), row.data() + index - 1, row.data() + num_cols);
+                row_med(i) = (value + row(index - 1)) / 2;
+            }
+            else {
+                row_med(i) = value;
+            }
+        }
+        return row_med;
+    }
+    else if (axis == -1) {
+        MatType trans_X = X.transpose();
+        std::size_t num_elems = num_rows * num_cols;
+        VecType flatten_X(Eigen::Map<VecType>(trans_X.data(), num_elems));
+        VecType med(1);
+        index = num_elems / 2;
+        std::nth_element(flatten_X.data(), flatten_X.data() + index, flatten_X.data() + num_elems);
+        value = flatten_X(index);
+        if (num_elems%2 == 0) {
+            std::nth_element(flatten_X.data(), 
+                flatten_X.data() + index - 1, 
+                flatten_X.data() + num_elems
+            );
+            med(0) = (value + flatten_X(index - 1)) / 2;
+        }
+        else {
+            med(0) = value;
+        }
+        return med;
+    }
 };
 
 /**
@@ -422,64 +492,8 @@ double gini(const VecType& x,
 
 
 
-template <typename MatType, typename VecType>
-VecType median(const MatType& x, int axis = 0) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
-
-    MatType X = x;
-    std::size_t index;
-    if (axis == 0) {
-        VecType col_median(num_cols);
-        index = num_rows / 2;
-        for (std::size_t j = 0; j < num_cols; ++j) {
-            VecType col = X.col(j);
-            std::nth_element(col.data(), col.data() + index, col.data() + num_rows);
-            if (num_rows%2 == 0) {
-                col_median(j) = (col(index) + col(index - 1)) / 2;
-            }
-            else {
-                col_median(j) = col(index);
-            }
-        }
-        return col_median;
-    }
-    else if (axis == 1) {
-        VecType row_median(num_rows);
-        index = num_cols / 2;
-        for (std::size_t i = 0; i < num_rows; ++i) {
-            VecType row = X.row(i).transpose();
-            std::nth_element(row.data(), row.data() + index, row.data() + num_cols);
-            if (num_cols%2 == 0) {
-                std::cout << row.transpose() << std::endl;
-                row_median(i) = (row(index) + row(index - 1)) / 2;
-            }
-            else {
-                row_median(i) = row(index);
-            }
-        }
-        return row_median;
-    }
-    else if (axis == -1) {
-        
-        MatType trans_X = X.transpose();
-        std::size_t num_elems = num_rows * num_cols;
-        VecType flatten_X(Eigen::Map<VecType>(trans_X.data(), num_elems));
-
-        VecType med(1);
-        index = num_elems / 2;
-        std::nth_element(flatten_X.data(), flatten_X.data() + index, flatten_X.data() + num_elems);
-        if (num_elems%2 == 0) {
-            med(0) = (flatten_X(index) + flatten_X(index - 1)) / 2;
-        }
-        else {
-            med(0) = flatten_X(index);
-        }
-        return med;
-    }
-};
-
 
 }
 }
 
-#endif
+#endif /*CORE_MATH_EXTMATH_HPP*/
