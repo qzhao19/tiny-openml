@@ -229,12 +229,6 @@ public:
      void fit(const MatType& X, 
         const VecType& y) {
         
-        num_classes_ = 0;
-        std::size_t num_samples = X.rows();
-        for (std::size_t i = 0; i < num_samples; ++i) {
-            label_count_[y(i)]++;
-        }
-        num_classes_ = label_count_.size();
         root_ = std::make_unique<Node>();
         build_tree(X, y, root_, 0);
 
