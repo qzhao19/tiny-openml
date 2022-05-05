@@ -98,26 +98,6 @@ protected:
     const std::tuple<VecType, DataType> compute_node_value(
         const VecType& y) const {
         
-        std::map<DataType, std::size_t> label_count;
-        for (std::size_t i = 0; i < y.rows(); i++) {
-            label_count[y(i)]++;
-        }
-
-        // VecType value;
-        VecType value_eigvec;
-        std::vector<DataType> value_stdvec;
-        for (auto& label : label_count_) {
-            if (label_count.find(label.first) != label_count.end()) {
-                value_stdvec.push_back(label_count.at(label.first));
-            }
-            else {
-                value_stdvec.push_back(0);
-            }
-        }
-
-        value_eigvec = utils::vec2mat<VecType>(value_stdvec);
-        auto value = utils::argmax<MatType, VecType, IdxType>(value_eigvec, -1);
-        return std::make_tuple(value_eigvec, value.value());
     }
 
 
