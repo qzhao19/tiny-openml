@@ -76,11 +76,9 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
             s_inv(i, i) = static_cast<DataType>(0);
         }
     }
-
     MatType pinv_mat = Vt * s_inv * U.transpose();
     return pinv_mat;
 }
-
 
 /**
  * Compute log(det(A)) for A symmetric.
@@ -107,11 +105,37 @@ DataType logdet(const MatType& x) {
     return std::isnan(ld) ? (-ConstType<DataType>::infinity()) : ld;
 }
 
-
-
-
+/**
+ * Compute the log of the sum of exponentials of input elements.
+ * @param x ndarray input data
+ * @param axis, int
+ *      Axis or axes over which the sum is taken.
+*/
+template<typename MatType, typename VecType>
+VecType logsumexp(const MatType& x, int axis){
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    if (axis == 1) {
+        VecType c = x.rowwise().maxCoeff();
+        MatType repeated_c = utils::repeat<MatType>(c, num_cols, 1);
+        VecType log_sum_exp = (x - repeated_c).array().exp().rowwise().sum().log();
+        return log_sum_exp + c;
+    }
+    else if (axis == 0) {
+        VecType c = x.colwise().maxCoeff();
+        MatType repeated_c = utils::repeat<MatType>(c.transpose(), num_rows, 0);
+        VecType log_sum_exp = (x - repeated_c).array().exp().colwise().sum().log();
+        return log_sum_exp + c;
+    }
+    else if (axis == -1) {
+        auto c = x.maxCoeff();
+        auto log_sum_exp_val = std::log((x.array() - c).exp().sum()) + c;
+        VecType log_sum_exp(1);
+        log_sum_exp(0, 0) = log_sum_exp_val;
+        return log_sum_exp;
+    }
+};
 
 
 }
 }
-#endif
+#endif /*CORE_MATH_LINALG_HPP*/
