@@ -10,7 +10,7 @@
 #include "../src/core/math/linalg.hpp"
 #include "../src/core/math/extmath.hpp"
 #include "../src/core/math/dists.hpp"
-#include "../src/core/math/unary_ops.hpp"
+#include "../src/core/math/ops.hpp"
 
 
 #include "../src/core/data/load.hpp"
