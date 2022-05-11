@@ -1,5 +1,5 @@
-#ifndef CORE_MATH_UNARY_OPS_HPP
-#define CORE_MATH_UNARY_OPS_HPP
+#ifndef CORE_MATH_OPS_HPP
+#define CORE_MATH_OPS_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
@@ -264,4 +264,4 @@ AnyType sign(const AnyType& x) {
 }
 }
 
-#endif /*CORE_MATH_UNARY_OPS_HPP*/
+#endif /*CORE_MATH_OPS_HPP*/
