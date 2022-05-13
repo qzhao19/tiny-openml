@@ -1,6 +1,7 @@
 #ifndef CORE_MATH_LINALG_HPP
 #define CORE_MATH_LINALG_HPP
 #include "../../prereqs.hpp"
+#include "../../core.hpp"
 
 namespace openml {
 namespace math {
@@ -80,6 +81,7 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
     return pinv_mat;
 }
 
+
 /**
  * Compute log(det(A)) for A symmetric.
  * 
@@ -134,6 +136,7 @@ VecType logsumexp(const MatType& x, int axis){
         return log_sum_exp;
     }
 };
+
 
 
 }
