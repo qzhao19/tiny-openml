@@ -109,16 +109,8 @@ protected:
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
-        // std::map<DataType, std::size_t> label_count;
-        // for (std::size_t i = 0; i < y.rows(); i++) {
-        //     label_count[y(i)]++;
-        // }
-
         DataType predict_value;
         
-        // std::tie(num_samples_per_class, predict_value) = compute_node_value(y);
-        // std::cout << "num_samples_per_class = " << num_samples_per_class.transpose() << std::endl;
-
         cur_node->is_leaf = true;
         cur_node->num_samples = num_samples;
         cur_node->predict_value = predict_value;
@@ -176,9 +168,7 @@ protected:
             cur_node->right_child = right_child;
             build_tree(right_X, right_y, right_child, cur_depth + 1);
         }
-
     }
-
 
 public:
     DecisionTreeRegressor(): DecisionTree<DataType>(), 
@@ -220,5 +210,4 @@ public:
 
 } // decision_tree
 } // openml
-
 #endif /*METHODS_TREE_DECISION_TREE_REGRESSOR_HPP*/
