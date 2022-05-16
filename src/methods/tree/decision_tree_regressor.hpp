@@ -61,7 +61,7 @@ protected:
     std::size_t min_samples_leaf_;
     std::size_t max_depth_; 
     double min_impurity_decrease_;
-    double stdev_;
+    double min_stdev_;
     
     const double compute_impurity(const VecType& y, 
         const VecType& left_y, 
@@ -85,23 +85,50 @@ protected:
             return mse;
         }
         else if (criterion_ == "absolute_error") {
-
+            
+            auto total_median = math::median<MatType, VecType>(y, -1);
             auto left_median = math::median<MatType, VecType>(left_y, -1);
             auto right_median = math::median<MatType, VecType>(right_y, -1);
 
+            VecType y_bar = y.array() - total_median.array();
+            VecType left_y_bar = left_y.array() - left_median.array();
+            VecType right_y_bar = right_y.array() - right_median.array();
+
+            auto y_bar_sum = math::sum<MatType, VecType>(y_bar, -1);
+            auto left_y_bar_sum = math::sum<MatType, VecType>(left_y_bar, -1);
+            auto right_y_bar_sum = math::sum<MatType, VecType>(right_y_bar, -1);
+
+            double mae = static_cast<double>(y_bar_sum.value()) - 
+                static_cast<double>(left_num_samples) * static_cast<double>(left_y_bar_sum.value()) -
+                    static_cast<double>(right_num_samples) * static_cast<double>(right_y_bar_sum.value());
+
+            return mae;
         }
     }
 
     /**
      * 
     */
-    const std::tuple<VecType, DataType> compute_node_value(
+    const std::tuple<DataType, double> compute_node_value(
         const VecType& y) const {
+        
+        std::size_t num_samples = X.rows();
+
+        auto y_bar = math::mean<MatType, VecType>(y, -1);
+        auto y_centered = y.array() - y_bar.array();
+
+        double square_error = std::sqrt(
+            y_centered.norm() / static_cast<double>(num_samples)
+        );
+
+        return std::make_tuple(y_bar, square_error); 
         
     }
 
 
-    /** Build a decision tree by recursively finding the best split. */
+    /** 
+     * Build a decision tree by recursively finding the best split. 
+    */
     void build_tree(const MatType& X, 
         const VecType& y, 
         std::shared_ptr<Node>& cur_node, 
@@ -110,10 +137,17 @@ protected:
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
         DataType predict_value;
+        double min_stdev;
         
+        std::tie(predict_value, min_stdev) = compute_node_value(y);
+
         cur_node->is_leaf = true;
         cur_node->num_samples = num_samples;
         cur_node->predict_value = predict_value;
+
+        if (min_stdev <= min_stdev_) {
+            return ;
+        }
         
         // stopping split condition
         if (num_samples < min_samples_split_) {
@@ -170,6 +204,23 @@ protected:
         }
     }
 
+
+    const DataType predict_label(const VecType& x, 
+        std::shared_ptr<Node> cur_node) const{
+        while (cur_node->left_child != nullptr) {
+            if (x(cur_node->feature_index, 0) <= cur_node->feature_value) {
+                cur_node = cur_node->left_child;
+            }
+            else {
+                cur_node = cur_node->right_child;
+            }
+        }
+        // VecType prob = cur_node->num_samples_per_class.array() / cur_node->num_samples_per_class.array().sum();
+        // return prob;
+        return cur_node.predict_value;
+    }
+
+
 public:
     DecisionTreeRegressor(): DecisionTree<DataType>(), 
         criterion_("squared_error"), 
@@ -177,7 +228,7 @@ public:
         min_samples_leaf_(0),
         max_depth_(4), 
         min_impurity_decrease_(1.0e-7),
-        stdev_(1e-3) {};
+        min_stdev_(1e-3) {};
 
 
     DecisionTreeRegressor(std::string criterion, 
@@ -185,13 +236,13 @@ public:
         std::size_t min_samples_leaf,
         std::size_t max_depth,
         double min_impurity_decrease,
-        double stdev): DecisionTree<DataType>(), 
+        double min_stdev): DecisionTree<DataType>(), 
             criterion_(criterion), 
             min_samples_split_(min_samples_split), 
             min_samples_leaf_(min_samples_leaf),
             max_depth_(max_depth), 
             min_impurity_decrease_(min_impurity_decrease),
-            stdev_(stdev) {};
+            min_stdev_(min_stdev) {};
     
     /**
      * fit datatset
@@ -201,13 +252,26 @@ public:
         
         root_ = std::make_unique<Node>();
         build_tree(X, y, root_, 0);
-
     }
 
+
+    const VecType predict(const MatType& X) const { 
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        VecType pred_y(num_samples);
+        pred_y.setZero();
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            std::shared_ptr<Node> node = root_;
+            auto row = X.row(i);
+            auto p_i = predict_label(row.transpose(), node);
+            pred_y.row(i) = p_i;
+        }
+        return pred_y;
+    }
 
 
 };
 
 } // decision_tree
 } // openml
+
 #endif /*METHODS_TREE_DECISION_TREE_REGRESSOR_HPP*/
