@@ -112,19 +112,16 @@ protected:
     const std::tuple<DataType, double> compute_node_value(
         const VecType& y) const {
         
-        std::size_t num_samples = X.rows();
+        std::size_t num_samples = y.rows();
 
         auto y_bar = math::mean<MatType, VecType>(y, -1);
-        auto y_centered = y.array() - y_bar.array();
+        VecType y_centered = y.array() - y_bar.value();
 
-        double square_error = std::sqrt(
-            y_centered.norm() / static_cast<double>(num_samples)
+        double stdev_error = std::sqrt(
+            static_cast<double>(y_centered.norm()) / static_cast<double>(num_samples)
         );
-
-        return std::make_tuple(y_bar, square_error); 
-        
+        return std::make_tuple(y_bar.value(), stdev_error); 
     }
-
 
     /** 
      * Build a decision tree by recursively finding the best split. 
@@ -217,7 +214,7 @@ protected:
         }
         // VecType prob = cur_node->num_samples_per_class.array() / cur_node->num_samples_per_class.array().sum();
         // return prob;
-        return cur_node.predict_value;
+        return cur_node->predict_value;
     }
 
 
@@ -258,12 +255,12 @@ public:
     const VecType predict(const MatType& X) const { 
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType pred_y(num_samples);
-        pred_y.setZero();
+        // pred_y.setZero();
         for (std::size_t i = 0; i < num_samples; ++i) {
             std::shared_ptr<Node> node = root_;
             auto row = X.row(i);
             auto p_i = predict_label(row.transpose(), node);
-            pred_y.row(i) = p_i;
+            pred_y(i, 0) = p_i;
         }
         return pred_y;
     }
