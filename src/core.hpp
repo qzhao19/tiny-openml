@@ -5,12 +5,11 @@
 
 #include "../src/core/utils.hpp"
 
-
+#include "../src/core/math/ops.hpp"
 #include "../src/core/math/shuffle.hpp"
 #include "../src/core/math/linalg.hpp"
 #include "../src/core/math/extmath.hpp"
 #include "../src/core/math/dists.hpp"
-#include "../src/core/math/ops.hpp"
 
 
 #include "../src/core/data/load.hpp"
