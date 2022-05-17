@@ -19,6 +19,7 @@ MatType sigmoid(const MatType& x) {
         (static_cast<DataType>(1) + (-x.array()).exp()));
 };
 
+
 /**
  * transform a vector to diagonal matrix 
  * @param x vector of shape (num_rows)
@@ -66,7 +67,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
             std::size_t i = max_abs_index(j);
             max_abs_cols(j) = U(i, j);
         }
-        VecType signs = sign<VecType>(max_abs_cols);
+        VecType signs = math::sign<VecType>(max_abs_cols);
         U_ = U.array().rowwise() * signs.transpose().array();        
         Vt_ = Vt.array().colwise() * signs.array();
     }
@@ -83,12 +84,13 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
             max_abs_rows(i) = Vt(i, j);
         }
 
-        VecType signs = sign<VecType>(max_abs_rows);
+        VecType signs = math::sign<VecType>(max_abs_rows);
         U_ = U.array().rowwise() * signs.transpose().array();        
         Vt_ = Vt.array().colwise() * signs.array();
     }
     return std::make_tuple(U_, Vt_);
 };
+
 
 /**
  * compute the entropy of a vector
@@ -147,6 +149,7 @@ double entropy(const VecType& x,
     return ent;
 };
 
+
 /**
  * compute gini index
  * Gini(p) = 1 - sum(p_i), i = 1 : k
@@ -203,6 +206,7 @@ double gini(const VecType& x,
     }
     return 1.0 - g;
 };
+
 
 }
 }
