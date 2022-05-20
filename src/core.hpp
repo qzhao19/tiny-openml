@@ -10,6 +10,7 @@
 #include "../src/core/math/linalg.hpp"
 #include "../src/core/math/extmath.hpp"
 #include "../src/core/math/dists.hpp"
+#include "../src/core/math/random.hpp"
 
 
 #include "../src/core/data/load.hpp"
