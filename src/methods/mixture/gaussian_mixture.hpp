@@ -25,7 +25,7 @@ private:
 
     
     void initialize(const MatType& X) {
-        std::size_t num_samples = y.rows();
+        std::size_t num_samples = X.rows();
         MatType resp(num_samples, num_components_);
         if (init_params_ == "random") {
             resp = math::rand<MatType>(num_samples, num_components_);
@@ -35,18 +35,32 @@ private:
             resp = resp.array() / repeated_sum_resp.array();
         }
 
+        std::cout << resp << std::endl;
 
-        
     }
 
 
 
+    const std::vector<MatType> estimate_cov_full(const MatType& X, 
+        const MatType& resp, 
+        const MatType& mean, 
+        const VecType& nk, 
+        double reg_covar) {
+        
+        std::size_t num_components = mean.rows(), num_features = mean.cols();
 
+        std::vector<MatType> cov;
+
+        for (std::size_t k = 0; k < num_components; k++) {
+            
+        }
+
+    }
 
 
 public:
     GaussianMixture(): max_iter_(100), 
-        num_components_(1), 
+        num_components_(2), 
         init_params_("random"), 
         covariance_type_("full"), 
         tol_(1e-3), 
@@ -63,6 +77,21 @@ public:
             covariance_type_(covariance_type), 
             tol_(tol), 
             reg_covar_(reg_covar) {};
+
+
+
+    void test_func(const MatType& X) {
+
+        initialize(X);
+
+    }
+
+
+
+
+
+
+
 
 
 
