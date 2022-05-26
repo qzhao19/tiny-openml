@@ -47,14 +47,28 @@ private:
         const VecType& nk, 
         double reg_covar) {
         
+        std::size_t num_samples = X.rows();
         std::size_t num_components = mean.rows(), num_features = mean.cols();
 
-        std::vector<MatType> cov;
+        std::vector<MatType> covariances;
 
         for (std::size_t k = 0; k < num_components; k++) {
-            
-        }
+            MatType diff(num_samples, num_features);
+            for (std::size_t i = 0; i < num_samples; ++i) {
+                diff.row(i) = X.row(i).array() - mean.row(i).array();
+            }
 
+            MatType repeated_resp = utils::repeat<MatType>(resp.col(k), num_features, 0);
+            MatType resp_diff = repeated_resp.array() * diff.transpose().array();
+            MatType tmp = resp_diff.transpose() * diff;
+            
+            MatType repeated_nk(1, 1);
+            repeated_nk = nk(k);
+            MatType cov = tmp.array() / repeated_nk.replicate<num_features, num_features>().array(); 
+            cov = cov.array() + reg_covar;
+            covariances.push_back(cov);
+        }
+        return covariances;
     }
 
 
