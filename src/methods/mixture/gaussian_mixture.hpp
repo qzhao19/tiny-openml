@@ -45,7 +45,7 @@ private:
         const MatType& resp, 
         const MatType& mean, 
         const VecType& nk, 
-        double reg_covar) {
+        double reg_covar) const {
         
         std::size_t num_samples = X.rows();
         std::size_t num_components = mean.rows(), num_features = mean.cols();
@@ -71,6 +71,22 @@ private:
         return covariances;
     }
 
+
+    const std::tuple<std::vector<MatType>, MatType, VecType> 
+    estimate_gaussian_parameters(const MatType& X, 
+        const MatType& resp, 
+        double reg_covar, 
+        std::string cov_type) const{
+        
+        VecType eps(num_components_);
+        eps.fill(10. * ConstType<DataType>::min());
+
+        VecType nk(num_components_);
+        nk = math::sum<MatType, VecType>(resp, 0);
+        nk = nk.array() * eps.array(); 
+
+        
+    }
 
 public:
     GaussianMixture(): max_iter_(100), 
