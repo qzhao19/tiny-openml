@@ -71,7 +71,13 @@ private:
         return covariances;
     }
 
-
+    /**
+     * @param resp ndarray of shape (n_samples, n_components)
+     *      the responsibilities for each data sample in X.
+     * @param nk ndarray of shape (n_components,) 
+     *      The numbers of data samples in the current components.
+     * @param means : array-like of shape (n_components, n_features)
+    */
     const std::tuple<std::vector<MatType>, MatType, VecType> 
     estimate_gaussian_parameters(const MatType& X, 
         const MatType& resp, 
@@ -85,6 +91,11 @@ private:
         nk = math::sum<MatType, VecType>(resp, 0);
         nk = nk.array() * eps.array(); 
 
+        MatType repeated_nk;
+        repeated_nk = utils::repeat<MatType>(nk, num_components_, 1);
+
+        MatType tmp = resp.transpose() * X;
+        MatType mean = tmp.array() / nk;
         
     }
 
