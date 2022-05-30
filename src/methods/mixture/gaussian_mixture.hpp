@@ -97,6 +97,8 @@ private:
         MatType tmp = resp.transpose() * X;
         MatType mean = tmp.array() / nk;
         
+        std::vector<MatType> covariances;
+        covariances = estimate_cov_full(X, resp, mean, nk, reg_covar);
     }
 
 public:
