@@ -35,7 +35,9 @@ private:
             resp = resp.array() / repeated_sum_resp.array();
         }
 
-        std::cout << resp << std::endl;
+        // std::cout << resp << std::endl;
+
+        estimate_gaussian_parameters(X, resp, reg_covar_);
 
     }
 
@@ -58,14 +60,21 @@ private:
                 diff.row(i) = X.row(i).array() - mean.row(i).array();
             }
 
-            MatType repeated_resp = utils::repeat<MatType>(resp.col(k), num_features, 0);
-            MatType resp_diff = repeated_resp.array() * diff.transpose().array();
-            MatType tmp = resp_diff.transpose() * diff;
             
-            MatType repeated_nk(1, 1);
-            repeated_nk = nk(k);
-            MatType cov = tmp.array() / repeated_nk.replicate<num_features, num_features>().array(); 
+
+            MatType resp_tmp = utils::repeat<MatType>(resp.col(k), num_features, 0);
+            MatType resp_diff = resp_tmp.array() * diff.transpose().array();
+            MatType resp_diff_tmp = resp_diff.transpose() * diff;
+            
+            MatType nk_tmp(num_features, num_features);
+            // std::cout << nk.row(k) << std::endl;
+
+            nk_tmp.fill(nk(k));
+            
+            MatType cov = resp_diff_tmp.array() / nk_tmp.array(); 
             cov = cov.array() + reg_covar;
+
+            
             covariances.push_back(cov);
         }
         return covariances;
@@ -78,27 +87,41 @@ private:
      *      The numbers of data samples in the current components.
      * @param means : array-like of shape (n_components, n_features)
     */
-    const std::tuple<std::vector<MatType>, MatType, VecType> 
-    estimate_gaussian_parameters(const MatType& X, 
+    void estimate_gaussian_parameters(const MatType& X, 
         const MatType& resp, 
         double reg_covar, 
-        std::string cov_type) const{
+        std::string cov_type = "full") {
         
         VecType eps(num_components_);
         eps.fill(10. * ConstType<DataType>::min());
 
         VecType nk(num_components_);
         nk = math::sum<MatType, VecType>(resp, 0);
-        nk = nk.array() * eps.array(); 
+        nk = nk.array() + eps.array(); 
 
-        MatType repeated_nk;
-        repeated_nk = utils::repeat<MatType>(nk, num_components_, 1);
+        
+
+        MatType nk_tmp;
+        nk_tmp = utils::repeat<MatType>(nk, num_components_, 1);
+
+        std::cout << "nk_tmp" << std::endl;
+        std::cout << nk_tmp << std::endl;
+
+
 
         MatType tmp = resp.transpose() * X;
-        MatType mean = tmp.array() / nk;
+        MatType mean = tmp.array() / nk_tmp.array();
         
         std::vector<MatType> covariances;
         covariances = estimate_cov_full(X, resp, mean, nk, reg_covar);
+
+        // std::cout << covariances << std::endl;
+
+        // for (auto& cov : covariances){
+        //     std::cout << cov << std::endl;
+        // }
+
+        // return std::make_tuple(covariances)
     }
 
 public:
@@ -126,6 +149,8 @@ public:
     void test_func(const MatType& X) {
 
         initialize(X);
+
+
 
     }
 
