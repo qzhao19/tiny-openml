@@ -22,59 +22,73 @@ private:
     double tol_;
     double reg_covar_;
 
+    std::vector<MatType> precisions_cholesky_;
 
-    
-    void initialize(const MatType& X) {
-        std::size_t num_samples = X.rows();
-        MatType resp(num_samples, num_components_);
-        if (init_params_ == "random") {
-            resp = math::rand<MatType>(num_samples, num_components_);
 
-            VecType sum_resp = math::sum<MatType, VecType>(resp, 1);
-            MatType repeated_sum_resp = utils::repeat<MatType>(sum_resp, num_components_, 1);
-            resp = resp.array() / repeated_sum_resp.array();
+    /**
+     * Compute the Cholesky decomposition of the precisions
+     * @param covariances : ndarray of shape [n, m, k]
+     *      The covariance matrix of the current components.
+     * 
+     * @return precisions_cholesky : array-like cholesky
+     *      The cholesky decomposition of sample precisions 
+     *      of the current components.
+    */
+    const std::vector<MatType> compute_precision_cholesky(
+        const std::vector<MatType>& covariances) const {
+        
+        std::size_t num_features = covariances[0].rows();
+
+        std::vector<MatType> precision_chol;
+        for (std::size_t i = 0; i < num_components_; ++i) {
+            MatType cov_chol;
+            cov_chol = math::cholesky<MatType>(covariances[i], true);
+
+            MatType b(num_features, num_features);
+            b.setIdentity();
+
+            MatType precision;
+            precision = cov_chol.template triangularView<Eigen::Lower>().transpose().solve(b);
+
+            precision_chol.push_back(precision);
         }
 
-        // std::cout << resp << std::endl;
-
-        estimate_gaussian_parameters(X, resp, reg_covar_);
-
+        return precision_chol;
     }
+    
 
 
-
+    /**
+     * Estimate the full covariance matrices.
+    */
     const std::vector<MatType> estimate_cov_full(const MatType& X, 
         const MatType& resp, 
-        const MatType& mean, 
+        const MatType& means, 
         const VecType& nk, 
         double reg_covar) const {
         
         std::size_t num_samples = X.rows();
-        std::size_t num_components = mean.rows(), num_features = mean.cols();
-
+        std::size_t num_components = means.rows(), num_features = means.cols();
         std::vector<MatType> covariances;
 
         for (std::size_t k = 0; k < num_components; k++) {
             MatType diff(num_samples, num_features);
             for (std::size_t i = 0; i < num_samples; ++i) {
-                diff.row(i) = X.row(i).array() - mean.row(i).array();
+                diff.row(i) = X.row(i).array() - means.row(k).array();
             }
 
-            
-
-            MatType resp_tmp = utils::repeat<MatType>(resp.col(k), num_features, 0);
-            MatType resp_diff = resp_tmp.array() * diff.transpose().array();
-            MatType resp_diff_tmp = resp_diff.transpose() * diff;
+            MatType resp_tmp = utils::repeat<MatType>(resp.col(k), num_features, 1);
+            // matrix product dot 
+            MatType resp_diff_tmp = resp_tmp.array() * diff.array();
+            MatType resp_diff = resp_diff_tmp.transpose() * diff;
             
             MatType nk_tmp(num_features, num_features);
-            // std::cout << nk.row(k) << std::endl;
+            DataType val = nk(k);
+            nk_tmp.fill(val);
 
-            nk_tmp.fill(nk(k));
-            
-            MatType cov = resp_diff_tmp.array() / nk_tmp.array(); 
+            // compute covariance for each component
+            MatType cov = resp_diff.array() / nk_tmp.array(); 
             cov = cov.array() + reg_covar;
-
-            
             covariances.push_back(cov);
         }
         return covariances;
@@ -87,42 +101,70 @@ private:
      *      The numbers of data samples in the current components.
      * @param means : array-like of shape (n_components, n_features)
     */
-    void estimate_gaussian_parameters(const MatType& X, 
+    std::tuple<std::vector<MatType>, MatType, VecType> 
+    estimate_gaussian_parameters(const MatType& X, 
         const MatType& resp, 
         double reg_covar, 
         std::string cov_type = "full") {
         
+        std::size_t num_features = X.cols();
         VecType eps(num_components_);
-        eps.fill(10. * ConstType<DataType>::min());
+        eps.fill(10.0 * ConstType<DataType>::min());
 
         VecType nk(num_components_);
         nk = math::sum<MatType, VecType>(resp, 0);
         nk = nk.array() + eps.array(); 
 
-        
-
         MatType nk_tmp;
-        nk_tmp = utils::repeat<MatType>(nk, num_components_, 1);
-
-        std::cout << "nk_tmp" << std::endl;
-        std::cout << nk_tmp << std::endl;
-
-
-
-        MatType tmp = resp.transpose() * X;
-        MatType mean = tmp.array() / nk_tmp.array();
+        nk_tmp = utils::repeat<MatType>(nk, num_features, 1);
         
+        MatType means_tmp = resp.transpose() * X;
+        MatType means = means_tmp.array() / nk_tmp.array();
+
         std::vector<MatType> covariances;
-        covariances = estimate_cov_full(X, resp, mean, nk, reg_covar);
 
-        // std::cout << covariances << std::endl;
-
-        // for (auto& cov : covariances){
-        //     std::cout << cov << std::endl;
-        // }
-
-        // return std::make_tuple(covariances)
+        if (cov_type == "full") {
+            covariances = estimate_cov_full(X, resp, means, nk, reg_covar);
+        }
+        
+        return std::make_tuple(covariances, means, nk);
     }
+
+    void initialize_parameters(const MatType& X) {
+        std::size_t num_samples = X.rows();
+        MatType resp(num_samples, num_components_);
+        if (init_params_ == "random") {
+            resp = math::rand<MatType>(num_samples, num_components_);
+
+            VecType sum_resp = math::sum<MatType, VecType>(resp, 1);
+            MatType sum_resp_tmp = utils::repeat<MatType>(sum_resp, num_components_, 1);
+            resp = resp.array() / sum_resp_tmp.array();
+        }
+
+        // std::cout << resp << std::endl;
+        std::vector<MatType> covariances;
+        MatType means;
+        VecType weights;
+        std::tie(covariances, 
+            means, 
+            weights) = estimate_gaussian_parameters(X, resp, reg_covar_);
+
+        precisions_cholesky_ = compute_precision_cholesky(covariances);
+
+
+        for(auto& cov : covariances) {
+            std::cout << cov << std::endl;
+        }
+        std::cout << means << std::endl;
+        std::cout << weights << std::endl;
+        std::cout << "--------------------------------" << std::endl;
+
+        for(auto& precision : precisions_cholesky_) {
+            std::cout << precision << std::endl;
+        }
+
+    }
+
 
 public:
     GaussianMixture(): max_iter_(100), 
@@ -148,7 +190,7 @@ public:
 
     void test_func(const MatType& X) {
 
-        initialize(X);
+        initialize_parameters(X);
 
 
 
