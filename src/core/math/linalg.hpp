@@ -137,7 +137,6 @@ VecType logsumexp(const MatType& x, int axis){
     }
 };
 
-
 /**
  * Cholesky decomposition
  * Return the Cholesky decomposition, L * L.H, of the square matrix a, 
@@ -145,14 +144,21 @@ VecType logsumexp(const MatType& x, int axis){
  * x must be Hermitian (symmetric if real-valued) and positive-definite.
 */
 template<typename MatType>
-MatType cholesky(const MatType& x) {
+MatType cholesky(const MatType& x, bool lower = true) {
     Eigen::LLT<MatType> llt_decomposition(x);
 
     if (llt_decomposition.info() != Eigen::Success) {
-        throw std::runtime_error("Cholesky decomposition was not successful");
+        throw std::runtime_error("Cholesky decomposition was not successful.");
     }
-    return llt_decomposition.matrixL();
+
+    if (lower) {
+        return llt_decomposition.matrixL();
+    }
+    else {
+        return llt_decomposition.matrixU();
+    }
 };
+
 
 
 }
