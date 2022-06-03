@@ -57,6 +57,28 @@ private:
     }
     
 
+    /**
+     * Compute the log-det of the cholesky decomposition of matrices
+    */
+    const VecType compute_log_det_cholesky(
+        const std::vector<MatType>& matrix_chol, 
+        std::size_t num_features) const {
+        
+        VecType log_det_chol(num_components_);
+
+        for (std::size_t i = 0; i < num_components_; ++i) {
+
+            VecType diag = matrix_chol[i].diagonal();
+
+            auto tmp = math::sum<MatType, VecType>(diag.array().log(), 0);
+
+            log_det_chol(i) = tmp.value();
+
+        }
+
+        return log_det_chol;
+    }
+
 
     /**
      * Estimate the full covariance matrices.
@@ -149,18 +171,23 @@ private:
             means, 
             weights) = estimate_gaussian_parameters(X, resp, reg_covar_);
 
+        weights = weights * (static_cast<DataType>(1) / static_cast<DataType>(num_samples));
+
+
         precisions_cholesky_ = compute_precision_cholesky(covariances);
 
 
-        for(auto& cov : covariances) {
-            std::cout << cov << std::endl;
-        }
-        std::cout << means << std::endl;
-        std::cout << weights << std::endl;
-        std::cout << "--------------------------------" << std::endl;
+        // for(auto& cov : covariances) {
+        //     std::cout << cov << std::endl;
+        // }
+        // std::cout << means << std::endl;
+        // std::cout << weights << std::endl;
+        // std::cout << "--------------------------------" << std::endl;
 
         for(auto& precision : precisions_cholesky_) {
+
             std::cout << precision << std::endl;
+            std::cout << precision.diagonal() << std::endl;
         }
 
     }
