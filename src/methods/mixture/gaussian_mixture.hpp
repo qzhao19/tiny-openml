@@ -56,24 +56,27 @@ private:
         return precision_chol;
     }
     
-
     /**
      * Compute the log-det of the cholesky decomposition of matrices
+     * Given matrix A, cholesky factorization of A is LL^T, 
+     * log_det = 2 * sum(log(L.diagonal)) 
+     * 
+     * @param covariances : array-like of [n_components, n_features, n_features]
+     *      Cholesky decompositions of the matrices.
+     * @param num_features : int 
+     *      Number of features.
+     * @return log_det_precision_chol, The determinant of the precision 
+     *      matrix for each component
     */
     const VecType compute_log_det_cholesky(
         const std::vector<MatType>& matrix_chol, 
         std::size_t num_features) const {
         
         VecType log_det_chol(num_components_);
-
         for (std::size_t i = 0; i < num_components_; ++i) {
-
             VecType diag = matrix_chol[i].diagonal();
-
             auto tmp = math::sum<MatType, VecType>(diag.array().log(), 0);
-
             log_det_chol(i) = tmp.value();
-
         }
 
         return log_det_chol;
@@ -81,7 +84,48 @@ private:
 
 
     /**
+     * Estimate the log Gaussian probability.
+     * The determinant of the precision matrix from the Cholesky decomposition
+     * corresponds to the negative half of the determinant of the full precision
+     * matrix.
+     * 
+    */
+    const MatType estimate_log_gaussian_prob(
+        const std::vector<MatType>& precision_chol,
+        const MatType& X, 
+        const MatType& means) const {
+        
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        std::size_t num_components = means.rows();
+
+        VecType log_det = compute_log_det_cholesky(precisions_cholesky_, num_features);
+
+        
+
+
+    }
+
+
+
+
+
+
+    /**
      * Estimate the full covariance matrices.
+     * @param X ndarray of shape [num_samples, num_features]
+     *      The input data array.
+     * @param resp, ndarray of shape [num_samples, num_components]
+     *      The responsibilities for each data sample in X.
+     * @param means ndarray of shape [num_components, num_feature]
+     *      The centers of the current components.
+     * @param nk, ndarray of shape [num_components]
+     *      The numbers of data samples in the current components.
+     * @param  reg_covar : float
+     *      The regularization added to the diagonal of the 
+     *      covariance matrices.
+     * @return covariances : array-like 
+     *      The covariance matrix of the current components.
+     * 
     */
     const std::vector<MatType> estimate_cov_full(const MatType& X, 
         const MatType& resp, 
@@ -117,11 +161,14 @@ private:
     }
 
     /**
+     * Estimate the Gaussian distribution parameters.
+     * @param X ndarray of shape (n_samples, n_feature)
+     *      The input data array
      * @param resp ndarray of shape (n_samples, n_components)
      *      the responsibilities for each data sample in X.
-     * @param nk ndarray of shape (n_components,) 
+     * @return nk ndarray of shape (n_components,) 
      *      The numbers of data samples in the current components.
-     * @param means : array-like of shape (n_components, n_features)
+     * @return means : array-like of shape (n_components, n_features)
     */
     std::tuple<std::vector<MatType>, MatType, VecType> 
     estimate_gaussian_parameters(const MatType& X, 
@@ -152,6 +199,9 @@ private:
         return std::make_tuple(covariances, means, nk);
     }
 
+    /**
+     * 
+    */
     void initialize_parameters(const MatType& X) {
         std::size_t num_samples = X.rows();
         MatType resp(num_samples, num_components_);
@@ -173,23 +223,7 @@ private:
 
         weights = weights * (static_cast<DataType>(1) / static_cast<DataType>(num_samples));
 
-
         precisions_cholesky_ = compute_precision_cholesky(covariances);
-
-
-        // for(auto& cov : covariances) {
-        //     std::cout << cov << std::endl;
-        // }
-        // std::cout << means << std::endl;
-        // std::cout << weights << std::endl;
-        // std::cout << "--------------------------------" << std::endl;
-
-        for(auto& precision : precisions_cholesky_) {
-
-            std::cout << precision << std::endl;
-            std::cout << precision.diagonal() << std::endl;
-        }
-
     }
 
 
@@ -219,7 +253,11 @@ public:
 
         initialize_parameters(X);
 
+        std::size_t num_features = X.cols();
 
+        VecType log_det_chol = compute_log_det_cholesky(precisions_cholesky_, num_features);
+
+        std::cout << log_det_chol << std::endl;
 
     }
 
