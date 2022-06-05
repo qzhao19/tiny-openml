@@ -100,7 +100,23 @@ private:
 
         VecType log_det = compute_log_det_cholesky(precisions_cholesky_, num_features);
 
-        
+        MatType log_prob(num_samples, num_components);
+
+        for (std::size_t i = 0; i < num_components; ++i) {
+            MatType prec_chol = precision_chol[i];
+            VecType mu = means.row(i).transpose();
+
+            MatType tmp1(num_samples, num_features);
+            tmp1 = X * prec_chol;
+
+            MatType tmp2(1, num_features);
+            tmp2 = mu * prec_chol;
+
+            
+
+
+        }
+
 
 
     }
@@ -223,7 +239,23 @@ private:
 
         weights = weights * (static_cast<DataType>(1) / static_cast<DataType>(num_samples));
 
+
         precisions_cholesky_ = compute_precision_cholesky(covariances);
+
+
+        // for(auto& cov : covariances) {
+        //     std::cout << cov << std::endl;
+        // }
+        // std::cout << means << std::endl;
+        // std::cout << weights << std::endl;
+        // std::cout << "--------------------------------" << std::endl;
+
+        // for(auto& precision : precisions_cholesky_) {
+
+        //     std::cout << precision << std::endl;
+        //     std::cout << precision.diagonal() << std::endl;
+        // }
+
     }
 
 
