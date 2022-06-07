@@ -70,8 +70,7 @@ private:
      *      matrix for each component
     */
     const VecType compute_log_det_cholesky(
-        const std::vector<MatType>& matrix_chol, 
-        std::size_t num_features) const {
+        const std::vector<MatType>& matrix_chol) const {
         
         VecType log_det_chol(num_components_);
         for (std::size_t i = 0; i < num_components_; ++i) {
@@ -81,63 +80,6 @@ private:
         }
 
         return log_det_chol;
-    }
-
-
-    
-
-
-
-
-    /**
-     * Estimate the log Gaussian probability.
-     * The determinant of the precision matrix from the Cholesky decomposition
-     * corresponds to the negative half of the determinant of the full precision
-     * matrix.
-     * 
-    */
-    const MatType estimate_log_prob(
-        const std::vector<MatType>& precision_chol,
-        const MatType& X, 
-        const MatType& means) const {
-        
-        std::size_t num_samples = X.rows(), num_features = X.cols();
-        std::size_t num_components = means.rows();
-
-        VecType log_det = compute_log_det_cholesky(precisions_cholesky_, num_features);
-
-        MatType log_prob(num_samples, num_components);
-
-        for (std::size_t i = 0; i < num_components; ++i) {
-            MatType prec_chol = precision_chol[i];
-            VecType mu = means.row(i).transpose();
-
-            MatType tmp1(num_samples, num_features);
-            tmp1 = X * prec_chol;
-
-            MatType tmp2(1, num_features);
-            tmp2 = mu.transpose() * prec_chol;
-
-            MatType tmp3(num_samples, num_features);
-            tmp3 = utils::repeat<MatType>(tmp2, num_samples, 0);
-
-            MatType y = tmp1.array() - tmp3.array();
-            MatType y_square = y.array().square();
-
-            log_prob.col(i) = math::sum<MatType, VecType>(y_square, 1);
-
-        }
-
-        DataType v = static_cast<DataType>(num_features) * 
-            static_cast<DataType>(std::log(2 * M_PI)) * 
-                static_cast<DataType>(-0.5);
-        MatType C(num_samples, num_components);
-        C.fill(v);
-
-        MatType tmp4(num_samples, num_components);
-        tmp4 = utils::repeat<MatType>(log_det.transpose(), num_samples, 0);
-
-        return log_prob * (-0.5) + C + tmp4;
     }
 
 
@@ -191,6 +133,95 @@ private:
         return covariances;
     }
 
+
+    /**
+     * Estimate the log Gaussian probability.
+     * The determinant of the precision matrix from the Cholesky decomposition
+     * corresponds to the negative half of the determinant of the full precision
+     * matrix.
+     * 
+    */
+    const MatType estimate_log_prob(
+        const std::vector<MatType>& precision_chol,
+        const MatType& X, 
+        const MatType& means) const {
+        
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        std::size_t num_components = means.rows();
+
+        VecType log_det = compute_log_det_cholesky(precisions_cholesky_);
+
+        MatType log_prob(num_samples, num_components);
+
+        for (std::size_t i = 0; i < num_components; ++i) {
+            MatType prec_chol = precision_chol[i];
+            VecType mu = means.row(i).transpose();
+
+            MatType tmp1(num_samples, num_features);
+            tmp1 = X * prec_chol;
+
+            MatType tmp2(1, num_features);
+            tmp2 = mu.transpose() * prec_chol;
+
+            MatType tmp3(num_samples, num_features);
+            tmp3 = utils::repeat<MatType>(tmp2, num_samples, 0);
+
+            MatType y = tmp1.array() - tmp3.array();
+            MatType y_square = y.array().square();
+
+            log_prob.col(i) = math::sum<MatType, VecType>(y_square, 1);
+
+        }
+
+        DataType v = static_cast<DataType>(num_features) * 
+            static_cast<DataType>(std::log(2 * M_PI)) * 
+                static_cast<DataType>(-0.5);
+        MatType C(num_samples, num_components);
+        C.fill(v);
+
+        MatType tmp4(num_samples, num_components);
+        tmp4 = utils::repeat<MatType>(log_det.transpose(), num_samples, 0);
+
+        return log_prob * (-0.5) + C + tmp4;
+    }
+
+
+    /**
+     * Estimate log prob and resp for each sample.
+     * Compute the log prob, weighted log prob per
+     * component and resp for each sample in X 
+    */
+    const std::tuple<MatType, VecType> 
+    estimate_log_prob_resp(
+        const MatType& X) const {
+        
+        std::size_t num_samples = X.rows();
+
+        MatType log_prob;
+        log_prob = estimate_log_prob(precisions_cholesky_, X, means_);
+
+        VecType log_weights;
+        log_weights = weights_.array().log();
+
+        MatType tmp1(num_samples, num_components_);
+        tmp1 = utils::repeat<MatType>(log_weights.transpose(), num_samples, 0);
+
+        MatType weighted_log_prob;
+        weighted_log_prob = log_prob + tmp1;
+
+        VecType log_prob_norm(num_samples);
+        log_prob_norm = math::logsumexp<MatType, VecType>(weighted_log_prob, 1);
+
+        MatType tmp2(num_samples, num_components_);
+        tmp2 = utils::repeat<MatType>(log_prob_norm, num_components_, 1);
+
+        MatType log_resp(num_samples, num_components_);
+        log_resp = weighted_log_prob - tmp2;
+
+        return std::make_tuple(log_resp, log_prob_norm);
+
+    }
+
     /**
      * Estimate the Gaussian distribution parameters.
      * @param X ndarray of shape (n_samples, n_feature)
@@ -231,7 +262,7 @@ private:
     }
 
     /**
-     * Initialize the model parameters of the derived class.
+     * Initialize the model parameters.
     */
     void initialize_parameters(const MatType& X) {
         std::size_t num_samples = X.rows();
@@ -253,29 +284,50 @@ private:
         
         means_ = means;
 
-        weights = weights * (static_cast<DataType>(1) / static_cast<DataType>(num_samples));
+        weights = weights * (static_cast<DataType>(1.0) / static_cast<DataType>(num_samples));
         weights_ = weights;
 
         precisions_cholesky_ = compute_precision_cholesky(covariances);
 
+    }
 
-        // for(auto& cov : covariances) {
-        //     std::cout << "cov" << std::endl;
-        //     std::cout << cov << std::endl;
-        // }
-        // std::cout << "means" << std::endl;
-        // std::cout << means << std::endl;
+    /**
+     * E step.
+     * @param X ndarray of shape [num_samples, num_features]
+     * @return log_prob_norm: numbers
+     *      The mean of log of prob of each samples
+     * @return log_resp: ndarray of shape [num_samples, num_components]
+     *      log of the post prob of the each samples in X
+    */
+    std::tuple<DataType, MatType> e_step(
+        const MatType& X) const {
+        
+        MatType log_resp;
+        VecType log_prob_norm;
+        std::tie(log_resp, log_prob_norm) = estimate_log_prob_resp(X);
 
-        // std::cout << "weights" << std::endl;
-        // std::cout << weights << std::endl;
-        // std::cout << "--------------------------------" << std::endl;
+        auto mean_log_prob;
+        mean_log_prob = math::mean<MatType, VecType>(log_prob_norm, 0);
 
-        // for(auto& precision : precisions_cholesky_) {
+        return std::make_tuple(mean_log_prob.value(), log_resp);
+    }
 
-        //     std::cout << "precision" << std::endl;
-        //     std::cout << precision << std::endl;
-        // }
 
+    /**
+     * M step.
+     * 
+    */
+
+    void m_step(const MatType& X, const MatType& log_resp) {
+
+        std::vector<MatType> covariances;
+        MatType means;
+        VecType weights;
+        std::tie(covariances, 
+            means, 
+            weights) = estimate_gaussian_parameters(X, resp, reg_covar_);
+
+        
     }
 
 
@@ -307,23 +359,41 @@ public:
 
         std::size_t num_features = X.cols();
 
-        VecType log_det_chol = compute_log_det_cholesky(precisions_cholesky_, num_features);
+        VecType log_det_chol = compute_log_det_cholesky(precisions_cholesky_);
 
         // std::cout << "log_det_chol" << std::endl;
         // std::cout << log_det_chol << std::endl;
 
         MatType log_prob = estimate_log_prob(precisions_cholesky_, X, means_);
 
-        std::cout << "log_prob" << std::endl;
-        std::cout << log_prob << std::endl;
+        // std::cout << "log_prob" << std::endl;
+        // std::cout << log_prob << std::endl;
+
+        MatType log_resp;
+        VecType log_prob_norm;
+        std::tie(log_resp, log_prob_norm) = estimate_log_prob_resp(X);
+
+        std::cout << "log_resp" << std::endl;
+        std::cout << log_resp << std::endl;
+
+        std::cout << "log_prob_norm" << std::endl;
+        std::cout << log_prob_norm << std::endl;
+
+        
+        // for(auto& cov : covariances) {
+        //     std::cout << "cov" << std::endl;
+        //     std::cout << cov << std::endl;
+        // }
+        // std::cout << "means" << std::endl;
+        // std::cout << means << std::endl;
+        // std::cout << "weights" << std::endl;
+        // std::cout << weights << std::endl;
+        // std::cout << "--------------------------------" << std::endl;
+        // for(auto& precision : precisions_cholesky_) {
+        //     std::cout << "precision" << std::endl;
+        //     std::cout << precision << std::endl;
+        // }
     }
-
-
-
-
-
-
-
 
 
 
