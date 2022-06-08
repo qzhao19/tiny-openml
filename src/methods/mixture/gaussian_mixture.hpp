@@ -319,6 +319,8 @@ private:
     */
 
     void m_step(const MatType& X, const MatType& log_resp) {
+        
+        MatType resp = log_resp.array().exp();
 
         std::vector<MatType> covariances;
         MatType means;
@@ -328,7 +330,12 @@ private:
             weights) = estimate_gaussian_parameters(X, resp, reg_covar_);
 
         
+
     }
+
+
+
+
 
 
 public:
@@ -394,9 +401,6 @@ public:
         //     std::cout << precision << std::endl;
         // }
     }
-
-
-
 
 
 };
