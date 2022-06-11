@@ -16,6 +16,7 @@ private:
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::size_t max_iter_;
+    std::size_t num_init_;
     std::size_t num_components_;
     std::string init_params_;
     std::string covariance_type_;
@@ -190,7 +191,8 @@ private:
 
 
     /**
-     * 
+     * Estimate the weighted log-probabilities, 
+     * log P(X|Z) + log_weights
     */
     const MatType estimate_weighted_log_prob(
         const MatType& X) const {
@@ -337,7 +339,6 @@ private:
      * M step.
      * 
     */
-
     void m_step(const MatType& X, const MatType& log_resp) {
         std::size_t num_samples = X.rows();
         MatType resp = log_resp.array().exp();
@@ -356,13 +357,48 @@ private:
         covariances_ = covariances;
 
         precisions_cholesky_ = compute_precision_cholesky(covariances);
+    }
+
+
+
+    /**
+     * Estimate model parameters using X
+    */
+    void fit_data(const MatType& X){
+
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        if (num_samples < num_components_) {
+            char buffer[200];
+            std::snprintf(buffer, 200, 
+                "Expected n_samples >= n_components, but got num_components = [%ld], num_samples = [%ld]", 
+                num_components_, num_samples);
+            std::string err_msg = static_cast<std::string>(buffer);
+            throw std::out_of_range(err_msg);
+        }
+
+        bool converged_ = false;
+        double max_lower_bound = ConstType<double>::min();
+        
+        for (std::size_t init = 0; i < num_init_; ++i) {
+
+            initialize_parameters(X);
+
+            double lower_bound = ConstType<double>::min();
+
+
+
+
+        }
+
 
     }
 
 
 
+
 public:
     GaussianMixture(): max_iter_(100), 
+        num_init_(1),
         num_components_(2), 
         init_params_("random"), 
         covariance_type_("full"), 
@@ -370,11 +406,13 @@ public:
         reg_covar_(1e-6) {};
 
     GaussianMixture(std::size_t max_iter,
+        std::size_t num_init,
         std::size_t num_components,
         std::string init_params,
         std::string covariance_type,
         double tol,
         double reg_covar): max_iter_(max_iter), 
+            num_init_(num_init),
             num_components_(num_components), 
             init_params_(init_params), 
             covariance_type_(covariance_type), 
@@ -400,7 +438,7 @@ public:
         VecType log_prob_norm;
         std::tie(log_resp, log_prob_norm) = estimate_log_prob_resp(X);
 
-        std::cout << math::mean<MatType, VecType>(log_prob_norm, 0) << std::endl;
+        // std::cout << math::mean<MatType, VecType>(log_prob_norm, 0) << std::endl;
 
         // std::cout << "log_prob" << std::endl;
         // std::cout << log_prob << std::endl;
@@ -411,6 +449,7 @@ public:
         // std::cout << "log_prob_norm" << std::endl;
         // std::cout << log_prob_norm << std::endl;
 
+        
         // for(auto& cov : covariances_) {
         //     std::cout << "cov" << std::endl;
         //     std::cout << cov << std::endl;
@@ -425,6 +464,15 @@ public:
         //     std::cout << precision << std::endl;
         // }
     }
+
+
+
+
+
+
+
+
+
 
 
 
