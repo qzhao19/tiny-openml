@@ -8,7 +8,7 @@ namespace utils {
 /**
  *find the maximum value in a std::map and return the corresponding std::pair
 */
-template <class Container>
+template <typename Container>
 auto max_element(Container const &x)
     -> typename Container::value_type {
     
@@ -19,6 +19,7 @@ auto max_element(Container const &x)
     };
     return *std::max_element(x.begin(), x.end(), compare);
 };
+
 
 /**
  * Stack arrays in sequence horizontally (column wise).
@@ -133,6 +134,7 @@ IdxType argmax(const MatType& x, int axis = 0) {
         // flayyen a 2d matrix into 1d verctor
         VecType flatten_vec;
         flatten_vec = flatten<MatType, VecType>(x);
+        
         // get the max index of flattened vector
         IdxType max_index{1};
         flatten_vec.maxCoeff(&max_index[0]);
@@ -249,6 +251,15 @@ IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
 };
 
 /**
+ * Element-wise minimum of array elements.
+*/
+template<typename MatType, 
+    typename DataType = typename MatType::value_type>
+MatType fmin(const MatType& x, const DataType y) {
+    return (x.array() >= y).select(y, x);
+}
+
+/**
  * convert a 2d-array of std vector vector into an eigen matrix
  * vector<vector<T>> --> Matrix 
  * 
@@ -345,7 +356,7 @@ std::tuple<VecType, VecType> unique(const VecType& x){
  * @return An array with index of elements 
 */
 template<typename VecType, typename IdxType>
-IdxType where(const VecType& x) {
+IdxType where(const auto& x) {
     std::vector<Eigen::Index> index_vec;
     for (std::size_t i = 0; i < x.size(); ++i) {
         if (x(i)) {
@@ -359,4 +370,4 @@ IdxType where(const VecType& x) {
 
 }
 }
-#endif /**/
+#endif /*CORE_UTILS_HPP*/
