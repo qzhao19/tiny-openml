@@ -137,18 +137,24 @@ VecType logsumexp(const MatType& x, int axis){
     }
 };
 
+
 /**
  * Cholesky decomposition
  * Return the Cholesky decomposition, L * L.H, of the square matrix a, 
  * where L is lower-triangular and .H is the conjugate transpose operator.
  * x must be Hermitian (symmetric if real-valued) and positive-definite.
+ * 
 */
 template<typename MatType>
 MatType cholesky(const MatType& x, bool lower = true) {
     Eigen::LLT<MatType> llt_decomposition(x);
 
     if (llt_decomposition.info() != Eigen::Success) {
-        throw std::runtime_error("Cholesky decomposition was not successful.");
+        std::ostringstream err_msg;
+        err_msg << "Cholesky decomposition was not successful: " 
+                << llt_decomposition.info() 
+                << ". Filling lower-triangular output with NaNs." << std::endl;
+        throw std::invalid_argument(err_msg.str());
     }
 
     if (lower) {
@@ -158,7 +164,6 @@ MatType cholesky(const MatType& x, bool lower = true) {
         return llt_decomposition.matrixU();
     }
 };
-
 
 
 }
