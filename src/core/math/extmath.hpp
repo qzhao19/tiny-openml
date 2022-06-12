@@ -9,14 +9,18 @@ namespace math {
 /**
  * compute the matrix sigmoid value
  *      s(z) = 1 / (1 + exp(-z))
+ * exp(fmin(X, 0)) / (1 + exp(-abs(X)))
  * @param x ndarray of shape [num_rows, num_cols]
  * @return sigmoid matrix 
 */
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
 MatType sigmoid(const MatType& x) {
-    return (static_cast<DataType>(1) / 
-        (static_cast<DataType>(1) + (-x.array()).exp()));
+    // return (static_cast<DataType>(1) / 
+    //     (static_cast<DataType>(1) + (-x.array()).exp()));
+    MatType new_x = utils::fmin<MatType>(x, static_cast<DataType>(0));
+    return new_x.array().exp() / 
+        (static_cast<DataType>(1) + (-x.array().abs()).exp());
 };
 
 
