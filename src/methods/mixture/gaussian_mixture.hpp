@@ -363,6 +363,9 @@ private:
 
     /**
      * Estimate model parameters using X
+     * std::ostringstream err;
+     * err << "Unable to open output file: " << szOutFilePath << std::endl;
+     * throw std::invalid_argument(err.str());
     */
     void fit_data(const MatType& X){
 
@@ -379,13 +382,36 @@ private:
         bool converged_ = false;
         double max_lower_bound = ConstType<double>::min();
         
-        for (std::size_t init = 0; i < num_init_; ++i) {
+        for (std::size_t init = 0; init < num_init_; ++init) {
 
             initialize_parameters(X);
 
             double lower_bound = ConstType<double>::min();
 
+            for (std::size_t iter = 0; iter < max_iter_; ++iter) {
 
+                double prev_lower_bound = lower_bound;
+
+                DataType mean_log_prob;
+                MatType log_resp;
+                std::tie(mean_log_prob, log_resp) = e_step(X);
+
+                m_step(X, log_resp);
+
+                lower_bound = static_cast<double>(mean_log_prob);
+
+                double diff = lower_bound - prev_lower_bound;
+
+                if (std::abs(diff) < tol_) {
+                    converged_ = true;
+                    break;
+                }
+
+            }
+
+            if ((lower_bound > max_lower_bound) || (max_lower_bound = ConstType<double>::min())) {
+                
+            }
 
 
         }
@@ -464,15 +490,6 @@ public:
         //     std::cout << precision << std::endl;
         // }
     }
-
-
-
-
-
-
-
-
-
 
 
 
