@@ -28,6 +28,7 @@ private:
     std::vector<MatType> covariances_;
     MatType means_;
     VecType weights_;
+    double lower_bound_;
 
     /**
      * Compute the Cholesky decomposition of the precisions
@@ -379,44 +380,60 @@ private:
             throw std::out_of_range(err_msg);
         }
 
-        bool converged_ = false;
+        bool converged = false;
         double max_lower_bound = ConstType<double>::min();
         
+
+        std::vector<MatType> best_precisions_cholesky;
+        std::vector<MatType> best_covariances;
+        MatType best_means;
+        VecType best_weights;
+
+
         for (std::size_t init = 0; init < num_init_; ++init) {
 
             initialize_parameters(X);
-
             double lower_bound = ConstType<double>::min();
-
             for (std::size_t iter = 0; iter < max_iter_; ++iter) {
-
                 double prev_lower_bound = lower_bound;
 
                 DataType mean_log_prob;
                 MatType log_resp;
                 std::tie(mean_log_prob, log_resp) = e_step(X);
-
                 m_step(X, log_resp);
 
                 lower_bound = static_cast<double>(mean_log_prob);
-
                 double diff = lower_bound - prev_lower_bound;
-
                 if (std::abs(diff) < tol_) {
-                    converged_ = true;
+                    converged = true;
                     break;
                 }
-
             }
 
-            if ((lower_bound > max_lower_bound) || (max_lower_bound = ConstType<double>::min())) {
+            if ((lower_bound > max_lower_bound) || 
+                (max_lower_bound == ConstType<double>::min())) {
                 
+                max_lower_bound = lower_bound;
+                best_precisions_cholesky = precisions_cholesky_;
+                best_covariances = covariances_;
+                best_means = means_;
+                best_weights = weights_;
             }
-
-
         }
 
+        if (!converged) {
+            std::cout << "Not converge, try different init parameters." << std::endl;
+        }
 
+        lower_bound_ = max_lower_bound;
+        precisions_cholesky_ = best_precisions_cholesky;
+        covariances_ = best_covariances;
+        means_ = best_means;
+        weights_ = best_weights;
+
+        DataType mean_log_prob;
+        MatType log_resp;
+        std::tie(mean_log_prob, log_resp) = e_step(X);
     }
 
 
@@ -475,7 +492,6 @@ public:
         // std::cout << "log_prob_norm" << std::endl;
         // std::cout << log_prob_norm << std::endl;
 
-        
         // for(auto& cov : covariances_) {
         //     std::cout << "cov" << std::endl;
         //     std::cout << cov << std::endl;
