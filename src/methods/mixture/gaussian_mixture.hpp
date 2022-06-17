@@ -45,7 +45,7 @@ private:
         std::size_t num_features = covariances[0].rows();
 
         std::vector<MatType> precision_chol;
-        for (std::size_t i = 0; i < num_components_; ++i) {
+        for (std::size_t i = 0; i < covariances.size(); ++i) {
             MatType cov_chol;
             cov_chol = math::cholesky<MatType>(covariances[i], true);
 
@@ -66,18 +66,18 @@ private:
      * Given matrix A, cholesky factorization of A is LL^T, 
      * log_det = 2 * sum(log(L.diagonal)) 
      * 
-     * @param covariances : array-like of [n_components, n_features, n_features]
+     * @param matrix_chol : array-like of [n_components, n_features, n_features]
      *      Cholesky decompositions of the matrices.
-     * @param num_features : int 
-     *      Number of features.
      * @return log_det_precision_chol, The determinant of the precision 
      *      matrix for each component
     */
     const VecType compute_log_det_cholesky(
         const std::vector<MatType>& matrix_chol) const {
         
-        VecType log_det_chol(num_components_);
-        for (std::size_t i = 0; i < num_components_; ++i) {
+        std::size_t num_chol = matrix_chol.size();
+
+        VecType log_det_chol(num_chol);
+        for (std::size_t i = 0; i < num_chol; ++i) {
             VecType diag = matrix_chol[i].diagonal();
             auto tmp = math::sum<MatType, VecType>(diag.array().log(), 0);
             log_det_chol(i) = tmp.value();
@@ -104,7 +104,7 @@ private:
      *      The covariance matrix of the current components.
      * 
     */
-    const std::vector<MatType> estimate_cov_full(const MatType& X, 
+    const std::vector<MatType> estimate_gaussian_covariances_full(const MatType& X, 
         const MatType& resp, 
         const MatType& means, 
         const VecType& nk, 
@@ -113,6 +113,9 @@ private:
         std::size_t num_samples = X.rows();
         std::size_t num_components = means.rows(), num_features = means.cols();
         std::vector<MatType> covariances;
+
+        VecType reg(num_features);
+        reg.fill(reg_covar);
 
         for (std::size_t k = 0; k < num_components; k++) {
             MatType diff(num_samples, num_features);
@@ -131,10 +134,58 @@ private:
 
             // compute covariance for each component
             MatType cov = resp_diff.array() / nk_tmp.array(); 
-            cov = cov.array() + reg_covar;
-
+            cov = cov + MatType(reg.asDiagonal());
             covariances.push_back(cov);
         }
+        return covariances;
+    }
+
+
+    /**
+     * Estimate the tied covariance matrix.
+     * @param X ndarray of shape [num_samples, num_features]
+     *      The input data array.
+     * @param resp, ndarray of shape [num_samples, num_components]
+     *      The responsibilities for each data sample in X.
+     * @param means ndarray of shape [num_components, num_feature]
+     *      The centers of the current components.
+     * @param nk, ndarray of shape [num_components]
+     *      The numbers of data samples in the current components.
+     * @param  reg_covar : float
+     *      The regularization added to the diagonal of the 
+     *      covariance matrices.
+     * @return covariances : array-like 
+     *      The covariance matrix of the current components.
+     * 
+    */
+    const std::vector<MatType> estimate_gaussian_covariances_tied(const MatType& X, 
+        const MatType& resp, 
+        const MatType& means, 
+        const VecType& nk, 
+        double reg_covar) const {
+        
+        std::size_t num_samples = X.rows();
+        std::size_t num_components = means.rows(), num_features = means.cols();
+        std::vector<MatType> covariances;
+
+        VecType reg(num_features);
+        reg.fill(reg_covar);
+
+        MatType avg_X = X.transpose() * X;
+        // MatType avg_means = 
+
+        MatType nk_tmp(num_components, num_features);
+        nk_tmp = utils::repeat<MatType>(nk, num_features, 1);
+        auto sum_nk = math::sum<MatType, VecType>(nk, 0);
+
+        MatType avg_means = (nk_tmp.array() * means.array()).matrix().transpose() * means;
+
+        MatType cov = avg_X - avg_means;
+        cov = cov.array() / sum_nk.value();
+        cov = cov + MatType(reg.asDiagonal());
+
+        covariances.push_back(cov);
+
         return covariances;
     }
 
@@ -159,7 +210,13 @@ private:
         MatType log_prob(num_samples, num_components);
 
         for (std::size_t i = 0; i < num_components; ++i) {
-            MatType prec_chol = precision_chol[i];
+            MatType prec_chol;
+            if (covariance_type_ == "tied") {
+                prec_chol = precision_chol[0];
+            }
+            else {
+                prec_chol = precision_chol[i];
+            }
             VecType mu = means.row(i).transpose();
 
             MatType tmp1(num_samples, num_features);
@@ -175,7 +232,6 @@ private:
             MatType y_square = y.array().square();
 
             log_prob.col(i) = math::sum<MatType, VecType>(y_square, 1);
-
         }
 
         DataType v = static_cast<DataType>(num_features) * 
@@ -257,11 +313,11 @@ private:
     estimate_gaussian_parameters(const MatType& X, 
         const MatType& resp, 
         double reg_covar, 
-        std::string cov_type = "full") {
+        std::string covariance_type) {
         
         std::size_t num_features = X.cols();
         VecType eps(num_components_);
-        eps.fill(10.0 * ConstType<DataType>::min());
+        eps.fill(10.0 * ConstType<DataType>::epsilon());
 
         VecType nk(num_components_);
         nk = math::sum<MatType, VecType>(resp, 0);
@@ -275,9 +331,14 @@ private:
 
         std::vector<MatType> covariances;
 
-        if (cov_type == "full") {
-            covariances = estimate_cov_full(X, resp, means, nk, reg_covar);
+        if (covariance_type == "full") {
+            covariances = estimate_gaussian_covariances_full(X, resp, means, nk, reg_covar);
         }
+        else if (covariance_type == "tied") {
+            covariances = estimate_gaussian_covariances_tied(X, resp, means, nk, reg_covar);
+        }
+        
+        
         
         return std::make_tuple(covariances, means, nk);
     }
@@ -301,14 +362,13 @@ private:
         VecType weights;
         std::tie(covariances, 
             means, 
-            weights) = estimate_gaussian_parameters(X, resp, reg_covar_);
+            weights) = estimate_gaussian_parameters(X, resp, reg_covar_, covariance_type_);
         
         means_ = means;
         weights = weights / static_cast<DataType>(num_samples);
         weights_ = weights;
 
         covariances_ = covariances;
-
         precisions_cholesky_ = compute_precision_cholesky(covariances);
 
     }
@@ -351,15 +411,15 @@ private:
         VecType weights;
         std::tie(covariances, 
             means, 
-            weights) = estimate_gaussian_parameters(X, resp, reg_covar_);
+            weights) = estimate_gaussian_parameters(X, resp, reg_covar_, covariance_type_);
 
         means_ = means;
         weights = weights / static_cast<DataType>(num_samples);
         weights_ = weights;
 
         covariances_ = covariances;
-
         precisions_cholesky_ = compute_precision_cholesky(covariances_);
+
     }
 
 
@@ -430,7 +490,7 @@ private:
         means_ = best_means;
         weights_ = best_weights;
 
-        for (int i = 0; i < num_components_; ++i) {
+        for (int i = 0; i < precisions_cholesky_.size(); ++i) {
             MatType prec_chol = precisions_cholesky_[i];
             MatType prec(num_features, num_features);
             prec = prec_chol * prec_chol.transpose();
@@ -491,7 +551,6 @@ public:
         return pred_y;
     }
 
-
     /**
      * Evaluate the components' proba for each sample.
     */
@@ -502,6 +561,54 @@ public:
         std::tie(log_resp, log_prob_norm) = estimate_log_prob_resp(X);
 
         return log_resp.array().exp();
+    }
+
+
+    /**
+     * get the covariance of each mixture component.
+    */
+    const std::vector<MatType> get_covariance() const {
+        return covariances_;
+    }
+
+    /**
+     * get precision matrices for each component in the mixture
+     * 
+     * "A precision matrix is the inverse of a covariance matrix. 
+     * A covariance matrix is symmetric positive definite so the 
+     * mixture of Gaussian can be equivalently parameterized by 
+     * the precision matrices."  --sklearn
+    */
+    const std::vector<MatType> get_precisions() const {
+        return precisions_;
+    }
+
+    /**
+     * The cholesky decomposition of the precision matrices
+    */
+    const std::vector<MatType> get_precisions_cholesky() const {
+        return precisions_cholesky_;
+    }
+
+    /**
+     * get the mean (ndarray) of each mixture component
+    */
+    const MatType get_means() const {
+        return means_;
+    }
+
+    /**
+     * get the weights of each mixture components.
+    */
+    const VecType get_weights() const {
+        return weights_;
+    }
+
+    /**
+     * Lower bound value on the log-likelihood
+    */
+    const double get_lower_bound() const {
+        return lower_bound_;
     }
 
 };
