@@ -7,6 +7,26 @@ using namespace openml;
 namespace openml {
 namespace mixture_model {
 
+/**
+ * Gaussian Mixture Model 
+ * @param max_iter: int default 1
+ *    The number of EM iterations to perform.
+ * @param num_init: int default 1
+ *    The number of initializations to perform
+ * @param num_components: int default 1
+ *    The number of mixture components.
+ * @param init_params: string, default random
+ *    The method used to initialize the weights, the means and the precisions
+ *    'random' : resp are initialized randomly.
+ * @param covariance_type: string of {full, tied}, default 'full'
+ *    The type of covariance parameters to use
+ *    1. ‘full’: each component has its own general covariance matrix.
+ *    2. ‘tied’: all components share the same general covariance matrix.
+ * @param tol: double, default 0.003
+ *    The convergence threshold.
+ * @param reg_covar_: double, default 1e-6
+ *    Non-negative regularization added to the diagonal of covariance
+*/
 template<typename DataType>
 class GaussianMixture {
 private:
@@ -189,6 +209,47 @@ private:
         return covariances;
     }
 
+      /**
+     * Estimate the Gaussian distribution parameters.
+     * @param X ndarray of shape (n_samples, n_feature)
+     *      The input data array
+     * @param resp ndarray of shape (n_samples, n_components)
+     *      the responsibilities for each data sample in X.
+     * @return nk ndarray of shape (n_components,) 
+     *      The numbers of data samples in the current components.
+     * @return means : array-like of shape (n_components, n_features)
+    */
+    std::tuple<std::vector<MatType>, MatType, VecType> 
+    estimate_gaussian_parameters(const MatType& X, 
+        const MatType& resp, 
+        double reg_covar, 
+        std::string covariance_type) {
+        
+        std::size_t num_features = X.cols();
+        VecType eps(num_components_);
+        eps.fill(10.0 * ConstType<DataType>::epsilon());
+
+        VecType nk(num_components_);
+        nk = math::sum<MatType, VecType>(resp, 0);
+        nk = nk.array() + eps.array(); 
+
+        MatType nk_tmp;
+        nk_tmp = utils::repeat<MatType>(nk, num_features, 1);
+        
+        MatType means_tmp = resp.transpose() * X;
+        MatType means = means_tmp.array() / nk_tmp.array();
+
+        std::vector<MatType> covariances;
+
+        if (covariance_type == "full") {
+            covariances = estimate_gaussian_covariances_full(X, resp, means, nk, reg_covar);
+        }
+        else if (covariance_type == "tied") {
+            covariances = estimate_gaussian_covariances_tied(X, resp, means, nk, reg_covar);
+        }
+        
+        return std::make_tuple(covariances, means, nk);
+    }
 
     /**
      * Estimate the log Gaussian probability.
@@ -214,7 +275,7 @@ private:
             if (covariance_type_ == "tied") {
                 prec_chol = precision_chol[0];
             }
-            else {
+            else if (covariance_type_ == "full") {
                 prec_chol = precision_chol[i];
             }
             VecType mu = means.row(i).transpose();
@@ -300,50 +361,6 @@ private:
     }
 
     /**
-     * Estimate the Gaussian distribution parameters.
-     * @param X ndarray of shape (n_samples, n_feature)
-     *      The input data array
-     * @param resp ndarray of shape (n_samples, n_components)
-     *      the responsibilities for each data sample in X.
-     * @return nk ndarray of shape (n_components,) 
-     *      The numbers of data samples in the current components.
-     * @return means : array-like of shape (n_components, n_features)
-    */
-    std::tuple<std::vector<MatType>, MatType, VecType> 
-    estimate_gaussian_parameters(const MatType& X, 
-        const MatType& resp, 
-        double reg_covar, 
-        std::string covariance_type) {
-        
-        std::size_t num_features = X.cols();
-        VecType eps(num_components_);
-        eps.fill(10.0 * ConstType<DataType>::epsilon());
-
-        VecType nk(num_components_);
-        nk = math::sum<MatType, VecType>(resp, 0);
-        nk = nk.array() + eps.array(); 
-
-        MatType nk_tmp;
-        nk_tmp = utils::repeat<MatType>(nk, num_features, 1);
-        
-        MatType means_tmp = resp.transpose() * X;
-        MatType means = means_tmp.array() / nk_tmp.array();
-
-        std::vector<MatType> covariances;
-
-        if (covariance_type == "full") {
-            covariances = estimate_gaussian_covariances_full(X, resp, means, nk, reg_covar);
-        }
-        else if (covariance_type == "tied") {
-            covariances = estimate_gaussian_covariances_tied(X, resp, means, nk, reg_covar);
-        }
-        
-        
-        
-        return std::make_tuple(covariances, means, nk);
-    }
-
-    /**
      * Initialize the model parameters.
     */
     void initialize_parameters(const MatType& X) {
@@ -394,7 +411,6 @@ private:
         return std::make_tuple(mean_log_prob.value(), log_resp);
     }
 
-
     /**
      * M step.
      * @param X ndarray of shape [num_samples, num_features]
@@ -421,7 +437,6 @@ private:
         precisions_cholesky_ = compute_precision_cholesky(covariances_);
 
     }
-
 
     /**
      * Estimate model parameters using X
@@ -501,7 +516,6 @@ private:
         MatType log_resp;
         std::tie(mean_log_prob, log_resp) = e_step(X);
     }
-
 
 public:
     GaussianMixture(): max_iter_(100), 
