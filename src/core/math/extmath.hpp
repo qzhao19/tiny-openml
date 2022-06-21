@@ -9,7 +9,7 @@ namespace math {
 /**
  * compute the matrix sigmoid value
  *      s(z) = 1 / (1 + exp(-z))
- * opt: exp(fmin(X, 0)) / (1 + exp(-abs(X)))
+ * exp(fmin(X, 0)) / (1 + exp(-abs(X)))
  * @param x ndarray of shape [num_rows, num_cols]
  * @return sigmoid matrix 
 */
@@ -143,7 +143,8 @@ double entropy(const VecType& x,
         }
 
         double mean = sum / static_cast<double>(num_w_counts);
-        double p_i = 1.0 * static_cast<double>(x_count->second) * mean / static_cast<double>(num_rows);
+        double p_i = 1.0 * static_cast<double>(x_count->second) * 
+            mean / static_cast<double>(num_rows);
 
         ent += (-p_i) * std::log2(p_i);
     }
@@ -201,11 +202,34 @@ double gini(const VecType& x,
         }
 
         double mean = sum / static_cast<double>(num_w_counts);
-        double p_i = 1.0 * static_cast<double>(x_count->second) * mean / static_cast<double>(num_rows);
+        double p_i = 1.0 * static_cast<double>(x_count->second) * 
+            mean / static_cast<double>(num_rows);
 
         g += std::pow(p_i, 2.0);
     }
     return 1.0 - g;
+};
+
+/**
+ * Row-wise (squared) Euclidean norm of X
+ * Equivalent to np.sqrt((X * X).sum(axis=1))
+ * @param x ndarray of shape [rows, cols]
+ *    The input array data
+ * @param squared bool, default false
+ *    squared norms
+*/
+template<typename MatType, typename VecType>
+MatType row_norms(const MatType& x, bool squared = false) {
+
+    MatType x_squared = x.array() * x.array();
+    if (squared) {
+        return x_squared.rowwise().sum();
+    }
+    else {
+        MatType sum_x_squared;
+        sum_x_squared = x_squared.rowwise().sum();
+        return sum_x_squared.array().sqrt();
+    }
 };
 
 
