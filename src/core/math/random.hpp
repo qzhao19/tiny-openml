@@ -45,23 +45,23 @@ MatType randn(std::size_t num_rows, std::size_t num_cols) {
 
 template<typename IdxType>
 IdxType permutation(const std::size_t size) {
-
     std::random_device rand;
     std::seed_seq seed{rand()};
+
     //create random engines with the rng seed
     std::mt19937 generator(seed);
 
-    //create permutation Matrix with the size of the columns
+    //create permutation Matrix with the size
     Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> permutation(size);
     permutation.setIdentity();
-    // std::cout << permX.indices() << std::endl;
 
     std::shuffle(permutation.indices().data(), 
         permutation.indices().data() + 
             permutation.indices().size(), 
         generator);
+
     IdxType index;
-    index = permutation.indices().template cast<IdxType>();
+    index = permutation.indices().template cast<Eigen::Index>();
     return index;
 };
 
