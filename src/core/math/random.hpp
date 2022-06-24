@@ -24,6 +24,7 @@ MatType rand(std::size_t num_rows, std::size_t num_cols) {
     return rand_mat;
 };
 
+
 /**
  * with random floats sampled from a univariate 
  * Gaussian distribution of mean 0 and variance 1
@@ -43,6 +44,11 @@ MatType randn(std::size_t num_rows, std::size_t num_cols) {
     return rand_mat;
 };
 
+/**
+ * Randomly permute a sequence
+ * @param size int  
+ *    number of sequence to generate randomly permutation 
+*/
 template<typename IdxType>
 IdxType permutation(const std::size_t size) {
     std::random_device rand;
@@ -66,8 +72,8 @@ IdxType permutation(const std::size_t size) {
 };
 
 
+
 }
 }
 
 #endif /*CORE_MATH_RANDOM_HPP*/
-
