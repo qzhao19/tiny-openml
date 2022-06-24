@@ -7,6 +7,9 @@ using namespace openml;
 namespace openml {
 namespace cluster {
 
+/**
+ * K-Means clustering.
+*/
 template<typename DataType>
 class KMeans {
 private:
@@ -21,6 +24,43 @@ private:
     std::size_t max_iter_;
 
 
+    
+
+
+protected:
+    MatType init_centroids(const MatType& X, 
+        const VecType& x_squared_norms) {
+        
+        std::size_t num_samples = X.rows(), num_features = X.cols(); 
+
+        MatType centroids(num_clusters_, num_features);
+
+        if (init_ == "random") {
+            IdxType index = math::permutation<IdxType>(num_samples);
+            IdxType selected_index = index.topRows(num_clusters_);
+            centroids = X(selected_index, Eigen::all);
+        }   
+
+        return centroids;
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public:
     KMeans(): init_("random"), 
         num_init_(10),
         num_clusters_(8), 
