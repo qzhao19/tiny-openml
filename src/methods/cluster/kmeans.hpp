@@ -23,16 +23,11 @@ private:
     std::size_t num_clusters_;
     std::size_t max_iter_;
 
-
-    
-
-
 protected:
     MatType init_centroids(const MatType& X, 
-        const VecType& x_squared_norms) {
+        const VecType& x_squared_norms = VecType()) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
-
         MatType centroids(num_clusters_, num_features);
 
         if (init_ == "random") {
@@ -45,7 +40,9 @@ protected:
     }
     
 
-
+    void _kmeans_single_lloyd(const MatType& X) {
+        
+    }
 
 
 
@@ -73,6 +70,18 @@ public:
         num_init_(num_init),
         num_clusters_(num_clusters), 
         max_iter_(max_iter) {};
+
+
+    void test_func(const MatType& X) {
+        MatType centroids;
+
+        centroids = init_centroids(X);
+
+        std::cout << centroids << std::endl;
+    }
+
+
+
 
 
 };
