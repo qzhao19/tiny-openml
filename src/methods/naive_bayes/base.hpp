@@ -9,7 +9,9 @@ namespace naive_bayes {
 
 template<typename DataType>
 class BaseNB {
+
 private:
+
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
@@ -71,10 +73,10 @@ public:
         VecType log_prob_x;
         log_prob_x = math::logsumexp<MatType, VecType>(jll, 1);
         
-        MatType repeated_log_prob_x;
-        repeated_log_prob_x = utils::repeat<MatType>(log_prob_x, num_classes_, 1);
+        MatType tmp;
+        tmp = utils::repeat<MatType>(log_prob_x, num_classes_, 1);
 
-        return jll.array() - repeated_log_prob_x.array();
+        return jll.array() - tmp.array();
     }
 
     /**
