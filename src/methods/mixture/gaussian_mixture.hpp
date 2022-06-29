@@ -540,6 +540,7 @@ public:
             tol_(tol), 
             reg_covar_(reg_covar) {};
 
+    ~GaussianMixture() {};
 
     /**
      * fit dataset with EM algorithm
