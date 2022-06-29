@@ -55,6 +55,15 @@ private:
     };
     std::shared_ptr<Node> root_;
 
+    /***/
+    void delete_tree(std::shared_ptr<Node>& node) {
+        if (node != nullptr) {
+            delete_tree(node->left_child);
+            delete_tree(node->right_child);
+            std::move(node);
+        }
+    }
+
 protected:
     std::string criterion_;
     std::size_t min_samples_split_;
@@ -120,8 +129,10 @@ protected:
         double stdev_error = std::sqrt(
             static_cast<double>(y_centered.norm()) / static_cast<double>(num_samples)
         );
+
         return std::make_tuple(y_bar.value(), stdev_error); 
     }
+
 
     /** 
      * Build a decision tree by recursively finding the best split. 
@@ -227,7 +238,6 @@ public:
         min_impurity_decrease_(1.0e-7),
         min_stdev_(1e-3) {};
 
-
     DecisionTreeRegressor(std::string criterion, 
         std::size_t min_samples_split, 
         std::size_t min_samples_leaf,
@@ -240,6 +250,10 @@ public:
             max_depth_(max_depth), 
             min_impurity_decrease_(min_impurity_decrease),
             min_stdev_(min_stdev) {};
+    
+     ~DecisionTreeRegressor() {
+        delete_tree(root_);
+    }
     
     /**
      * fit datatset
