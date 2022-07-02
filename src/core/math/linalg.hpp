@@ -118,14 +118,14 @@ VecType logsumexp(const MatType& x, int axis){
     std::size_t num_rows = x.rows(), num_cols = x.cols();
     if (axis == 1) {
         VecType c = x.rowwise().maxCoeff();
-        MatType repeated_c = utils::repeat<MatType>(c, num_cols, 1);
-        VecType log_sum_exp = (x - repeated_c).array().exp().rowwise().sum().log();
+        MatType c_tmp = c.rowwise().replicate(num_cols);
+        VecType log_sum_exp = (x - c_tmp).array().exp().rowwise().sum().log();
         return log_sum_exp + c;
     }
     else if (axis == 0) {
         VecType c = x.colwise().maxCoeff();
-        MatType repeated_c = utils::repeat<MatType>(c.transpose(), num_rows, 0);
-        VecType log_sum_exp = (x - repeated_c).array().exp().colwise().sum().log();
+        MatType c_tmp = c.transpose().colwise().replicate(num_rows);
+        VecType log_sum_exp = (x - c_tmp).array().exp().colwise().sum().log();
         return log_sum_exp + c;
     }
     else if (axis == -1) {
@@ -136,7 +136,6 @@ VecType logsumexp(const MatType& x, int axis){
         return log_sum_exp;
     }
 };
-
 
 /**
  * Cholesky decomposition
@@ -154,7 +153,7 @@ MatType cholesky(const MatType& x, bool lower = true) {
         err_msg << "Cholesky decomposition was not successful: " 
                 << llt_decomposition.info() 
                 << ". Filling lower-triangular output with NaNs." << std::endl;
-        throw std::invalid_argument(err_msg.str());
+        throw std::runtime_error(err_msg.str());
     }
 
     if (lower) {
