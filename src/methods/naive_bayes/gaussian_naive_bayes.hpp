@@ -28,6 +28,7 @@ protected:
     MatType mean_;
     MatType var_;
 
+
     /**
      * compute log posterior prbabilty, P(c|x) = P(c)P(x|c)
      * log(P(c|x)) = log(P(C)) + log(P(x|c)) for all rows x of X, 
@@ -44,17 +45,19 @@ protected:
             
             auto val = var_.row(i) * 2.0 * M_PI;
             VecType sum_log_var = math::sum<MatType, VecType>(val.array().log().matrix()) * (-0.5);
-            MatType repeated_sum_log_var = utils::repeat<MatType>(sum_log_var, num_samples, 0);
+            MatType sum_log_var_tmp = utils::repeat<MatType>(sum_log_var, num_samples, 0);
             
             MatType X_minus_mean = X.array() - utils::repeat<MatType>(mean_.row(i), num_samples, 0).array();
             MatType X_minus_mean_squared = X_minus_mean.array().square();
-            MatType repeated_var = utils::repeat<MatType>(var_.row(i), num_samples, 0);
+            MatType var_tmp = utils::repeat<MatType>(var_.row(i), num_samples, 0);
 
-            MatType X_minus_mean_div_var = X_minus_mean_squared.array() / repeated_var.array();
-            VecType ll = repeated_sum_log_var.array() - 0.5 * math::sum<MatType, VecType>(X_minus_mean_div_var, 1).array();
+            MatType X_minus_mean_div_var = X_minus_mean_squared.array() / var_tmp.array();
+            VecType ll = sum_log_var_tmp.array() - 
+                0.5 * math::sum<MatType, VecType>(X_minus_mean_div_var, 1).array();
 
             jll.col(i) = ll.array() + lp.array();
         }
+
         return jll;
     };
     
