@@ -23,6 +23,10 @@ private:
     std::size_t num_clusters_;
     std::size_t max_iter_;
 
+
+
+
+
 protected:
     MatType init_centroids(const MatType& X, 
         const VecType& x_squared_norms = VecType()) const {
@@ -40,21 +44,7 @@ protected:
     }
     
 
-    void _kmeans_single_lloyd(const MatType& X) {
-        
-    }
-
-
-
-
-
-
-
-
-
-
-
-
+   
 
 
 public:
