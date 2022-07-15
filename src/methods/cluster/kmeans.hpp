@@ -25,8 +25,8 @@ private:
 
 
 protected:
-    MatType init_centroids(const MatType& X, 
-        const VecType& x_squared_norms = VecType()) const {
+    MatType init_centroid(const MatType& X, 
+        const VecType& x_squared_norms) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
         MatType centroids(num_clusters_, num_features);
@@ -36,16 +36,47 @@ protected:
             IdxType selected_index = index.topRows(num_clusters_);
             centroids = X(selected_index, Eigen::all);
         }   
+
         return centroids;
     }
     
 
-    std::vector<MatType> lloyd_updates(const MatType& X, const MatType& centroids) {
+    /**
+     * 
+    */
+    std::vector<MatType> lloyd_updates(const MatType& X, 
+        const VecType& x_squared_norms) const {
 
         bool converged = false;
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
 
-        
+        MatType centroid;
+        centroid = init_centroid(X, x_squared_norms);
+
+        bool converged = false;
+
+        // std::vector<MatType> clusters;
+
+        for (std::size_t iter = 0; i < max_iter_; ++iter) {
+
+            MatType cluster;
+            for (std::size_t i = 0; i < num_samples; ++i) {
+                double min_dist = ConstType<double>::max();
+                std::size_t index = 0;
+                // compute the min distance between sample and centroid
+
+                for (std::size_t j = 0; j < num_clusters_; ++j) {
+                    double dist = math::norm2<MatType>(X.row(i) - centroid.row(j));
+
+                    if (dist < min_dist) {
+                        
+                    }
+
+                }
+
+            }
+
+        }
 
     }
 
@@ -64,9 +95,12 @@ public:
         num_clusters_(num_clusters), 
         max_iter_(max_iter) {};
 
+
     void test_func(const MatType& X) {
         MatType centroids;
+
         centroids = init_centroids(X);
+
         std::cout << centroids << std::endl;
     }
 
