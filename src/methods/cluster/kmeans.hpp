@@ -44,7 +44,7 @@ protected:
     /**
      * 
     */
-    std::vector<MatType> lloyd_updates(const MatType& X, 
+    std::vector<MatType> kmeans_single_lloyd(const MatType& X, 
         const VecType& x_squared_norms) const {
 
         bool converged = false;
@@ -103,10 +103,6 @@ public:
 
         std::cout << centroids << std::endl;
     }
-
-
-
-
 
 };
 
