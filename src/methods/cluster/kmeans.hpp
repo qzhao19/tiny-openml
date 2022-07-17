@@ -69,7 +69,8 @@ protected:
                     double dist = math::norm2<MatType>(X.row(i) - centroid.row(j));
 
                     if (dist < min_dist) {
-                        
+                        index = i;
+                        min_dist = dist;
                     }
 
                 }
@@ -103,6 +104,10 @@ public:
 
         std::cout << centroids << std::endl;
     }
+
+
+
+
 
 };
 
