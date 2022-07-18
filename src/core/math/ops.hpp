@@ -260,8 +260,20 @@ AnyType sign(const AnyType& x) {
     return x.array().sign();
 };
 
+/**
+ * Matrix norm
+*/
+template<typename MatType, typename VecType>
+VecType norm2(const MatType& x, int axis = 0) {
+    if (axis == 0) {
+        return x.colwise().norm();
+    }
+    else if (axis == 1) {
+        return x.rowwise().norm();
+    }
+};
 
 }
 }
 
-#endif /*CORE_MATH_OPS_HPP*/
+#endif /*CORE_MATH_UNARY_OPS_HPP*/
