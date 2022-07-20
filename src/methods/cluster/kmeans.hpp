@@ -58,24 +58,25 @@ protected:
         // std::vector<MatType> clusters;
 
         for (std::size_t iter = 0; i < max_iter_; ++iter) {
-
-            MatType cluster;
+            // define the cluster
+            std::map<std::size_t, std::vector<MatType>> cluster;
             for (std::size_t i = 0; i < num_samples; ++i) {
                 double min_dist = ConstType<double>::max();
-                std::size_t index = 0;
+                std::size_t min_dist_index = 0;
                 // compute the min distance between sample and centroid
-
                 for (std::size_t j = 0; j < num_clusters_; ++j) {
-                    double dist = math::norm2<MatType>(X.row(i) - centroid.row(j));
-
-                    if (dist < min_dist) {
-                        index = i;
+                    double dist = math::norm2<MatType>(X.row(i) - centroid.row(j), -1);
+                    if (dist < min_dist_index) {
+                        min_dist_index = j;
                         min_dist = dist;
                     }
-
                 }
-
+                cluster[min_dist_index].push_back(X.row(i));
             }
+
+            MatType prev_centroid;
+
+            
 
         }
 
