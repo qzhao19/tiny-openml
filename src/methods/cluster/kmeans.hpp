@@ -29,28 +29,28 @@ protected:
         const VecType& x_squared_norms) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
-        MatType centroids(num_clusters_, num_features);
+        MatType centroid(num_clusters_, num_features);
 
         if (init_ == "random") {
             IdxType index = math::permutation<IdxType>(num_samples);
             IdxType selected_index = index.topRows(num_clusters_);
-            centroids = X(selected_index, Eigen::all);
+            centroid = X(selected_index, Eigen::all);
         }   
 
-        return centroids;
+        return centroid;
     }
     
 
     /**
      * 
     */
-    std::vector<MatType> kmeans_single_lloyd(const MatType& X, 
+    MatType kmeans_single_lloyd(const MatType& X, 
         const VecType& x_squared_norms) const {
 
         bool converged = false;
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
 
-        MatType centroid;
+        MatType centroid(num_clusters_, num_features);
         centroid = init_centroid(X, x_squared_norms);
 
         bool converged = false;
@@ -60,13 +60,16 @@ protected:
         for (std::size_t iter = 0; i < max_iter_; ++iter) {
             // define the cluster
             std::map<std::size_t, std::vector<MatType>> cluster;
+            
             for (std::size_t i = 0; i < num_samples; ++i) {
-                double min_dist = ConstType<double>::max();
                 std::size_t min_dist_index = 0;
+                double min_dist = ConstType<double>::max();
                 // compute the min distance between sample and centroid
                 for (std::size_t j = 0; j < num_clusters_; ++j) {
-                    double dist = math::norm2<MatType>(X.row(i) - centroid.row(j), -1);
-                    if (dist < min_dist_index) {
+                    MatType tmp;
+                    tmp = X.row(i) - centroid.row(j);
+                    double dist = static_cast<double>(tmp.norm());
+                    if (dist < min_dist) {
                         min_dist_index = j;
                         min_dist = dist;
                     }
@@ -75,9 +78,24 @@ protected:
             }
 
             MatType prev_centroid;
+            prev_centroid = centroid;
 
-            
+            for (auto& c : cluster) {
+                std::size_t num_samples_cluster = c.second.size();
+                MatType sample(1, num_features);
+                sample.setZero();
+                for (std::size_t i = 0; i < num_samples_cluster; ++i) {
+                    sample += c.second[i];
+                }
+                MatType mean_sample;
+                mean_sample = sample.array() / static_cast<DataType>(num_samples_cluster);
+                centroid.row(c.first) = mean_sample;
+            }
 
+            // MatType diff;
+            if (!prev_centroid.isApprox(centroid)) {
+                break;
+            }
         }
 
     }
