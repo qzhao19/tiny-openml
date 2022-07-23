@@ -45,21 +45,21 @@ protected:
      * 
     */
     MatType kmeans_single_lloyd(const MatType& X, 
-        const VecType& x_squared_norms) const {
+        const MatType& centroids) const {
 
         bool converged = false;
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
 
-        MatType centroid(num_clusters_, num_features);
-        centroid = init_centroid(X, x_squared_norms);
+        MatType centroid = centroids;
+        // MatType centroid(num_clusters_, num_features);
+        // centroid = init_centroid(X, x_squared_norms);
 
         bool converged = false;
 
         // std::vector<MatType> clusters;
-
         for (std::size_t iter = 0; i < max_iter_; ++iter) {
             // define the cluster
-            std::map<std::size_t, std::vector<MatType>> cluster;
+            std::map<std::size_t, std::vector<std::size_t>> cluster;
             
             for (std::size_t i = 0; i < num_samples; ++i) {
                 std::size_t min_dist_index = 0;
@@ -74,7 +74,7 @@ protected:
                         min_dist = dist;
                     }
                 }
-                cluster[min_dist_index].push_back(X.row(i));
+                cluster[min_dist_index].push_back(i);
             }
 
             MatType prev_centroid;
@@ -97,7 +97,7 @@ protected:
                 break;
             }
         }
-
+        return centroid;
     }
 
 
@@ -123,10 +123,6 @@ public:
 
         std::cout << centroids << std::endl;
     }
-
-
-
-
 
 };
 
