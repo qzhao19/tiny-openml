@@ -42,22 +42,16 @@ protected:
     
 
     /**
-     * 
+     * k-means lloyd
     */
-    MatType kmeans_single_lloyd(const MatType& X, 
-        const MatType& centroids) const {
+    MatType kmeans_lloyd(const MatType& X, 
+        const MatType& centroid) const {
 
         bool converged = false;
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
+        MatType new_centroid(num_clusters_, num_features);
 
-        MatType centroid = centroids;
-        // MatType centroid(num_clusters_, num_features);
-        // centroid = init_centroid(X, x_squared_norms);
-
-        bool converged = false;
-
-        // std::vector<MatType> clusters;
-        for (std::size_t iter = 0; i < max_iter_; ++iter) {
+        for (std::size_t iter = 0; iter < max_iter_; ++iter) {
             // define the cluster
             std::map<std::size_t, std::vector<std::size_t>> cluster;
             
@@ -77,27 +71,26 @@ protected:
                 cluster[min_dist_index].push_back(i);
             }
 
-            MatType prev_centroid;
-            prev_centroid = centroid;
-
+            MatType old_centroid = centroid;
             for (auto& c : cluster) {
                 std::size_t num_samples_cluster = c.second.size();
                 MatType sample(1, num_features);
                 sample.setZero();
                 for (std::size_t i = 0; i < num_samples_cluster; ++i) {
-                    sample += c.second[i];
+                    sample = sample.array() + X(c.second[i], Eigen::all).array();
                 }
                 MatType mean_sample;
                 mean_sample = sample.array() / static_cast<DataType>(num_samples_cluster);
-                centroid.row(c.first) = mean_sample;
+                new_centroid.row(c.first) = mean_sample;
             }
 
             // MatType diff;
-            if (!prev_centroid.isApprox(centroid)) {
-                break;
+            if (!old_centroid.isApprox(new_centroid)) {
+                // std::cout << "iter = " << iter << std::endl;
+                break; 
             }
         }
-        return centroid;
+        return new_centroid;
     }
 
 
@@ -119,10 +112,19 @@ public:
     void test_func(const MatType& X) {
         MatType centroids;
 
-        centroids = init_centroids(X);
+        centroids = init_centroid(X, VecType());
 
+        std::cout << "centroids" << std::endl;
         std::cout << centroids << std::endl;
+
+
+        MatType new_centroids;
+        new_centroids = kmeans_lloyd(X, centroids);
+
+        std::cout << "new_centroids" << std::endl;
+        std::cout << new_centroids << std::endl;
     }
+
 
 };
 
