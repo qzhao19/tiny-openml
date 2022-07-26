@@ -59,6 +59,7 @@ protected:
                 std::size_t min_dist_index = 0;
                 double min_dist = ConstType<double>::max();
                 // compute the min distance between sample and centroid
+                
                 for (std::size_t j = 0; j < num_clusters_; ++j) {
                     MatType tmp;
                     tmp = X.row(i) - centroid.row(j);
@@ -67,9 +68,22 @@ protected:
                         min_dist_index = j;
                         min_dist = dist;
                     }
+                    
                 }
                 cluster[min_dist_index].push_back(i);
             }
+
+            for (auto& c : cluster) {
+                std::size_t num = c.second.size();
+                IdxType v(num);
+                for (std::size_t i = 0; i < num; ++i) {
+                    v(i) = c.second[i];
+                }
+                std::cout << "min_dist_index = " << c.first << " vect = " << v.transpose() << std::endl;
+            }
+            
+
+
 
             MatType old_centroid = centroid;
             for (auto& c : cluster) {
@@ -84,11 +98,16 @@ protected:
                 new_centroid.row(c.first) = mean_sample;
             }
 
+            // std::cout << "old_centroid = " << old_centroid << std::endl;
+            // std::cout << "new_centroid = " << new_centroid << std::endl;
+            // auto diff = (old_centroid - new_centroid).norm();
+            // std::cout << "iter = " << iter << ", matrix norm = " << diff << std::endl;
             // MatType diff;
-            if (!old_centroid.isApprox(new_centroid)) {
+            // if (!old_centroid.isApprox(new_centroid)) {
+
                 // std::cout << "iter = " << iter << std::endl;
-                break; 
-            }
+                // break; 
+            // }
         }
         return new_centroid;
     }
@@ -97,8 +116,8 @@ protected:
 public:
     KMeans(): init_("random"), 
         num_init_(10),
-        num_clusters_(8), 
-        max_iter_(300) {};
+        num_clusters_(3), 
+        max_iter_(5) {};
 
     KMeans(std::string init,
         std::size_t num_init,
@@ -124,6 +143,9 @@ public:
         std::cout << "new_centroids" << std::endl;
         std::cout << new_centroids << std::endl;
     }
+
+
+
 
 
 };
