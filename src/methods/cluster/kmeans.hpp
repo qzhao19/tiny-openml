@@ -38,10 +38,7 @@ protected:
             IdxType selected_index = index.topRows(num_clusters_);
             centroids = X(selected_index, Eigen::all);
         }   
-
         centroids_ = centroids;
-
-        std::cout << centroids << std::endl;
     }
     
     /**
@@ -56,12 +53,10 @@ protected:
         for (std::size_t iter = 0; iter < max_iter_; ++iter) {
             // define the cluster
             std::map<std::size_t, std::vector<std::size_t>> clusters;
-            
             for (std::size_t i = 0; i < num_samples; ++i) {
                 std::size_t min_dist_index = 0;
                 double min_dist = ConstType<double>::infinity();
                 // compute the min distance between sample and centroid
-                
                 for (std::size_t j = 0; j < num_clusters_; ++j) {
                     MatType tmp;
                     tmp = X.row(i).array() - centroids_.row(j).array();
@@ -73,6 +68,7 @@ protected:
                 }
                 clusters[min_dist_index].push_back(i);
             }
+            // move the centers 
             double eps = 0.0; 
             for (auto& c : clusters) {
                 MatType cluster = X(c.second, Eigen::all);
@@ -90,15 +86,40 @@ protected:
                 break;
             }
         }
-        // std::cout << centroids_ << std::endl;
     }
+
+    /**
+     * predict label
+    */
+    const VecType predict_label(const MatType& X) const{
+        std::size_t num_samples = X.rows();
+        VecType y_pred(num_samples);
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            std::size_t min_dist_index = 0;
+            double min_dist = ConstType<double>::infinity();
+
+            for (std::size_t j = 0; j < num_clusters_; ++j) {
+                MatType diff;
+                diff = X.row(i).array() - centroids_.row(j).array();
+                double dist = static_cast<double>(diff.norm());
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    min_dist_index = j;
+                }
+            }
+            y_pred(i) = min_dist_index;
+        }
+        return y_pred;
+    }
+
+
 
 
 public:
     KMeans(): init_("random"), 
         num_init_(10),
         num_clusters_(3), 
-        max_iter_(5), 
+        max_iter_(300), 
         tol_(1e-4) {};
 
     KMeans(std::string init,
@@ -113,20 +134,18 @@ public:
 
 
     void test_func(const MatType& X) {
-        MatType centroids;
-
         init_centroid(X, VecType());
-
-        // std::cout << "centroids" << std::endl;
-        // std::cout << centroids << std::endl;
-
 
         // MatType new_centroids;
         kmeans_lloyd(X);
 
-        // std::cout << "new_centroids" << std::endl;
-        // std::cout << new_centroids << std::endl;
+        VecType y_pred = predict_label(X);
+
+        std::cout << "y_pred" << std::endl;
+        std::cout << y_pred << std::endl;
     }
+
+
 
 
 
