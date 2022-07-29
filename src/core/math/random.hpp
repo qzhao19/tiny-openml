@@ -3,7 +3,7 @@
 #include "../../prereqs.hpp"
 
 namespace openml {
-namespace math {
+namespace random {
 
 /**
  * Create an array of the given shape and populate it with random 
