@@ -92,7 +92,6 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     return std::make_tuple(U_, Vt_);
 };
 
-
 /**
  * compute the entropy of a vector
  * Ent(D) = -sum(P_k * log2(P_k))
@@ -115,12 +114,10 @@ double entropy(const VecType& x,
     }  
 
     if (w.size() != 0 && w.rows() != num_rows) {
-        char buffer[200];
-        std::snprintf(buffer, 200, 
-            "Size of sample weights must be equal to x, but got (%ld)",
-            w.rows());
-        std::string err_msg = static_cast<std::string>(buffer);
-        throw std::invalid_argument(err_msg);
+        std::ostringstream err_msg;
+        err_msg << "Size of sample weights must be equal to x, "
+                << "but got unknown " << w.rows() << std::endl;
+        throw std::invalid_argument(err_msg.str());
     }
 
     double ent = 0.0;
@@ -151,7 +148,6 @@ double entropy(const VecType& x,
     return ent;
 };
 
-
 /**
  * compute gini index
  * Gini(p) = 1 - sum(p_i), i = 1 : k
@@ -165,23 +161,18 @@ template<typename VecType,
     typename DataType = typename VecType::value_type>
 double gini(const VecType& x, 
     const VecType& weight = VecType()) {
-
     VecType w = weight;
     std::size_t num_rows = x.rows();
     if (w.size() == 0) {
         w.resize(num_rows);
         w.setOnes();
     }  
-
     if (w.size() != 0 && w.rows() != num_rows) {
-        char buffer[200];
-        std::snprintf(buffer, 200, 
-            "Size of sample weights must be equal to x, but got (%ld)",
-            w.rows());
-        std::string err_msg = static_cast<std::string>(buffer);
-        throw std::invalid_argument(err_msg);
+        std::ostringstream err_msg;
+        err_msg << "Size of sample weights must be equal to x, "
+                << "but got unknown " << w.rows() << std::endl;
+        throw std::invalid_argument(err_msg.str());
     }
-
     double g = 0.0;
     std::map<DataType, std::size_t> x_count_map;
     std::map<DataType, std::vector<DataType>> w_count_map;
@@ -204,7 +195,6 @@ double gini(const VecType& x,
         double mean = sum / static_cast<double>(num_w_counts);
         double p_i = 1.0 * static_cast<double>(x_count->second) * 
             mean / static_cast<double>(num_rows);
-
         g += std::pow(p_i, 2.0);
     }
     return 1.0 - g;
