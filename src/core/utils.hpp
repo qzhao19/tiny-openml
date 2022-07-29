@@ -20,7 +20,6 @@ auto max_element(Container const &x)
     return *std::max_element(x.begin(), x.end(), compare);
 };
 
-
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
@@ -242,11 +241,9 @@ IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
         return index;
     }
     else {
-        char buffer[200];
-        std::snprintf(buffer, 200, 
-            "Invalid given sort order (%s)", order.c_str());
-        std::string err_msg = static_cast<std::string>(buffer);
-        throw std::out_of_range(err_msg);
+        std::ostringstream err_msg;
+        err_msg << "Invalid given sort order " << order.c_str()) std::endl;
+        throw std::out_of_range(err_msg.str());
     }
 };
 
@@ -280,14 +277,12 @@ MatType vec2mat(std::vector<std::vector<DataType>> vec) {
 
     for (std::size_t i = 1; i < num_rows; i++) {
         if (num_cols != vec.at(i).size()) {
-            char buffer[200];
-            std::snprintf(buffer, 200, 
-                        "vec[%ld] size (%ld) does not match vec[0] size (%ld)",
-                        i, vec.at(i).size(), num_cols);
-            std::string err_mesg(buffer);
-            throw std::invalid_argument(err_mesg);
-        }
+            std::ostringstream err_msg;
+            err_msg << "vector[" << i << "] size = " << vec.at(i).size() 
+                    << "does not match vector[0] size " << num_cols << std::endl; 
+            throw std::invalid_argument(err_msg.str());
 
+        }
         retmat.row(i) = RowType::Map(&vec[i][0], num_cols);
     }
 
@@ -370,4 +365,4 @@ IdxType where(const auto& x) {
 
 }
 }
-#endif /*CORE_UTILS_HPP*/
+#endif /**/
