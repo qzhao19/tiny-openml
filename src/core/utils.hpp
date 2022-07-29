@@ -242,7 +242,7 @@ IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
     }
     else {
         std::ostringstream err_msg;
-        err_msg << "Invalid given sort order " << order.c_str()) std::endl;
+        err_msg << "Invalid given sort order " << order.c_str() << std::endl;
         throw std::out_of_range(err_msg.str());
     }
 };
@@ -365,4 +365,4 @@ IdxType where(const auto& x) {
 
 }
 }
-#endif /**/
+#endif /*CORE_UTILS_HPP*/
