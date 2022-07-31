@@ -367,7 +367,7 @@ private:
         std::size_t num_samples = X.rows();
         MatType resp(num_samples, num_components_);
         if (init_params_ == "random") {
-            resp = math::rand<MatType>(num_samples, num_components_);
+            resp = random::rand<MatType>(num_samples, num_components_);
 
             VecType sum_resp = math::sum<MatType, VecType>(resp, 1);
             MatType sum_resp_tmp = utils::repeat<MatType>(sum_resp, num_components_, 1);
@@ -562,8 +562,8 @@ public:
 
         auto argmax_index = utils::argmax<MatType, VecType, IdxType>(weighted_log_prob, 1);
 
-        VecType pred_y = argmax_index.template cast<DataType>();
-        return pred_y;
+        VecType y_pred = argmax_index.template cast<DataType>();
+        return y_pred;
     }
 
     /**
