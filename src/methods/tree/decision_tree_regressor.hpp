@@ -265,20 +265,18 @@ public:
         build_tree(X, y, root_, 0);
     }
 
-
     const VecType predict(const MatType& X) const { 
         std::size_t num_samples = X.rows(), num_features = X.cols();
-        VecType pred_y(num_samples);
-        // pred_y.setZero();
+        VecType y_pred(num_samples);
+        // y_pred.setZero();
         for (std::size_t i = 0; i < num_samples; ++i) {
             std::shared_ptr<Node> node = root_;
             auto row = X.row(i);
             auto p_i = predict_label(row.transpose(), node);
-            pred_y(i, 0) = p_i;
+            y_pred(i, 0) = p_i;
         }
-        return pred_y;
+        return y_pred;
     }
-
 
 };
 
