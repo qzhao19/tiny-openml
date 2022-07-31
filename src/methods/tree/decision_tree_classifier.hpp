@@ -77,8 +77,8 @@ protected:
     
     std::map<DataType, std::size_t> label_count_;
     std::size_t num_classes_;
-    
-    /***/
+
+
     const double compute_impurity(const VecType& y, 
         const VecType& left_y, 
         const VecType& right_y) const {
@@ -140,11 +140,6 @@ protected:
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
-        // std::map<DataType, std::size_t> label_count;
-        // for (std::size_t i = 0; i < y.rows(); i++) {
-        //     label_count[y(i)]++;
-        // }
-
         DataType predict_value;
         VecType num_samples_per_class;
         
@@ -170,7 +165,6 @@ protected:
         double best_impurity = ConstType<double>::min();
 
         std::tie(best_impurity, best_feature_index, best_feature_value) = this->best_split(X, y);
-
         if (best_feature_index == ConstType<std::size_t>::max()) {
             return ;
         }
@@ -213,17 +207,22 @@ protected:
 
     }
 
+    /**
+     * predict the label for each row data
+     * @param x VecType of the data, row of input dataset
+     * @param node TreeNode type, the tree 
+    */
     const VecType predict_label_prob(const VecType& x, 
-        std::shared_ptr<Node> node) const{
-        while (node->left_child != nullptr) {
-            if (x(node->feature_index, 0) <= node->feature_value) {
-                node = node->left_child;
+        std::shared_ptr<Node> cur_node) const{
+        while (cur_node->left_child != nullptr) {
+            if (x(cur_node->feature_index, 0) <= cur_node->feature_value) {
+                cur_node = cur_node->left_child;
             }
             else {
-                node = node->right_child;
+                cur_node = cur_node->right_child;
             }
         }
-        VecType prob = node->num_samples_per_class.array() / node->num_samples_per_class.array().sum();
+        VecType prob = cur_node->num_samples_per_class.array() / cur_node->num_samples_per_class.array().sum();
         return prob;
     }
 
@@ -235,17 +234,6 @@ public:
         min_samples_leaf_(0),
         max_depth_(4), 
         min_impurity_decrease_(1.0e-7) {};
-
-    explicit DecisionTreeClassifier(std::string criterion, 
-        std::size_t min_samples_split = 0, 
-        std::size_t min_samples_leaf = 2,
-        std::size_t max_depth = 4,
-        double min_impurity_decrease = 1.0-7): DecisionTree<DataType>(), 
-            criterion_(criterion), 
-            min_samples_split_(min_samples_split), 
-            min_samples_leaf_(min_samples_leaf),
-            max_depth_(max_depth), 
-            min_impurity_decrease_(min_impurity_decrease) {};
 
     DecisionTreeClassifier(std::string criterion,
         std::size_t min_samples_split, 
@@ -262,7 +250,9 @@ public:
         delete_tree(root_);
     }
 
-
+    /**
+     * fit datatset
+    */
      void fit(const MatType& X, 
         const VecType& y) {
         
@@ -301,15 +291,15 @@ public:
     const VecType predict(const MatType& X) const { 
         std::size_t num_samples = X.rows();
         MatType log_prob = predict_prob(X);
-        auto pred_y_index = utils::argmax<MatType, VecType, IdxType>(log_prob, 1);
-        VecType pred_y_value(num_samples);
+        auto y_pred_index = utils::argmax<MatType, VecType, IdxType>(log_prob, 1);
+        VecType y_pred_value(num_samples);
         
         std::size_t i = 0;
-        for (auto& index : pred_y_index) {
-            pred_y_value(i) = static_cast<DataType>(index);
+        for (auto& index : y_pred_index) {
+            y_pred_value(i) = static_cast<DataType>(index);
             i++;
         }
-        return pred_y_value;
+        return y_pred_value;
     }
 
 };
