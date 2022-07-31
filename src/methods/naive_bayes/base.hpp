@@ -105,16 +105,16 @@ public:
         jll = this->joint_log_likelihood(X);
 
         IdxType jll_max_idx = utils::argmax<MatType, VecType, IdxType>(jll, 1);
-        VecType pred_y(num_samples);
+        VecType y_pred(num_samples);
 
-        std::vector<DataType> pred_y_;
+        std::vector<DataType> y_pred_;
         for (std::size_t i = 0; i < num_samples; i++) {
             std::size_t idx = jll_max_idx(i);
-            pred_y_.push_back(classes_(idx, 0));
+            y_pred_.push_back(classes_(idx, 0));
         }
 
-        pred_y = utils::vec2mat<VecType>(pred_y_);
-        return pred_y;
+        y_pred = utils::vec2mat<VecType>(y_pred_);
+        return y_pred;
     }
 
     /**
