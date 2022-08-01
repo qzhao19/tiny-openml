@@ -260,6 +260,7 @@ AnyType sign(const AnyType& x) {
     return x.array().sign();
 };
 
+
 /**
  * Matrix norm
 */
@@ -272,6 +273,44 @@ VecType norm2(const MatType& x, int axis = 0) {
         return x.rowwise().norm();
     }
 };
+
+
+/**
+ * Return the cumulative sum of the elements along a given axis.
+ * @param x ndarray of input data
+ * @param axis int optional, Axis or axes along which the 
+ *      cumulative sum of are computed.
+*/
+template<typename MatType, typename VecType>
+MatType cumsum(const MatType& x, int axis = 0) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    MatType cum_sum(num_rows, num_cols);
+    if (axis == 0) {
+        for(std::size_t j = 0; j < num_cols; ++j) {
+            VecType col_sum(num_rows);
+            VecType col = x.col(j);
+            std::partial_sum(col.begin(), col.end(), col_sum.begin());
+            cum_sum.col(j) = col_sum;
+        }
+    }
+    else if (axis == 1) {
+        for(std::size_t i = 0; i < num_rows; ++i) {
+            VecType row_sum(num_cols);
+            VecType row = x.row(i);
+            std::partial_sum(row.begin(), row.end(), row_sum.begin());
+            cum_sum.row(i) = row_sum;
+        }
+    }
+    else if (axis == -1) {
+        MatType trans_x = x.transpose();
+        VecType flatten_vec(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+        VecType sum(num_rows * num_cols);
+        std::partial_sum(flatten_vec.begin(), flatten_vec.end(), sum.begin());
+        return sum;
+    }
+    return cum_sum;
+}
+
 
 }
 }
