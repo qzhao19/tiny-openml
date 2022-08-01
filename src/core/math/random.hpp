@@ -11,10 +11,13 @@ namespace random {
 */
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
-MatType rand(std::size_t num_rows, std::size_t num_cols) {
+MatType rand(std::size_t num_rows, std::size_t num_cols, 
+    DataType low = 0.0, 
+    DataType high = 1.0) {
+    
     std::random_device rand;
     std::mt19937 generator(rand());  //here set the seed
-    std::uniform_real_distribution<DataType> dist{0.0, 1.0};
+    std::uniform_real_distribution<DataType> dist{low, high};
 
     MatType rand_mat = MatType::NullaryExpr(
         num_rows, num_cols, [&](){
@@ -31,10 +34,13 @@ MatType rand(std::size_t num_rows, std::size_t num_cols) {
 */
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
-MatType randn(std::size_t num_rows, std::size_t num_cols) {
+MatType randn(std::size_t num_rows, std::size_t num_cols, 
+    DataType low = 0.0, 
+    DataType high = 1.0) {
+    
     std::random_device rand;
     std::mt19937 generator(rand());  //here set the seed
-    std::normal_distribution<DataType> dist{0.0, 1.0};
+    std::normal_distribution<DataType> dist{low, high};
 
     MatType rand_mat = MatType::NullaryExpr(
         num_rows, num_cols, [&](){
@@ -71,6 +77,30 @@ IdxType permutation(const std::size_t size) {
     return index;
 };
 
+/**
+ * Return random integers from low to high.
+ * Return random integers from the discrete uniform distribution
+*/
+template<typename DataType, 
+    typename MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>>
+MatType randint(std::size_t num_rows, 
+    std::size_t num_cols, 
+    DataType low = 0, 
+    DataType high = 1e+2) {
+    
+    std::random_device rand;     // only used once to initialise (seed) engine
+    std::seed_seq seed{rand()};
+
+    std::mt19937 generator(seed);    // random-number engine used (Mersenne-Twister in this case)
+    std::uniform_int_distribution<DataType> dist(low, high);
+
+    MatType rand_mat = MatType::NullaryExpr(
+        num_rows, num_cols, [&](){
+            return dist(generator);
+        }
+    );
+    return rand_mat;
+};
 
 
 }
