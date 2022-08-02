@@ -34,13 +34,48 @@ protected:
         MatType centroids(num_clusters_, num_features);
 
         if (init_ == "random") {
-            IdxType index = math::permutation<IdxType>(num_samples);
+            IdxType index = random::permutation<IdxType>(num_samples);
             IdxType selected_index = index.topRows(num_clusters_);
             centroids = X(selected_index, Eigen::all);
-        }   
+        } 
+        
+        else if (init_ == "kmeans++") {
+            auto center_index = random::randint<std::size_t>(1, 1, 0, num_samples - 1);
+
+            MatType centers(num_clusters_, num_features);
+            centers.row(0) = X.row(center_index.value());
+
+            // MatType m{{5.1, 3.5, 1.4, 0.2}};
+            // centers.row(0) = m;
+            // IdxType indices(num_clusters);
+            // indices(0) = center_index.value();
+
+            MatType diff = X - utils::repeat<MatType>(centers.row(0), num_samples, 0);
+            VecType squared_dist = math::norm2<MatType, VecType>(diff, 1);
+
+            std::cout << "centers" << std::endl;
+            std::cout << centers << std::endl;
+            std::cout << "squared_dist" << std::endl;
+            std::cout << squared_dist << std::endl;
+            std::cout << "cumsum" << std::endl;
+            std::cout << cumsum<MatType, VecType>(squared_dist, -1) << std::endl;
+
+            auto current_pot = sum<MatType, VecType>(squared_dist, -1);
+
+            for (std::size_t c = 1; c < num_clusters_; ++c) {
+
+                auto tmp = rondom::rand<MatType>(1, 1);
+
+                // map a random value of domaine interval [0, 1] to a random intervall [0, current_pot]
+                DataType rand_val = tmp.value() * current_pot.value();
+
+            }
+        }
+
         centroids_ = centroids;
     }
     
+
     /**
      * k-means lloyd
     */
@@ -134,7 +169,13 @@ public:
 
 
     void test_func(const MatType& X) {
+        MatType centroids;
+
         init_centroid(X, VecType());
+
+        // std::cout << "centroids" << std::endl;
+        // std::cout << centroids << std::endl;
+
 
         // MatType new_centroids;
         kmeans_lloyd(X);
