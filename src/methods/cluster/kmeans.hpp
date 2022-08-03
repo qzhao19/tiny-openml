@@ -63,7 +63,8 @@ private:
                 // cumulative the closest distances
                 VecType cum_closest_dist = math::cumsum<MatType, VecType>(closest_dist, -1);
 
-                // find the first index of the related value what is more than current random value
+                // find the first index of the related value 
+                // what is more than current random value
                 auto lower = std::lower_bound(
                     cum_closest_dist.begin(), cum_closest_dist.end(), rand_val
                 );
@@ -84,8 +85,9 @@ private:
                         dist_to_candidates(i, 0) = closest_dist(i, 0);
                     }
                 }
-                // Calculate the range values for all candidate prime roulette selection mappings 
-                // since minimum distance from each sample to the prime was updated in the previous step
+                // Calculate the range values for all candidate prime roulette 
+                // selection mappings since minimum distance from each sample 
+                // to the prime was updated in the previous step
                 DataType current_candidates_pot = dist_to_candidates.array().sum();
                 // choose which candidate is the best
                 if (current_candidates_pot < candidates_pot) {
@@ -100,8 +102,6 @@ private:
         }
         return centers;
     }
-
-
 
 protected:
     void init_centroid(const MatType& X, 
@@ -124,14 +124,12 @@ protected:
     
 
     /**
-     * k-means lloyd
+     * k-means lloyd method
     */
     void kmeans_lloyd(const MatType& X) {
 
         // bool converged = false;
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
-        // MatType new_centroid(num_clusters_, num_features);
-
         for (std::size_t iter = 0; iter < max_iter_; ++iter) {
             // define the cluster
             std::map<std::size_t, std::vector<std::size_t>> clusters;
@@ -194,11 +192,8 @@ protected:
         return y_pred;
     }
 
-
-
-
 public:
-    KMeans(): init_("random"), 
+    KMeans(): init_("kmeans++"), 
         num_init_(10),
         num_clusters_(3), 
         max_iter_(300), 
@@ -214,28 +209,25 @@ public:
             max_iter_(max_iter), 
             tol_(tol) {};
 
-
-    void test_func(const MatType& X) {
-        MatType centroids;
-
+    /**
+     * fit dataset to compute k-means clustering
+    */
+    void fit(const MatType& X) {
         init_centroid(X, VecType());
-
-        // std::cout << "centroids" << std::endl;
-        // std::cout << centroids << std::endl;
-
-
-        // MatType new_centroids;
         kmeans_lloyd(X);
-
-        VecType y_pred = predict_label(X);
-
-        std::cout << "y_pred" << std::endl;
-        std::cout << y_pred << std::endl;
     }
 
+    /**
+     * Predict the labels for the input dataset
+     * @param X  ndarray of shape [num_samples, num_features]
+     *    the input dataset
+    */
+    const VecType predict(const MatType& X) {
 
+        VecType y_pred = predict_label(X);
+        return y_pred;
 
-
+    }   
 
 };
 
