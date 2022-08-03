@@ -13,7 +13,13 @@ int main() {
     
     cluster::KMeans<double> kmeans;
 
-    kmeans.test_func(X);
+    kmeans.fit(X);
+
+    VecType y_pred = kmeans.predict(X);
+
+    std::cout << "y_pred" << std::endl;
+    std::cout << y_pred << std::endl;
+
 
     return 0;
 }
