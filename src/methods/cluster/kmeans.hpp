@@ -26,6 +26,83 @@ private:
     
     MatType centroids_;
 
+    /**
+     * kmeans++ initialization of clusters
+    */
+    const MatType kmeans_plusplus(const MatType& X) const {
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        // copy from sklean tried, no specific results 
+        // for other than mentioning in the conclusion
+        std::size_t num_local_trials = 2 + 
+            static_cast<std::size_t>(std::log(num_clusters_));
+        
+        // generate randomly first index of center
+        auto center_index = random::randint<std::size_t>(1, 1, 0, num_samples - 1);
+
+        MatType centers(num_clusters_, num_features);
+        centers.row(0) = X.row(center_index.value());
+
+        // compute the distance between all sample point and the first center point
+        MatType diff1 = X - utils::repeat<MatType>(centers.row(0), num_samples, 0);
+        VecType closest_dist = math::row_norms<MatType, VecType>(diff1, true);
+
+        // compute the sume of distance, this param allows map a random value of 
+        // domaine interval [0, 1] to a random intervall [0, current_pot]
+        auto tmp = math::sum<MatType, VecType>(closest_dist, -1);
+        DataType current_pot = tmp.value();
+        for (std::size_t c = 1; c < num_clusters_; ++c) {
+            // Choose center candidates by sampling
+            VecType rand_vec = random::rand<MatType>(num_local_trials, 1);
+            DataType candidates_pot = ConstType<DataType>::max();
+            std::size_t best_candidates;
+            VecType closest_dist_to_candidates;
+
+            for (std::size_t i = 0; i < num_local_trials; ++i) {
+                
+                DataType rand_val = rand_vec(i, 0) * current_pot;
+                // cumulative the closest distances
+                VecType cum_closest_dist = math::cumsum<MatType, VecType>(closest_dist, -1);
+
+                // find the first index of the related value what is more than current random value
+                auto lower = std::lower_bound(
+                    cum_closest_dist.begin(), cum_closest_dist.end(), rand_val
+                );
+                std::size_t candidate_index = static_cast<std::size_t>(
+                    std::distance(cum_closest_dist.begin(), lower)
+                );
+                // numerical imprecision can result in a candidate_id out of range
+                if (candidate_index > closest_dist.size() - 1) {
+                    candidate_index = closest_dist.size() - 1;
+                }
+                //  Compute distances to center candidates
+                MatType diff2 = X - utils::repeat<MatType>(X.row(candidate_index), num_samples, 0);
+                VecType dist_to_candidates = math::row_norms<MatType, VecType>(diff2, true);
+
+                // update closest distances squared and potential for each candidate
+                for (int i = 0; i < num_samples; ++i) {
+                    if (closest_dist(i, 0) < dist_to_candidates(i, 0)) {
+                        dist_to_candidates(i, 0) = closest_dist(i, 0);
+                    }
+                }
+                // Calculate the range values for all candidate prime roulette selection mappings 
+                // since minimum distance from each sample to the prime was updated in the previous step
+                DataType current_candidates_pot = dist_to_candidates.array().sum();
+                // choose which candidate is the best
+                if (current_candidates_pot < candidates_pot) {
+                    candidates_pot = current_candidates_pot;
+                    best_candidates = candidate_index;
+                    closest_dist_to_candidates = dist_to_candidates;
+                }
+            }
+            current_pot = candidates_pot;
+            closest_dist = closest_dist_to_candidates;
+            centers.row(c) = X.row(best_candidates);
+        }
+        return centers;
+    }
+
+
+
 protected:
     void init_centroid(const MatType& X, 
         const VecType& x_squared_norms) {
@@ -38,38 +115,8 @@ protected:
             IdxType selected_index = index.topRows(num_clusters_);
             centroids = X(selected_index, Eigen::all);
         } 
-        
         else if (init_ == "kmeans++") {
-            auto center_index = random::randint<std::size_t>(1, 1, 0, num_samples - 1);
-
-            MatType centers(num_clusters_, num_features);
-            centers.row(0) = X.row(center_index.value());
-
-            // MatType m{{5.1, 3.5, 1.4, 0.2}};
-            // centers.row(0) = m;
-            // IdxType indices(num_clusters);
-            // indices(0) = center_index.value();
-
-            MatType diff = X - utils::repeat<MatType>(centers.row(0), num_samples, 0);
-            VecType squared_dist = math::norm2<MatType, VecType>(diff, 1);
-
-            std::cout << "centers" << std::endl;
-            std::cout << centers << std::endl;
-            std::cout << "squared_dist" << std::endl;
-            std::cout << squared_dist << std::endl;
-            std::cout << "cumsum" << std::endl;
-            std::cout << cumsum<MatType, VecType>(squared_dist, -1) << std::endl;
-
-            auto current_pot = sum<MatType, VecType>(squared_dist, -1);
-
-            for (std::size_t c = 1; c < num_clusters_; ++c) {
-
-                auto tmp = rondom::rand<MatType>(1, 1);
-
-                // map a random value of domaine interval [0, 1] to a random intervall [0, current_pot]
-                DataType rand_val = tmp.value() * current_pot.value();
-
-            }
+            centroids = kmeans_plusplus(X);
         }
 
         centroids_ = centroids;
