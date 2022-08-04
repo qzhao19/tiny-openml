@@ -43,16 +43,15 @@ public:
         const VecType& y, 
         const VecType& W) const {
         
-        std::size_t num_samples = X.rows();
-        std::size_t num_features = X.cols();
+        std::size_t num_samples = X.rows(), num_features = X.cols();
 
-        double error;
+        double loss;
         double penalty_val;
 
         // np.sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
-        for (std::size_t i = 0; i < num_samples; i++) {
+        for (std::size_t i = 0; i < num_samples; ++i) {
             double x_w = static_cast<double>(X.row(i) * W);
-            error += (std::log(1.0 + std::exp(x_w)) - (y(i, 0) * x_w));
+            loss += ((y(i, 0) * x_w) - std::log(1.0 + std::exp(x_w)));
         }
 
         // regularization term
@@ -64,8 +63,8 @@ public:
             // penalty_val = penalty_val * lambda;
         }
         penalty_val = (penalty_val * lambda_) / (static_cast<double>(num_samples));
-        error = error / (static_cast<double>(num_samples));
-        return error + penalty_val;
+        loss = loss / (static_cast<double>(num_samples));
+        return loss + penalty_val;
     };
 
     /**
@@ -102,4 +101,4 @@ public:
 
 }
 }
-#endif /*CORE_LOSS_LOG_LOSS_HPP*/
+#endif /*CORE_LOSS_LOG_LOSS_HPP*
