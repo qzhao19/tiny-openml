@@ -44,27 +44,15 @@ public:
         const VecType& W) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
-
         double loss;
-        double penalty_val;
 
         // np.sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
         for (std::size_t i = 0; i < num_samples; ++i) {
             double x_w = static_cast<double>(X.row(i) * W);
-            loss += ((y(i, 0) * x_w) - std::log(1.0 + std::exp(x_w)));
+            loss += (static_cast<double>(y(i, 0)) * x_w - std::log(1.0 + std::exp(x_w)));
         }
-
-        // regularization term
-        if (penalty_ == "None") {
-            penalty_val = 0.0;
-        }
-        else if (penalty_ == "l2") {
-            penalty_val = static_cast<double>(W.transpose() * W);
-            // penalty_val = penalty_val * lambda;
-        }
-        penalty_val = (penalty_val * lambda_) / (static_cast<double>(num_samples));
         loss = loss / (static_cast<double>(num_samples));
-        return loss + penalty_val;
+        return loss;
     };
 
     /**
@@ -87,18 +75,11 @@ public:
         
         VecType grad(num_features);
         // grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
-        if (penalty_ == "None") {
-            grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples));
-        }
-        else if (penalty_ == "l2") {
-            grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples)) + 
-                2 * lambda_ * W;
-        }
-
+        grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples));
         return grad;
     };
 };
 
 }
 }
-#endif /*CORE_LOSS_LOG_LOSS_HPP*
+#endif /*CORE_LOSS_LOG_LOSS_HPP*/
