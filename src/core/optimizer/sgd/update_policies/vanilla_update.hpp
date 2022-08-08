@@ -12,16 +12,13 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    double alpha_;
-
 public:
-
-    VanillaUpdate(const double alpha): alpha_(alpha) {};
-
+    VanillaUpdate() {};
     ~VanillaUpdate() {}; 
 
-    void update(const VecType& W, const VecType& grad, VecType& updated_W) {
-        updated_W = W - alpha_ * grad;
+    const VecType update(double lr, const VecType& W, const VecType& grad) const {
+        VecType updated_W = W - grad * static_cast<DataType>(lr);
+        return updated_W;
     };
 
 };
