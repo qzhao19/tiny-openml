@@ -13,23 +13,10 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    double lambda_;
-    std::string penalty_;
-    
 public:
-    /**
-     * create the log loss constructor
-     * 
-     * @param lambda double, regularization strength; must be a positive float. 
-     * @param penalty string, specify the norm of the penalty {‘l2’, ‘none’}, default='None'
-     * 
-    */
-    LogLoss(const double lambda = 0.0, 
-        const std::string penalty = "None"): lambda_(lambda), 
-            penalty_(penalty) {};
-
+    LogLoss() {};
     ~LogLoss() {};
-
+    
     /**
      * evaluate the gradient of the logistic regression log-likelihood function
      * with the given parameters.
