@@ -16,7 +16,7 @@ private:
 public:
     LogLoss() {};
     ~LogLoss() {};
-    
+
     /**
      * evaluate the gradient of the logistic regression log-likelihood function
      * with the given parameters.
@@ -31,7 +31,7 @@ public:
         const VecType& W) const {
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
-        double loss;
+        double loss = 0.0;
 
         // np.sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
         for (std::size_t i = 0; i < num_samples; ++i) {
@@ -62,7 +62,7 @@ public:
         
         VecType grad(num_features);
         // grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
-        grad = (X.transpose() * (y_hat - y)) / (static_cast<double>(num_samples));
+        grad = (X.transpose() * (y_hat - y)).array() / (static_cast<DataType>(num_samples));
         return grad;
     };
 };
