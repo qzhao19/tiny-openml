@@ -20,35 +20,41 @@ public:
     /**
      * evaluate the gradient of the logistic regression log-likelihood function
      * with the given parameters.
-     *          L(w) = sum{y_i * Wt * X_i - log[1 + exp(Wt * X_i)]}
+     *       sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
      * 
      * @param X ndarray of shape (num_samples, num_features), the matrix of input data
      * @param y ndarray of shape (num_samples) 
      * @param W ndarray of shape (num_features, 1) coefficient of the features 
     */
-    double evaluate(const MatType& X, 
+    const double evaluate(const MatType& X, 
         const VecType& y, 
         const VecType& W) const {
         
-        std::size_t num_samples = X.rows(), num_features = X.cols();
-        double loss = 0.0;
+        std::size_t num_samples = X.rows();
 
-        // np.sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
-        for (std::size_t i = 0; i < num_samples; ++i) {
-            double x_w = static_cast<double>(X.row(i) * W);
-            loss += (static_cast<double>(y(i, 0)) * x_w - std::log(1.0 + std::exp(x_w)));
-        }
-        loss = loss / (static_cast<double>(num_samples));
+        VecType X_w(num_samples); 
+        VecType y_hat(num_samples); 
+        X_w = X * W;
+        y_hat = math::sigmoid<VecType>(X_w);
+
+        VecType tmp1 = static_cast<DataType>(-1) * y.array() * 
+            y_hat.array().log();
+        VecType tmp2 = (static_cast<DataType>(1) - y.array()) * 
+            (static_cast<DataType>(1) - y_hat.array()).log();
+        VecType tmp3 = tmp1 - tmp2;
+        double loss = static_cast<double>(tmp3.array().sum()) /
+            static_cast<double>(num_samples);
+
         return loss;
-    };
+    }
 
     /**
      * Evaluate the gradient of logistic regression log-likelihood function with the given 
      * parameters using the given batch size from the given point index
      * 
-     *      grad = (1 / m) * sum(sigmoid(x) - y) + (lambda / m) * W
+     *      dot(X.T, sigmoid(np.dot(X, W)) - y) / len(y)
     */
-    VecType gradient(const MatType& X, 
+    const VecType gradient(const MatType& X, 
         const VecType& y,
         const VecType& W) const{
         
@@ -61,8 +67,7 @@ public:
         y_hat = math::sigmoid<VecType>(X_w);
         
         VecType grad(num_features);
-        // grad = (X.transpose() * (y_hat - y) + lambda * W) / num_samples;
-        grad = (X.transpose() * (y_hat - y)).array() / (static_cast<DataType>(num_samples));
+        grad = (X.transpose() * (y_hat - y)) / static_cast<DataType>(num_samples);
         return grad;
     };
 };
