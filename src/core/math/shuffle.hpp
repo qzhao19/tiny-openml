@@ -3,7 +3,7 @@
 #include "../../prereqs.hpp"
 
 namespace openml {
-namespace math {
+namespace random {
 
 /**
  * Shuffle 2d matrices along a specific axis.
@@ -29,7 +29,7 @@ void shuffle_data(const MatType& X,
     index_permut.setIdentity();
 
     // generate random seed for shuffle 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::shuffle(index_permut.indices().data(), 
         index_permut.indices().data() + index_permut.indices().size(), 
         std::default_random_engine(seed)
@@ -43,7 +43,6 @@ void shuffle_data(const MatType& X,
         // permute rows
         shuffled_X = index_permut * X;
     } 
-
 };
 
 template<typename MatType, typename VecType>
