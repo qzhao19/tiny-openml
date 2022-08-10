@@ -11,7 +11,7 @@ class MomentumUpdate {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-
+    
     double mu_;
 
 public:
@@ -21,7 +21,9 @@ public:
     /**
      * SGD with Momentum optimization method
     */
-    const VecType update(double lr, const VecType& W, const VecType& grad) const{
+    const VecType update(const VecType& W, 
+        const VecType& grad, 
+        const double lr) const{
         std::size_t num_rows = W.rows();
         VecType V(num_rows);
         V.setZero();
