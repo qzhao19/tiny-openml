@@ -26,20 +26,20 @@ std::tuple<MatType, MatType, VecType, VecType> train_test_split(const MatType& X
     
     std::size_t num_samples = X.rows(), num_features = X.cols();
 
-    MatType X_ = X;
-    VecType y_ = y;
+    MatType new_X = X;
+    VecType new_y = y;
 
     if (shuffle) {
-        math::shuffle_data(X, y, X_, y_);
+        random::shuffle_data<MatType, VecType>(X, y, new_X, new_y);
     }
 
     int num_train_samples = num_samples * train_size;
     int num_test_samples = num_samples - num_train_samples;
 
-    MatType X_train = X_.topRows(num_train_samples);
-    MatType X_test = X_.bottomRows(num_test_samples);
-    VecType y_train = y_.topRows(num_train_samples);
-    VecType y_test = y_.bottomRows(num_test_samples);
+    MatType X_train = new_X.topRows(num_train_samples);
+    MatType X_test = new_X.bottomRows(num_test_samples);
+    VecType y_train = new_y.topRows(num_train_samples);
+    VecType y_test = new_y.bottomRows(num_test_samples);
 
     return std::make_tuple(X_train, X_test, y_train, y_test);
 };
@@ -83,12 +83,7 @@ std::tuple<std::vector<std::size_t>,
     return std::make_tuple(keep_rows, drop_rows);
 };
 
-
-
-
-
-
 } // namespace split
 } // namespace openml
 
-#endif
+#endif /*CORE_DATA_SPLIT_HPP*/
