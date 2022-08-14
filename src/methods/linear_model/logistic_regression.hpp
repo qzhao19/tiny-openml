@@ -7,6 +7,22 @@ using namespace openml;
 namespace openml{
 namespace linear_model {
 
+/**
+ * Logistic Regression classifier.
+ * 
+ * @param alpha  Learning rate when update weights
+ * @param lambda L2 regularization coefficient, small values specify stronger 
+ *               regularization.
+ * @param tol    Tolerance for stopping criteria.
+ * @param mu     momentum factor
+ * @param batch_size Number of samples that will be passed through the optimizer
+ *                   specifies if we apply sgd method
+ * @param max_iter Maximum number of iterations taken for the solvers to converge.
+ * @param solver Algorithm to use in the optimization problem default "sgd"
+ * @param penalty  penalty type {‘l1’, ‘l2’, ‘elasticnet’, ‘none’}, default=’l2’
+ * @param update_policy sgd weight update policies
+ * @param decay_policy weight decay type
+*/
 template<typename DataType>
 class LogisticRegression {
 private:
@@ -36,7 +52,7 @@ protected:
      * intercept term does not exist, the decision boundary no doubt 
      * pass through the origin point.
     */
-    void sgd_fit_data(const MatType& X, 
+    void fit_data(const MatType& X, 
         const VecType& y) {
         
         MatType X_new = X;
@@ -51,9 +67,14 @@ protected:
         VecType W(num_features);
         W.setRandom();
 
-        loss::LogLoss<DataType> log_loss(lambda_, penalty_);
+        loss::LogLoss<DataType> log_loss;
+        optimizer::StepDecay<DataType> lr_decay(alpha_);
+        if (decay_policy_ == "exponential") {
+            // xxx
+        }
         if (update_policy_ == "vanilla") {
-            optimizer::VanillaUpdate<DataType> weight_update(alpha_);
+            optimizer::VanillaUpdate<DataType> weight_update;
+            
             optimizer::SGD<DataType> sgd(X_new, y_new, 
                 max_iter_, 
                 batch_size_, 
@@ -61,19 +82,25 @@ protected:
                 tol_, 
                 shuffle_, 
                 verbose_);
-            sgd.optimize(log_loss, weight_update, W);   
+
+            if (penalty_ == "l2") {
+                // xxx
+            } else if (penalty_ == "None") {
+                sgd.optimize(W, log_loss, weight_update, lr_decay);  
+            }
+             
         }
-        else if (update_policy_ == "momentum") {
-            optimizer::MomentumUpdate<DataType> weight_update(alpha_, mu_);
-            optimizer::SGD<DataType> sgd(X_new, y_new,
-            max_iter_, 
-            batch_size_, 
-            alpha_, 
-            tol_, 
-            shuffle_, 
-            verbose_);
-            sgd.optimize(log_loss, weight_update, W);
-        }
+        // else if (update_policy_ == "momentum") {
+        //     optimizer::MomentumUpdate<DataType> weight_update(alpha_, mu_);
+        //     optimizer::SGD<DataType> sgd(X_new, y_new,
+        //     max_iter_, 
+        //     batch_size_, 
+        //     alpha_, 
+        //     tol_, 
+        //     shuffle_, 
+        //     verbose_);
+        //     sgd.optimize(log_loss, weight_update, W);
+        // }
         W_ = W;
     };
 
@@ -135,19 +162,6 @@ public:
      * Default constructor of logistic regression. it could custom optimizer
      * parameters. 
      * 
-     * @param alpha  Learning rate when update weights
-     * @param lambda L2 regularization coefficient, small values specify stronger 
-     *               regularization.
-     * @param tol    Tolerance for stopping criteria.
-     * @param mu     momentum factor
-     * @param batch_size Number of samples that will be passed through the optimizer
-     *                   specifies if we apply sgd method
-     * @param max_iter Maximum number of iterations taken for the solvers to converge.
-     * @param solver Algorithm to use in the optimization problem default "sgd"
-     * @param penalty  penalty type {‘l1’, ‘l2’, ‘elasticnet’, ‘none’}, default=’l2’
-     * @param update_policy sgd weight update policies
-     * @param decay_policy weight decay type
-     * 
     */
     LogisticRegression(const bool shuffle, 
         const bool verbose, 
@@ -200,7 +214,7 @@ public:
     */
     void fit(const MatType& X, 
         const VecType& y) {
-        sgd_fit_data(X, y);
+        fit_data(X, y);
     }
 
     /**
