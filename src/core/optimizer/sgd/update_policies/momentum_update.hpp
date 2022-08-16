@@ -11,7 +11,7 @@ class MomentumUpdate {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    
+
     double mu_;
 
 public:
@@ -27,7 +27,7 @@ public:
         std::size_t num_rows = W.rows();
         VecType V(num_rows);
         V.setZero();
-        V = mu_ * V + lr * grad;
+        V = mu_ * V + static_cast<DataType>(lr) * grad;
         VecType updated_W = W - V;
         return updated_W;
     };
