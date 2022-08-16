@@ -35,7 +35,7 @@ public:
         const VecType& y,
         const std::size_t max_iter = 2000, 
         const std::size_t batch_size = 16,
-        const double tol = 0.0001, 
+        const double tol = 0.001, 
         const bool shuffle = true, 
         const bool verbose = true): X_(X), y_(y), 
             max_iter_(max_iter), 
@@ -57,10 +57,13 @@ public:
         UpdatePolicyType& w_update,
         DecayPolicyType& lr_decay) {
         
-        double best_loss = 0.0;
-        VecType grad(num_features_);
-        
         bool is_converged = false;
+        double best_loss = 0.0;
+
+        // define a matirx to store gradient history and a valiable of average gradient
+        MatType grad_history(num_features_, num_batch_);
+        grad_history.setZero();
+        VecType avg_grad = math::mean<MatType, VecType>(grad_history, 1);
 
         VecType W = weights;
         VecType opt_W;
@@ -79,9 +82,16 @@ public:
                 X_batch = X_.middleRows(begin, batch_size_);
                 y_batch = y_.middleRows(begin, batch_size_);
 
+                VecType grad(num_features_);
                 grad = loss_fn.gradient(X_batch, y_batch, W);
+
+                // update average gradient, then replace with new grad
+                VecType tmp = grad - grad_history.col(j);
+                avg_grad.array() += tmp.array() / static_cast<DataType>(batch_size_);
+                grad_history.col(j) = grad;
+
                 // W = W - lr * grad; 
-                W = w_update.update(W, grad, lr);
+                W = w_update.update(W, avg_grad, lr);
                 double loss = loss_fn.evaluate(X_batch, y_batch, W);
 
                 loss_history(j, 0) = loss;
