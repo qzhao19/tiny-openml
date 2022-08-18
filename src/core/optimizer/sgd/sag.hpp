@@ -1,5 +1,5 @@
-#ifndef CORE_OPTIMIZER_SGD_SGD_HPP
-#define CORE_OPTIMIZER_SGD_SGD_HPP
+#ifndef CORE_OPTIMIZER_SGD_SAG_HPP
+#define CORE_OPTIMIZER_SGD_SAG_HPP
 #include "./decay_policies/step_decay.hpp"
 #include "./decay_policies/exponential_decay.hpp"
 #include "./update_policies/vanilla_update.hpp"
@@ -12,7 +12,7 @@ namespace openml {
 namespace optimizer {
 
 template<typename DataType>
-class SGD {
+class SAG {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
@@ -34,16 +34,16 @@ private:
     DataType MAX_DLOSS = static_cast<DataType>(1e+10);
 
 public:
-    SGD(const MatType& X, 
+    SAG(const MatType& X, 
         const VecType& y,
         const std::size_t max_iter = 2000, 
-        const std::size_t batch_size = 128,
+        const std::size_t batch_size = 300,
         const std::size_t num_iters_no_change = 5,
         const double tol = 0.0001, 
         const bool shuffle = true, 
         const bool verbose = true): X_(X), y_(y), 
             max_iter_(max_iter), 
-            batch_size_(batch_size),
+            batch_size_(batch_size), 
             num_iters_no_change_(num_iters_no_change),
             tol_(tol), 
             shuffle_(shuffle),
@@ -52,7 +52,7 @@ public:
                 num_features_ = X_.cols();
                 num_batch_ = num_samples_ / batch_size_;
             };
-    ~SGD() {};
+    ~SAG() {};
 
     template<typename LossFuncionType, 
         typename UpdatePolicyType,
@@ -62,11 +62,16 @@ public:
         UpdatePolicyType& w_update,
         DecayPolicyType& lr_decay) {
         
-        bool is_converged = false;
         std::size_t no_improvement_count = 0;
+        bool is_converged = false;
         double best_loss = ConstType<double>::infinity();
-        
+
+        // define a matirx to store gradient history and a valiable of average gradient
+        MatType grad_history(num_features_, num_batch_);
+        grad_history.setZero();
+        VecType avg_grad = math::mean<MatType, VecType>(grad_history, 1);
         VecType grad(num_features_);
+
         VecType W = weights;
         VecType opt_W;
         for (std::size_t iter = 0; iter < max_iter_; iter++) {
@@ -85,15 +90,19 @@ public:
                 y_batch = y_.middleRows(begin, batch_size_);
 
                 grad = loss_fn.gradient(X_batch, y_batch, W);
-                // clip gradient with large value 
                 grad = utils::clip<MatType>(grad, MAX_DLOSS, -MAX_DLOSS);
 
+                // update average gradient, then replace with new grad
+                // VecType tmp = grad - grad_history.col(j);
+                avg_grad = avg_grad + ((grad - grad_history.col(j)) / static_cast<DataType>(batch_size_));
+                grad_history.col(j) = grad;
+
                 // W = W - lr * grad; 
-                W = w_update.update(W, grad, lr);
+                W = w_update.update(W, avg_grad, lr);
                 double loss = loss_fn.evaluate(X_batch, y_batch, W);
+
                 loss_history(j, 0) = loss;
             }
-
             double sum_loss = static_cast<double>(loss_history.array().sum());
 
             if (sum_loss > best_loss - tol_ * batch_size_) {
@@ -136,4 +145,4 @@ public:
 
 }
 }
-#endif
+#endif /*CORE_OPTIMIZER_SGD_SAG_HPP*/
