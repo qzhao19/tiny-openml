@@ -109,6 +109,12 @@ DataType logdet(const MatType& x) {
 
 /**
  * Compute the log of the sum of exponentials of input elements.
+ *      logsumexp(x_1, x_2, ..., x_n) 
+ *      = log(sum(exp(x_i)))
+ *      = log(sum(exp(x_i - c) * exp(c)))
+ *      = log(exp(c) * sum(exp(x_i - c)))
+ *      = log(exp(c)) + log(sum(exp(x_i - c)))
+ *      = c + log(sum(exp(x_i - c)))
  * @param x ndarray input data
  * @param axis, int
  *      Axis or axes over which the sum is taken.
