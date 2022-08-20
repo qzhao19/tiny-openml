@@ -362,6 +362,16 @@ IdxType where(const auto& x) {
     return index;
 };
 
+/**
+ * limite the values in an array.
+ * @param x array_like, array containing elements to clip.
+ * @param max_min array value type,  maximum and minimum value
+*/
+template<typename MatType, typename DataType = typename MatType::value_type>
+MatType clip(const MatType& x, DataType max, DataType min) {
+    return x.array().min(max).max(min);
+};
+
 
 }
 }
