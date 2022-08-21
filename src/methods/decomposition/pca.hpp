@@ -7,6 +7,16 @@ using namespace openml;
 namespace openml{
 namespace decomposition {
 
+/**
+ * linear dimesionality reduction using SVD of the data to project it 
+ * to a lower dimesional space, input data shoule be centered 
+ * 
+ * @param solver the matrix decomnposition policies, 
+ *      if svd, will run full svd via math::exact_svd
+ * 
+ * @param n_components Number of components to keep
+ * @param scale Whether or not to scale the data.
+*/
 template<typename DataType>
 class PCA {
 private:
@@ -128,19 +138,8 @@ protected:
     }
 
 public:
-    /**
-     * Default constructor to create PCA object, linear dimesionality reduction using SVD 
-     * of the data to project it to a lower dimesional space, input data shoule be centered 
-     * 
-     * @param solver_ the matrix decomnposition policies, 
-     *      if svd, will run full svd via math::exact_svd
-     * 
-     * @param n_components Number of components to keep
-     * @param scale Whether or not to scale the data.
-    */
     PCA(): solver_("svd"), 
         num_components_(2) {};
-
 
     PCA(std::string solver, 
         std::size_t num_components): 
