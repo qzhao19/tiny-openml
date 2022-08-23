@@ -40,7 +40,7 @@ protected:
         
         MatType pinv(num_features, num_features);
         pinv = X_new.transpose() * X_new + lambda_ * eyes;
-        pinv = pinv.inverse();
+        pinv = pinv.inverse().eval();
 
         this->W_ = pinv * X_new.transpose() * y;
     };
