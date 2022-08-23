@@ -9,7 +9,7 @@
 #include "../src/core/math/shuffle.hpp"
 #include "../src/core/math/linalg.hpp"
 #include "../src/core/math/extmath.hpp"
-#include "../src/core/math/dists.hpp"
+#include "../src/core/math/dist.hpp"
 #include "../src/core/math/random.hpp"
 
 
@@ -21,6 +21,9 @@
 
 
 #include "../src/core/optimizer/sgd/sgd.hpp"
+#include "../src/core/optimizer/sgd/sag.hpp"
+#include "../src/core/optimizer/sgd/truncated_gradient.hpp"
+
 
 // #include "../src/core/initializer/zero_initializer.hpp"
 // #include "../src/core/initializer/rand_initializer.hpp"
