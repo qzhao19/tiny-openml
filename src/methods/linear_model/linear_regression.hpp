@@ -40,7 +40,7 @@ protected:
         // theta = (X.T * X)^(-1) * X.T * y with pseudo_inv
         MatType pinv(num_features, num_features);
         pinv = X_new.transpose() * X_new;
-        pinv = pinv.inverse();
+        pinv = pinv.inverse().eval();
 
         this->W_ = pinv * X_new.transpose() * y;
     };
