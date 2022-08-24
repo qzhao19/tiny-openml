@@ -8,8 +8,8 @@ namespace data {
 /**
  * load dataset from a txt file
  * @param fp String the given filepath 
- * @param X 2d-array of shape (n_samples, n_features) the output matrix 
- * @param y 2d-array of shape (n_samples, 1) the output label matrix 
+ * @param X 2d-array of shape (num_samples, num_features) the output matrix 
+ * @param y 2d-array of shape (num_samples, 1) the output label matrix 
 */
 template<typename MatType, 
     typename VecType,
