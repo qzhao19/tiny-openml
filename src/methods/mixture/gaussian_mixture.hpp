@@ -496,7 +496,7 @@ private:
         }
 
         if (!converged) {
-            std::runtime_error("Not converge, try different init parameters.");
+            throw std::runtime_error("Not converge, try different init parameters.");
         }
 
         lower_bound_ = max_lower_bound;
