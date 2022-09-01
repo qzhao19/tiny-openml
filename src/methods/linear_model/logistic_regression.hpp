@@ -88,7 +88,7 @@ protected:
             } else if (penalty_ == "None") {
                 sgd.optimize(W, log_loss, weight_update, lr_decay);  
             }
-             
+            
         }
         // else if (update_policy_ == "momentum") {
         //     optimizer::MomentumUpdate<DataType> weight_update(alpha_, mu_);
