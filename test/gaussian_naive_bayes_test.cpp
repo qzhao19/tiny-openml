@@ -23,9 +23,9 @@ int main() {
     std::cout << "prob" << std::endl;
     std::cout << prob << std::endl;
 
-    VecType pred_y = gaussian_nb.predict(X);
-    std::cout << "pred_y" << std::endl;
-    std::cout << pred_y << std::endl;
+    VecType y_pred = gaussian_nb.predict(X);
+    std::cout << "y_pred" << std::endl;
+    std::cout << y_pred << std::endl;
 
     std::cout << "prior prob" << std::endl;
     std::cout << gaussian_nb.get_prior_prob() << std::endl;

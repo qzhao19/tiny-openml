@@ -14,11 +14,14 @@ int main() {
     // std::cout << X << std::endl;
     decision_tree::DecisionTreeRegressor<double> clf;
 
+    // clf.test_func(X, y);
+    
     clf.fit(X, y);
 
     std::cout << "predict" << std::endl;
-    VecType pred_y;
-    pred_y = clf.predict(X);
+    MatType pred_prob;
+    pred_prob = clf.predict(X);
+
 
     return 0;
 }

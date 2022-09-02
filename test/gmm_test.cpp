@@ -17,10 +17,10 @@ int main() {
     // gmm.test_func(X); 
     // std::cout << "--------------------------------" << std::endl;
 
-    VecType pred_y;
-    pred_y = gmm.predict(X);
+    VecType y_pred;
+    y_pred = gmm.predict(X);
     std::cout << "y_pred" << std::endl;
-    std::cout << pred_y << std::endl;
+    std::cout << y_pred << std::endl;
     std::cout << "--------------------------------" << std::endl;
 
     MatType pred_prob;

@@ -35,8 +35,8 @@ int main() {
     std::cout << "prob" << std::endl;
     std::cout << prob << std::endl;
 
-    VecType pred_y = clf.predict(X);
-    std::cout << "pred_y" << std::endl;
-    std::cout << pred_y << std::endl;
+    VecType y_pred = clf.predict(X);
+    std::cout << "y_pred" << std::endl;
+    std::cout << y_pred << std::endl;
 
 }

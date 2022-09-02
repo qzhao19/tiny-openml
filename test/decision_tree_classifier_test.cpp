@@ -12,14 +12,21 @@ int main() {
     data::loadtxt<MatType, VecType>("../dataset/iris.txt", X, y);
 
     // std::cout << X << std::endl;
-
     decision_tree::DecisionTreeClassifier<double> clf;
 
     // clf.test_func(X, y);
-
     clf.fit(X, y);
 
-    // clf.print_node();
+    std::cout << "predict prob" << std::endl;
+    MatType pred_prob;
+    pred_prob = clf.predict_prob(X);
+    std::cout << pred_prob << std::endl;
+
+    std::cout << "predict label" << std::endl;
+    VecType y_pred;
+    y_pred = clf.predict(X);
+    std::cout << y_pred << std::endl;
+
 
     return 0;
 }
