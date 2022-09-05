@@ -17,12 +17,13 @@
 #include "../src/core/data/split.hpp"
 
 #include "../src/core/loss/log_loss.hpp"
-// #include "../src/core/loss/mean_squared_error.hpp"
+#include "../src/core/loss/mean_squared_error.hpp"
 
 
 #include "../src/core/optimizer/sgd/sgd.hpp"
 #include "../src/core/optimizer/sgd/sag.hpp"
 #include "../src/core/optimizer/sgd/truncated_gradient.hpp"
+#include "../src/core/optimizer/sgd/scd.hpp"
 
 
 // #include "../src/core/initializer/zero_initializer.hpp"
