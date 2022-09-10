@@ -36,10 +36,10 @@ private:
 public:
     SCD(const MatType& X, 
         const VecType& y,
-        const std::size_t max_iter = 2000, 
+        const std::size_t max_iter = 50, 
         const double rho = 1.0, 
         const double alpha = 0.001, 
-        const bool shuffle = true,
+        const bool shuffle = false,
         const bool verbose = true): X_(X), y_(y), 
             max_iter_(max_iter), 
             rho_(rho), 
@@ -60,7 +60,6 @@ public:
         
         VecType grad(num_features_);
         VecType W = weights;
-        VecType opt_W;
 
         for (std::size_t iter = 0; iter < max_iter_; iter++) {
             if (shuffle_) {
@@ -68,6 +67,8 @@ public:
             }
 
             grad = loss_fn.gradient(X_, y_, W);
+
+            std::cout << grad.transpose() << std::endl;
 
             double pred_descent = 0.0;
             double best_descent = -1.0;
@@ -90,7 +91,7 @@ public:
                         alpha_ * std::abs(W(feature_index, 0) + eta) + 
                             alpha_ * std::abs(W(feature_index, 0));
 
-                if (pred_descent < best_descent) {
+                if (pred_descent > best_descent) {
                     best_descent = pred_descent;
                     best_index = feature_index;
                     best_eta = eta;
@@ -100,8 +101,7 @@ public:
             eta = best_eta;
             W(feature_index, 0) += eta;
         }
-
-        return opt_W;
+        return W;
     } 
 };
 
