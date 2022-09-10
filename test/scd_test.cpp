@@ -7,10 +7,17 @@ int main() {
     using MatType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 
-    MatType X;
-    VecType y;
+    // MatType X;
+    // VecType y;
 
-    data::loadtxt<MatType, VecType>("../dataset/boston_house_price.txt", X, y);
+    // data::loadtxt<MatType, VecType>("../dataset/boston_house_price.txt", X, y);
+
+
+    MatType X{{0, 0, 0, 0.2, 0.2}, 
+              {0, 0, 0.3, 0, -0.5},
+              {0.4, 0.6, 0, 0, 0}};
+    VecType y{{1, 1, -1}};
+
 
     std::size_t num_features = X.cols();
     
@@ -18,7 +25,7 @@ int main() {
     loss::MSE<double> mse_loss;
 
     VecType W(num_features);
-    W.setOnes();
+    W.setZero();
     
     // std::cout << W <<std::endl;
     VecType opt_W(num_features);
