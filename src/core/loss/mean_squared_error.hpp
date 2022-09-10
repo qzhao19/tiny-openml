@@ -56,7 +56,7 @@ public:
         y_hat = X * W;
         
         VecType grad(num_features);
-        grad = (X.transpose() * (y_hat - y)) / (-1.0 * static_cast<DataType>(num_samples));
+        grad = (X.transpose() * (y_hat - y)) / (static_cast<DataType>(num_samples));
         return grad;
     };
 };
