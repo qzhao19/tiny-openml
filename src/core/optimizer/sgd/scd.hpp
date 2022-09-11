@@ -1,5 +1,5 @@
-#ifndef CORE_OPTIMIZER_SGD_COORDINATE_DESCENT_HPP
-#define CORE_OPTIMIZER_SGD_COORDINATE_DESCENT_HPP
+#ifndef CORE_OPTIMIZER_SGD_SCD_HPP
+#define CORE_OPTIMIZER_SGD_SCD_HPP
 #include "./decay_policies/step_decay.hpp"
 #include "./decay_policies/exponential_decay.hpp"
 #include "./update_policies/vanilla_update.hpp"
@@ -25,7 +25,7 @@ private:
     std::size_t max_iter_;
     
     double rho_;
-    double alpha_;
+    double lambda_;
     
     bool shuffle_;
     bool verbose_;
@@ -36,14 +36,14 @@ private:
 public:
     SCD(const MatType& X, 
         const VecType& y,
-        const std::size_t max_iter = 50, 
+        const std::size_t max_iter = 5000, 
         const double rho = 1.0, 
-        const double alpha = 0.001, 
-        const bool shuffle = false,
+        const double lambda = 0.001, 
+        const bool shuffle = true,
         const bool verbose = true): X_(X), y_(y), 
             max_iter_(max_iter), 
             rho_(rho), 
-            alpha_(alpha),
+            lambda_(lambda),
             shuffle_(shuffle), 
             verbose_(verbose) {
                 num_samples_ = X_.rows();
@@ -68,19 +68,17 @@ public:
 
             grad = loss_fn.gradient(X_, y_, W);
 
-            std::cout << grad.transpose() << std::endl;
-
             double pred_descent = 0.0;
             double best_descent = -1.0;
             double best_eta = 0.0;
             std::size_t best_index = 0.0;
             
             for (feature_index = 0; feature_index < num_features_; ++feature_index) {
-                if ((W(feature_index, 0) - grad(feature_index, 0) / rho_) > (alpha_ / rho_)) {
-                    eta = (-grad(feature_index, 0) / rho_) - (alpha_ / rho_);
+                if ((W(feature_index, 0) - grad(feature_index, 0) / rho_) > (lambda_ / rho_)) {
+                    eta = (-grad(feature_index, 0) / rho_) - (lambda_ / rho_);
                 }
-                else if ((W(feature_index, 0) - grad(feature_index, 0) / rho_) < (-alpha_ / rho_)) {
-                    eta = (-grad(feature_index, 0) / rho_) + (alpha_ / rho_);
+                else if ((W(feature_index, 0) - grad(feature_index, 0) / rho_) < (-lambda_ / rho_)) {
+                    eta = (-grad(feature_index, 0) / rho_) + (lambda_ / rho_);
                 }
                 else {
                     eta = -W(feature_index, 0);
@@ -88,8 +86,8 @@ public:
 
                 pred_descent = -eta * grad(feature_index, 0) - 
                     rho_ / 2 * eta * eta - 
-                        alpha_ * std::abs(W(feature_index, 0) + eta) + 
-                            alpha_ * std::abs(W(feature_index, 0));
+                        lambda_ * std::abs(W(feature_index, 0) + eta) + 
+                            lambda_ * std::abs(W(feature_index, 0));
 
                 if (pred_descent > best_descent) {
                     best_descent = pred_descent;
@@ -100,6 +98,16 @@ public:
             feature_index = best_index;
             eta = best_eta;
             W(feature_index, 0) += eta;
+
+            if (verbose_) {
+                if ((iter % 100) == 0) {
+                    double w_norm = W.array().abs().sum();
+                    double loss = loss_fn.evaluate(X_, y_, W);
+
+                    std::cout << "-- Epoch = " << iter << ", weight norm = " 
+                        << w_norm <<", loss value = " << loss / num_samples_ << std::endl;
+                }
+            }
         }
         return W;
     } 
@@ -107,4 +115,4 @@ public:
 
 }
 }
-#endif /*CORE_OPTIMIZER_SGD_COORDINATE_DESCENT_HPP*/
+#endif /*CORE_OPTIMIZER_SGD_SCD_HPP*/
