@@ -7,16 +7,15 @@ int main() {
     using MatType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 
-    // MatType X;
-    // VecType y;
+    MatType X;
+    VecType y;
+    data::loadtxt<MatType, VecType>("../dataset/diabetes.txt", X, y);
 
-    // data::loadtxt<MatType, VecType>("../dataset/boston_house_price.txt", X, y);
 
-
-    MatType X{{0, 0, 0, 0.2, 0.2}, 
-              {0, 0, 0.3, 0, -0.5},
-              {0.4, 0.6, 0, 0, 0}};
-    VecType y{{1, 1, -1}};
+    // MatType X{{0, 0, 0, 0.2, 0.2}, 
+    //           {0, 0, 0.3, 0, -0.5},
+    //           {0.4, 0.6, 0, 0, 0}};
+    // VecType y{{1, 1, -1}};
 
 
     std::size_t num_features = X.cols();
@@ -29,8 +28,6 @@ int main() {
     
     // std::cout << W <<std::endl;
     VecType opt_W(num_features);
-    optimizer::VanillaUpdate<double> weight_update;
-    // optimizer::MomentumUpdate<double> weight_update(0.6);
     optimizer::StepDecay<double> step_decay(0.15);
 
     optimizer::SCD<double> scd(X, y);
