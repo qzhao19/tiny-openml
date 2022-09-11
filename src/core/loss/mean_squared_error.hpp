@@ -1,5 +1,5 @@
-#ifndef CORE_LOSS_LOG_LOSS_HPP
-#define CORE_LOSS_LOG_LOSS_HPP
+#ifndef CORE_LOSS_MEAN_SQUARED_ERROR_HPP
+#define CORE_LOSS_MEAN_SQUARED_ERROR_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 using namespace openml;
@@ -63,4 +63,4 @@ public:
 
 }
 }
-#endif /*CORE_LOSS_LOG_LOSS_HPP*/
+#endif /*CORE_LOSS_MEAN_SQUARED_ERROR_HPP*/
