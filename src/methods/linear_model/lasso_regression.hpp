@@ -16,7 +16,12 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     
 protected:
+    std::size_t max_iter_;
     double lambda_;
+    double rho_;
+
+    bool shuffle_;
+    bool verbose_;
 
     /**fit data implementation*/
     void fit_data(const MatType& X, 
@@ -24,7 +29,8 @@ protected:
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
         MatType X_new = X;
-        
+        VecType y_new = y;
+
         // if intercept term exists, append a colmun into X
         if (this->intercept_) {
             VecType ones(num_samples);
@@ -34,13 +40,18 @@ protected:
         }
         
         num_features = X_new.cols();
-        // theta = (X.T * X + lambda * eye)^(-1) * X.T * y
-        MatType eyes(num_features, num_features);
-        eyes.setIdentity();
-        
-        
+        VecType W(num_features);
+        W.setZero();
 
-        this->W_ = pinv * X_new.transpose() * y;
+        loss::MSE<DataType> mse_loss;
+        optimizer::SCD<DataType> scd(X_new, 
+            y_new, 
+            max_iter_, 
+            lambda_, 
+            rho_, 
+            shuffle_, 
+            verbose_);
+        this->W_ = scd.optimize(W, mse_loss);
     };
 
 public:
@@ -57,10 +68,18 @@ public:
      *      Constant that multiplies the regularization term
      * @param intercept: bool, default = True. whether to fit the intercept for the model. 
     */
-    LassoRegression(const double lambda, 
-        const bool intercept): 
+    LassoRegression(const std::size_t max_iter, 
+        const double lambda, 
+        const double rho,
+        const bool shuffle = true,
+        const bool verbose = false,
+        const bool intercept = true): 
             BaseLinearModel<DataType>(intercept), 
-            lambda_(lambda) {};
+            max_iter_(max_iter),
+            lambda_(lambda), 
+            rho_(rho), 
+            shuffle_(shuffle), 
+            verbose_(verbose) {};
 
     /**deconstructor*/
     ~LassoRegression() {};
