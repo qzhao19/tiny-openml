@@ -40,6 +40,7 @@ protected:
         }
         
         num_features = X_new.cols();
+        VecType opt_W(num_features);
         VecType W(num_features);
         W.setZero();
 
@@ -47,11 +48,12 @@ protected:
         optimizer::SCD<DataType> scd(X_new, 
             y_new, 
             max_iter_, 
-            lambda_, 
             rho_, 
+            lambda_, 
             shuffle_, 
             verbose_);
-        this->W_ = scd.optimize(W, mse_loss);
+        opt_W = scd.optimize(W, mse_loss);
+        this->W_ = opt_W;
     };
 
 public:
@@ -60,7 +62,11 @@ public:
      * the lambda and intercedpt 0.0 and true
     */
     LassoRegression(): BaseLinearModel<DataType>(true), 
-        lambda_(0.5) {};
+            max_iter_(5000),
+            lambda_(0.001), 
+            rho_(1.0), 
+            shuffle_(true), 
+            verbose_(true) {};
 
     /**
      * Non-empty constructor, create the model with lamnda and intercept
@@ -71,9 +77,9 @@ public:
     LassoRegression(const std::size_t max_iter, 
         const double lambda, 
         const double rho,
-        const bool shuffle = true,
-        const bool verbose = false,
-        const bool intercept = true): 
+        const bool shuffle,
+        const bool verbose,
+        const bool intercept): 
             BaseLinearModel<DataType>(intercept), 
             max_iter_(max_iter),
             lambda_(lambda), 
