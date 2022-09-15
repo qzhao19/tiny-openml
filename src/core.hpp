@@ -26,9 +26,6 @@
 #include "../src/core/optimizer/sgd/scd.hpp"
 
 
-// #include "../src/core/initializer/zero_initializer.hpp"
-// #include "../src/core/initializer/rand_initializer.hpp"
-
 #include "../src/core/metric.hpp"
 
 
