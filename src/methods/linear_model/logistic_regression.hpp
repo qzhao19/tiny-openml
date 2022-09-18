@@ -72,35 +72,24 @@ protected:
         if (decay_policy_ == "exponential") {
             // xxx
         }
-        if (update_policy_ == "vanilla") {
-            optimizer::VanillaUpdate<DataType> weight_update;
-            
-            optimizer::SGD<DataType> sgd(X_new, y_new, 
-                max_iter_, 
-                batch_size_, 
-                alpha_, 
-                tol_, 
-                shuffle_, 
-                verbose_);
+        
+        optimizer::VanillaUpdate<DataType> weight_update;
+        
+        optimizer::SGD<DataType> sgd(X_new, y_new, 
+            max_iter_, 
+            batch_size_, 
+            alpha_, 
+            tol_, 
+            shuffle_, 
+            verbose_);
 
-            if (penalty_ == "l2") {
-                // xxx
-            } else if (penalty_ == "None") {
-                sgd.optimize(W, log_loss, weight_update, lr_decay);  
-            }
-            
+        if (penalty_ == "l2") {
+            // xxx
+        } else if (penalty_ == "None") {
+            sgd.optimize(W, log_loss, weight_update, lr_decay);  
         }
-        // else if (update_policy_ == "momentum") {
-        //     optimizer::MomentumUpdate<DataType> weight_update(alpha_, mu_);
-        //     optimizer::SGD<DataType> sgd(X_new, y_new,
-        //     max_iter_, 
-        //     batch_size_, 
-        //     alpha_, 
-        //     tol_, 
-        //     shuffle_, 
-        //     verbose_);
-        //     sgd.optimize(log_loss, weight_update, W);
-        // }
+            
+        
         W_ = W;
     };
 
