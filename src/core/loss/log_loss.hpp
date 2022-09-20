@@ -18,7 +18,7 @@ public:
     ~LogLoss() {};
 
     /**
-     * evaluate the gradient of the logistic regression log-likelihood function
+     * evaluate the logistic regression log-likelihood function
      * with the given parameters.
      *       sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
      * 
@@ -48,6 +48,21 @@ public:
         return loss;
     }
 
+    const double evaluate(const MatType& X, 
+        const VecType& y, 
+        const VecType& W, 
+        const double lambda) const {
+        
+        std::size_t num_samples = X.rows();
+
+        double loss = evaluate(X, y, W);
+        
+        double reg = static_cast<double>(W.transpose() * W) / 
+            (static_cast<double>(num_samples) * 2.0);
+
+        return loss + reg * lambda;
+    }
+
     /**
      * Evaluate the gradient of logistic regression log-likelihood function with the given 
      * parameters using the given batch size from the given point index
@@ -70,6 +85,24 @@ public:
         grad = (X.transpose() * (y_hat - y)) / static_cast<DataType>(num_samples);
         return grad;
     };
+
+    const VecType gradient(const MatType& X, 
+        const VecType& y,
+        const VecType& W, 
+        const double lambda) const {
+        
+        std::size_t num_samples = X.rows();
+        std::size_t num_features = X.cols();
+
+        VecType grad(num_features);
+        grad = gradient(X, y, W);
+
+        VecType reg(num_features);
+        reg = W.array() / static_cast<DataType>(num_samples);
+
+        return grad + reg * lambda;
+
+    }
 };
 
 }
