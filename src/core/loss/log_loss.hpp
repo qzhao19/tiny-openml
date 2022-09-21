@@ -13,8 +13,11 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
+    double lambda_;
+
 public:
-    LogLoss() {};
+    LogLoss(): lambda_(0.0) {};
+    LogLoss(double lambda): lambda_(lambda){};
     ~LogLoss() {};
 
     /**
@@ -45,22 +48,10 @@ public:
         double loss = static_cast<double>(tmp3.array().sum()) /
             static_cast<double>(num_samples);
 
-        return loss;
-    }
-
-    const double evaluate(const MatType& X, 
-        const VecType& y, 
-        const VecType& W, 
-        const double lambda) const {
-        
-        std::size_t num_samples = X.rows();
-
-        double loss = evaluate(X, y, W);
-        
         double reg = static_cast<double>(W.transpose() * W) / 
             (static_cast<double>(num_samples) * 2.0);
 
-        return loss + reg * lambda;
+        return loss + reg * lambda_;
     }
 
     /**
@@ -83,26 +74,15 @@ public:
         
         VecType grad(num_features);
         grad = (X.transpose() * (y_hat - y)) / static_cast<DataType>(num_samples);
-        return grad;
-    };
-
-    const VecType gradient(const MatType& X, 
-        const VecType& y,
-        const VecType& W, 
-        const double lambda) const {
-        
-        std::size_t num_samples = X.rows();
-        std::size_t num_features = X.cols();
-
-        VecType grad(num_features);
-        grad = gradient(X, y, W);
 
         VecType reg(num_features);
         reg = W.array() / static_cast<DataType>(num_samples);
 
-        return grad + reg * lambda;
+        std::cout << reg * lambda_ << std::endl;
 
-    }
+        return grad + reg * lambda_;
+    };
+
 };
 
 }
