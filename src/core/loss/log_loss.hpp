@@ -78,8 +78,6 @@ public:
         VecType reg(num_features);
         reg = W.array() / static_cast<DataType>(num_samples);
 
-        std::cout << reg * lambda_ << std::endl;
-
         return grad + reg * lambda_;
     };
 
