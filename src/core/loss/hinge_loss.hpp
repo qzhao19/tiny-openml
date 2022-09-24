@@ -23,8 +23,7 @@ public:
     ~HingeLoss() {};
 
     /**
-     * evaluate the hinge loss function
-     * with the given parameters.
+     * evaluate the hinge loss objective function with the given parameters.
      *       f(x) = max(0, 1 - y*g(x)), g(x) = X * W
      * 
      * @param X ndarray of shape (num_samples, num_features), the matrix of input data
@@ -50,8 +49,8 @@ public:
     }
 
     /**
-     * Evaluate the gradient of logistic regression log-likelihood function with the given 
-     * parameters using the given batch size from the given point index
+     * Evaluate the gradient of the hinge loss objective function with the given 
+     * parameters
      * 
      *      dot(X.T, sigmoid(np.dot(X, W)) - y) / len(y)
     */
@@ -62,15 +61,17 @@ public:
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType grad(num_features);
 
-        VecType y_X_w(num_samples); 
-        y_X_w = y.transpose() * X * W; 
+        VecType y_x_w(num_samples); 
+        // y_x_w = y.transpose() * X * W; 
 
         for (std::size_t i = 0; i < num_samples; ++i) {
-            if (y_X_w(i, 0) > threshold_) {
-                grad(i, 0) = 0;
+            double y_x_w = X.row(i) * W * y(i, 0);
+
+            if (y_x_w > threshold_) {
+                grad += 0.0;
             }
             else {
-                grad(i, 0) = X.row(i).transpose().array() * y(i, 0);
+                grad += (X.row(i).transpose() * (-y(i, 0))).eval();
             }
         }
         return grad;
