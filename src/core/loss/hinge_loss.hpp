@@ -35,9 +35,7 @@ public:
         const VecType& W) const {
         
         std::size_t num_samples = X.rows();
-
-        VecType y_X_w(num_samples); 
-        y_X_w = y.transpose() * X * W; 
+        DataType y_X_w = y.transpose() * X * W; 
 
         double loss;
         loss = std::max(0.0, threshold_ - static_cast<double>(y_X_w));
@@ -52,7 +50,7 @@ public:
      * Evaluate the gradient of the hinge loss objective function with the given 
      * parameters
      * 
-     *      dot(X.T, sigmoid(np.dot(X, W)) - y) / len(y)
+     *      dw = y_i*w*x > 1 : 0 ? -y_i*x
     */
     const VecType gradient(const MatType& X, 
         const VecType& y,
@@ -61,14 +59,14 @@ public:
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType grad(num_features);
 
-        VecType y_x_w(num_samples); 
-        // y_x_w = y.transpose() * X * W; 
-
         for (std::size_t i = 0; i < num_samples; ++i) {
-            double y_x_w = X.row(i) * W * y(i, 0);
+            auto x_w = X.row(i) * W;
+            double y_x_w = x_w.value() * y(i, 0);
 
             if (y_x_w > threshold_) {
-                grad += 0.0;
+                VecType tmp(num_features);
+                tmp.setZero();
+                grad += tmp;
             }
             else {
                 grad += (X.row(i).transpose() * (-y(i, 0))).eval();
