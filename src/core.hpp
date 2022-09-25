@@ -16,6 +16,7 @@
 #include "../src/core/data/load.hpp"
 #include "../src/core/data/split.hpp"
 
+#include "../src/core/loss/hinge_loss.hpp"
 #include "../src/core/loss/log_loss.hpp"
 #include "../src/core/loss/mean_squared_error.hpp"
 
