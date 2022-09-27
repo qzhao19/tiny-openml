@@ -17,7 +17,7 @@ private:
     double threshold_;
 
 public:
-    HingeLoss(): lambda_(0.0), threshold_(0.0) {};
+    HingeLoss(): lambda_(0.0), threshold_(1.0) {};
     HingeLoss(double lambda, 
         double threshold): lambda_(lambda), threshold_(threshold){};
     ~HingeLoss() {};
@@ -35,11 +35,16 @@ public:
         const VecType& W) const {
         
         std::size_t num_samples = X.rows();
-        DataType y_X_w = y.transpose() * X * W; 
+        VecType X_w(num_samples);
+        X_w = X * W; 
 
-        double loss;
-        loss = std::max(0.0, threshold_ - static_cast<double>(y_X_w));
+        double loss = 0.0;
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            double tmp = std::max(0.0, threshold_ - X_w(i, 0) * y(i, 0));
+            loss += tmp;
+        }
 
+        // loss = loss / static_cast<double>(num_samples);
         double reg = static_cast<double>(W.transpose() * W) / 
             (static_cast<double>(num_samples) * 2.0);
 
@@ -59,11 +64,14 @@ public:
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType grad(num_features);
 
-        for (std::size_t i = 0; i < num_samples; ++i) {
-            auto x_w = X.row(i) * W;
-            double y_x_w = x_w.value() * y(i, 0);
+        VecType X_w(num_samples);
+        X_w = X * W;
 
-            if (y_x_w > threshold_) {
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            // auto x_w = X.row(i) * W;
+            double x_w_y = X_w(i, 0) * y(i, 0);
+
+            if (x_w_y > threshold_) {
                 VecType tmp(num_features);
                 tmp.setZero();
                 grad += tmp;
@@ -72,7 +80,10 @@ public:
                 grad += (X.row(i).transpose() * (-y(i, 0))).eval();
             }
         }
-        return grad;
+
+        VecType reg(num_features);
+        reg = W.array() / static_cast<DataType>(num_samples);
+        return grad + reg * lambda_;
     };
 
 };
