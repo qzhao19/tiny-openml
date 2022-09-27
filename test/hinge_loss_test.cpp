@@ -6,19 +6,25 @@ int main() {
     using MatType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 
-    MatType X;
-    VecType y;
+    MatType X{{-2,4,-1}, {4,1,-1}, {1, 6, -1}, {2, 4, -1}, {6, 2, -1}};
+    VecType y{{-1,-1,1,1,1}};
 
-    data::loadtxt<MatType, VecType>("../dataset/ionosphere.txt", X, y);
+    // MatType X;
+    // VecType y;
+
+    // data::loadtxt<MatType, VecType>("../dataset/ionosphere.txt", X, y);
+    // for (int i = 0; i < y.rows(); ++i) {
+    //     if (y(i, 0) == 0.0) {
+    //         y(i, 0) = -1.0;
+    //     }
+    // }
 
     std::size_t num_samples = X.rows(), num_features = X.cols();
-    std::size_t batch_size = 32;
-    std::size_t num_iter = num_samples / batch_size;
 
     loss::HingeLoss<double> hinge_loss;
 
     VecType W(num_features);
-    W = Eigen::MatrixXd::Ones(num_features, 1);
+    W.setOnes();
     VecType grad(num_features);
     
     double loss_val = 0.0;
