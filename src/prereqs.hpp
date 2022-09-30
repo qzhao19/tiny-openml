@@ -54,6 +54,13 @@ using ConstType = std::numeric_limits<DataType>;
 #endif
 
 
+#ifndef min
+template <class T> static inline T min(T x,T y) { return (x < y) ? x : y;}
+#endif
+#ifndef max
+template <class T> static inline T max(T x,T y) { return (x > y) ? x : y;}
+#endif
+
 // #include <eigen3/Eigen/Dense>
 // #include <eigen3/unsupported/Eigen/MatrixFunctions>
 
