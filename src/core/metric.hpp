@@ -36,8 +36,8 @@ double explained_variance_score(const VecType& y_true,
     const VecType& y_pred) {
 
     VecType y_diff = y_pred - y_true;
-    VecType y_diff_var = var<VecType>(y_diff);
-    VecType y_var = var<VecType>(y_true);
+    VecType y_diff_var = math::var<VecType>(y_diff);
+    VecType y_var = math::var<VecType>(y_true);
     
     auto retval = 1.0 -  y_diff_var.array() / y_var.array();
     return static_cast<double>(retval(0, 0));
