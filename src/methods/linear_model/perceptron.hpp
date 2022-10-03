@@ -29,6 +29,34 @@ protected:
     /**fit data implementation*/
     void fit_data(const MatType& X, 
         const VecType& y) {
+
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        MatType X_new = X;
+        VecType y_new = y;
+        
+        // if intercept term exists, append a colmun into X
+        if (this->intercept_) {
+            VecType ones(num_samples);
+            ones.fill(1.0);
+            X_new.conservativeResize(num_samples, num_features + 1);
+            X_new.col(num_features) = ones;
+        }
+
+        num_features = X_new.cols();
+        VecType W(num_features);
+        W.setRandom();
+
+        loss::HingeLoss<DataType> hinge_loss(lambda_, 1.0);
+        optimizer::StepDecay<DataType> lr_decay(alpha_);
+        optimizer::VanillaUpdate<DataType> weight_update;
+        optimizer::SGD<DataType> sgd(X_new, y_new, 
+            max_iter_, 
+            batch_size_, 
+            alpha_, 
+            tol_, 
+            shuffle_, 
+            verbose_);
+        this->W_ = sgd.optimize(W, hinge_loss, weight_update, lr_decay);  
     };
 
 public:
@@ -42,7 +70,7 @@ public:
         alpha_(0.001), 
         lambda_(0.5), 
         tol_(0.0001), 
-        batch_size_(32), 
+        batch_size_(1), 
         max_iter_(1000), 
         penalty_("l2") {};
 
