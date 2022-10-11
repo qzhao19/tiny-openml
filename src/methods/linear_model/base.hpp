@@ -73,13 +73,28 @@ public:
         return W_;
     };
 
-    /**public fit interface*/
+    /**
+     * Fit the model according to the given training data
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      Training vector, where n_samples is the number of 
+     *      samples and n_features is the number of features.
+     * @param y ndarray of shape [num_samples,]
+     *      Target vector relative to X.
+    */
     void fit(const MatType& X, 
         const VecType& y) {
         this->fit_data(X, y);
     }
 
-    /**public predict interface*/
+    /**
+     * Predict class labels for samples in X.
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      The data matrix for which we want to get the predictions.
+     * 
+     * @return Vector containing the class labels for each sample.
+    */
     const VecType predict(const MatType& X) const{
         VecType y_pred;
         y_pred = predict_label(X);
