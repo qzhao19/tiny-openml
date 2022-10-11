@@ -46,7 +46,7 @@ protected:
         VecType W(num_features);
         W.setRandom();
 
-        loss::HingeLoss<DataType> hinge_loss(lambda_, 1.0);
+        loss::HingeLoss<DataType> hinge_loss(lambda_, 0.0);
         optimizer::StepDecay<DataType> lr_decay(alpha_);
         optimizer::VanillaUpdate<DataType> weight_update;
         optimizer::SGD<DataType> sgd(X_new, y_new, 
@@ -59,33 +59,6 @@ protected:
         this->W_ = sgd.optimize(W, hinge_loss, weight_update, lr_decay);  
     };
 
-    /**Predict confidence scores for samples.*/
-    const VecType compute_decision_function(const MatType& X) const{
-
-        std::size_t num_samples = X.rows(), num_features = X.cols();
-        VecType decision_boundary(num_samples);
-
-        decision_boundary = X * W_.topRows(num_features);
-
-        if (this->intercept_) {
-            VecType b(num_samples);
-            b = utils::repeat<VecType>(W_.bottomRows(1), num_samples, 0);
-            decision_boundary += b;
-        }
-        return decision_boundary;
-    }
-
-    /** Predict class labels for samples in X.*/
-    const VecType predict_label(const MatType& X) const{
-    
-        // calculate the desicion boundary func
-        std::size_t num_samples = X.rows();
-        VecType y_pred(num_samples);
-
-        y_pred = compute_decision_function(X);
-        return y_pred;
-    }
-
 
 public:
     /**
@@ -94,11 +67,11 @@ public:
     */
     Perceptron(): BaseLinearModel<DataType>(true), 
         shuffle_(true), 
-        verbose_(false), 
+        verbose_(true), 
         alpha_(0.001), 
         lambda_(0.5), 
         tol_(0.0001), 
-        batch_size_(1), 
+        batch_size_(512), 
         max_iter_(1000), 
         penalty_("l2") {};
 
@@ -131,20 +104,6 @@ public:
     ~Perceptron() {};
 
     /**
-     * Fit the model according to the given training data
-     * 
-     * @param X ndarray of shape [num_samples, num_features], 
-     *      Training vector, where n_samples is the number of 
-     *      samples and n_features is the number of features.
-     * @param y ndarray of shape [num_samples,]
-     *      Target vector relative to X.
-    */
-    void fit(const MatType& X, 
-        const VecType& y) {
-        fit_data(X, y);
-    }
-
-    /**
      * Predict class labels for samples in X.
      * 
      * @param X ndarray of shape [num_samples, num_features], 
@@ -155,7 +114,15 @@ public:
     const VecType predict(const MatType& X) const {
         std::size_t num_samples = X.rows();
         VecType y_pred(num_samples);
-        y_pred = predict_label(X);
+        y_pred = this->predict_label(X);
+        for(auto& value : y_pred) {
+            if (value > 0.0) {
+                value = 1;
+            }
+            else {
+                value = 0;
+            }
+        }
         return y_pred;
     }
 
