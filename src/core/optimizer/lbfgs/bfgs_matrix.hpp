@@ -35,6 +35,7 @@ private:
 public:
     // Constructor
     BFGSMatrix() {}
+    ~BFGSMatrix() {}
 
 
     // Reset internal variables
@@ -71,7 +72,32 @@ public:
         m_ptr = loc + 1;
     }
 
+    inline void apply_Hv(const Vector& v, const Scalar& a, Vector& res){
+        res.resize(v.size());
 
+        // L-BFGS two-loop recursion
+
+        // Loop 1
+        res.noalias() = a * v;
+        int j = m_ptr % m_m;
+        for (int i = 0; i < m_ncorr; i++)
+        {
+            j = (j + m_m - 1) % m_m;
+            m_alpha[j] = m_s.col(j).dot(res) / m_ys[j];
+            res.noalias() -= m_alpha[j] * m_y.col(j);
+        }
+
+        // Apply initial H0
+        res /= m_theta;
+
+        // Loop 2
+        for (int i = 0; i < m_ncorr; i++)
+        {
+            const Scalar beta = m_y.col(j).dot(res) / m_ys[j];
+            res.noalias() += (m_alpha[j] - beta) * m_s.col(j);
+            j = (j + 1) % m_m;
+        }
+    }
 };
 
 }
