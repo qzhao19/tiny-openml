@@ -209,6 +209,7 @@ public:
             max_iter_(max_iter), 
             tol_(tol) {};
 
+    ~KMeans() {};
     /**
      * fit dataset to compute k-means clustering
     */
