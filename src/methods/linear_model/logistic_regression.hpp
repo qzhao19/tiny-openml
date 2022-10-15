@@ -69,12 +69,7 @@ protected:
 
         loss::LogLoss<DataType> log_loss;
         optimizer::StepDecay<DataType> lr_decay(alpha_);
-        if (decay_policy_ == "exponential") {
-            // xxx
-        }
-        
         optimizer::VanillaUpdate<DataType> weight_update;
-        
         optimizer::SGD<DataType> sgd(X_new, y_new, 
             max_iter_, 
             batch_size_, 
@@ -152,8 +147,8 @@ public:
      * parameters. 
      * 
     */
-    LogisticRegression(const bool shuffle, 
-        const bool verbose, 
+    LogisticRegression(bool shuffle, 
+        bool verbose, 
         const double alpha, 
         const double lambda,
         const double tol, 
