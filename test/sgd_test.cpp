@@ -18,19 +18,20 @@ int main() {
     std::cout << "sgd test" <<std::endl;
     loss::LogLoss<double> log_loss;
 
-    VecType W(num_features);
-    W = MatType::Ones(num_features, 1);
-    
-    // std::cout << W <<std::endl;
-    VecType opt_W(num_features);
-    optimizer::VanillaUpdate<double> weight_update;
-    // optimizer::MomentumUpdate<double> weight_update(0.6);
-    optimizer::StepDecay<double> step_decay(0.1);
+    VecType w(num_features);
+    w = MatType::Ones(num_features, 1);
+    VecType opt_w(num_features);
+    // optimizer::VanillaUpdate<double> weight_update;
+    // // optimizer::MomentumUpdate<double> weight_update(0.6);
+    // optimizer::StepDecay<double> step_decay(0.1);
 
-    optimizer::SGD<double> sgd(X, y);
-    opt_W = sgd.optimize(W, log_loss, weight_update, step_decay);
+    optimizer::SGD<double, 
+        loss::LogLoss<double>, 
+        optimizer::VanillaUpdate<double>, 
+        optimizer::StepDecay<double>> sgd;
+    opt_w = sgd.optimize(X, y, w);
     
-    std::cout << opt_W <<std::endl;
+    std::cout << opt_w <<std::endl;
 
 }
 

@@ -17,19 +17,17 @@ int main() {
     std::cout << "sag test" <<std::endl;
     loss::LogLoss<double> log_loss;
 
-    VecType W(num_features);
-    W.setOnes();
+    VecType w(num_features);
+    w.setZero();
+    VecType opt_w(num_features);
     
-    // std::cout << W <<std::endl;
-    VecType opt_W(num_features);
-    optimizer::VanillaUpdate<double> weight_update;
-    // optimizer::MomentumUpdate<double> weight_update(0.6);
-    optimizer::StepDecay<double> step_decay(0.15);
+    optimizer::SAG<double, 
+        loss::LogLoss<double>, 
+        optimizer::VanillaUpdate<double>, 
+        optimizer::StepDecay<double>> sag;
 
-    optimizer::SAG<double> sag(X, y);
-    opt_W = sag.optimize(W, log_loss, weight_update, step_decay);
-    
-    std::cout << opt_W <<std::endl;
+    opt_w = sag.optimize(X, y, w);
+    std::cout << opt_w <<std::endl;
 
 }
 
