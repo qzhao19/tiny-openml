@@ -6,6 +6,7 @@
 #include "./update_policies/momentum_update.hpp"
 #include "../../../prereqs.hpp"
 #include "../../../core.hpp"
+#include "../base.hpp"
 using namespace openml;
 
 namespace openml {
@@ -15,46 +16,43 @@ template<typename DataType,
     typename LossFuncionType, 
     typename UpdatePolicyType,
     typename DecayPolicyType>
-class SAG {
+class SAG: public BaseOptimizer<DataType, 
+    LossFuncionType, 
+    UpdatePolicyType, 
+    DecayPolicyType> {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    std::size_t max_iter_;
-    std::size_t batch_size_;
-    std::size_t num_iters_no_change_;
-    
-    double tol_;
-    bool shuffle_;
-    bool verbose_;
-    
-    // internal callable parameters
-    DataType MAX_DLOSS = static_cast<DataType>(1e+10);
-
 public:
-    SAG(const std::size_t max_iter = 2000, 
-        const std::size_t batch_size = 32,
+    SAG(const VecType& x0,
+        const LossFuncionType& loss_func,
+        const UpdatePolicyType& w_update,
+        const DecayPolicyType& lr_decay,
+        const std::size_t max_iter = 2000, 
+        const std::size_t batch_size = 24,
         const std::size_t num_iters_no_change = 5,
         const double tol = 0.0001, 
         const bool shuffle = true, 
-        const bool verbose = true): max_iter_(max_iter), 
-            batch_size_(batch_size), 
-            num_iters_no_change_(num_iters_no_change),
-            tol_(tol), 
-            shuffle_(shuffle),
-            verbose_(verbose) {};
+        const bool verbose = true): BaseOptimizer<DataType, 
+            LossFuncionType, 
+            UpdatePolicyType, 
+            DecayPolicyType>(x0, 
+                loss_func, 
+                w_update, 
+                lr_decay, 
+                max_iter, 
+                batch_size, 
+                num_iters_no_change, 
+                tol, 
+                shuffle, 
+                verbose) {};
     ~SAG() {};
 
-    VecType optimize(const MatType& X, 
-        const VecType& y, 
-        const VecType& weight) {
-
-        LossFuncionType loss_fn;
-        UpdatePolicyType w_update;
-        DecayPolicyType lr_decay;
-
+    void optimize(const MatType& X, 
+        const VecType& y) {
         std::size_t num_samples = X.rows(), num_features = X.cols();
-        std::size_t num_batch = num_samples / batch_size_;
+        std::size_t num_batch = num_samples / this->batch_size_;
         std::size_t no_improvement_count = 0;
         
         bool is_converged = false;
@@ -67,41 +65,38 @@ public:
         grad_history.setZero();
         VecType avg_grad = math::mean<MatType, VecType>(grad_history, 1);
         VecType grad(num_features);
-
-        VecType w = weight;
-        VecType opt_w;
-        for (std::size_t iter = 0; iter < max_iter_; iter++) {
-            if (shuffle_) {
+        
+        for (std::size_t iter = 0; iter < this->max_iter_; iter++) {
+            if (this->shuffle_) {
                 random::shuffle_data<MatType, VecType>(X_new, y_new, X_new, y_new);
             }
-            MatType X_batch(batch_size_, num_features);
-            VecType y_batch(batch_size_);
-            VecType loss_history(batch_size_);
+            MatType X_batch(this->batch_size_, num_features);
+            VecType y_batch(this->batch_size_);
+            VecType loss_history(this->batch_size_);
 
-            double lr = lr_decay.compute(iter);
+            double lr = this->lr_decay_.compute(iter);
 
             for (std::size_t j = 0; j < num_batch; j++) {
-                std::size_t begin = j * batch_size_;
-                X_batch = X_new.middleRows(begin, batch_size_);
-                y_batch = y_new.middleRows(begin, batch_size_);
+                std::size_t begin = j * this->batch_size_;
+                X_batch = X_new.middleRows(begin, this->batch_size_);
+                y_batch = y_new.middleRows(begin, this->batch_size_);
 
-                grad = loss_fn.gradient(X_batch, y_batch, w);
-                grad = utils::clip<MatType>(grad, MAX_DLOSS, -MAX_DLOSS);
+                grad = this->loss_func_.gradient(X_batch, y_batch, this->x0_);
+                grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
 
                 // update average gradient, then replace with new grad
-                // VecType tmp = grad - grad_history.col(j);
-                avg_grad.noalias() += ((grad - grad_history.col(j)) / static_cast<DataType>(batch_size_));
+                avg_grad.noalias() += ((grad - grad_history.col(j)) / static_cast<DataType>(this->batch_size_));
                 grad_history.col(j) = grad;
 
                 // W = W - lr * grad; 
-                w = w_update.update(w, avg_grad, lr);
-                double loss = loss_fn.evaluate(X_batch, y_batch, w);
+                this->x0_ = this->w_update_.update(this->x0_, avg_grad, lr);
+                double loss = this->loss_func_.evaluate(X_batch, y_batch, this->x0_);
 
                 loss_history(j, 0) = loss;
             }
             double sum_loss = static_cast<double>(loss_history.array().sum());
 
-            if (sum_loss > best_loss - tol_ * batch_size_) {
+            if (sum_loss > best_loss - this->tol_ * this->batch_size_) {
                 no_improvement_count +=1;
             }
             else {
@@ -112,31 +107,28 @@ public:
                 best_loss = sum_loss;
             }
 
-            if (no_improvement_count >= num_iters_no_change_) {
+            if (no_improvement_count >= this->num_iters_no_change_) {
                 is_converged = true;
-                opt_w = w;
+                this->opt_x_ = this->x0_;
                 break;
             }
 
-            if (verbose_) {
+            if (this->verbose_) {
                 if ((iter % 2) == 0) {
                     std::cout << "-- Epoch = " << iter << ", average loss value = " 
-                            << sum_loss / static_cast<double>(batch_size_) << std::endl;
+                              << sum_loss / static_cast<double>(this->batch_size_) << std::endl;
                 }
             }
         }
 
         if (!is_converged) {
             std::ostringstream err_msg;
-            err_msg << "Not converge, current number of epoch = " << max_iter_
-                    << ", the batch size = " << batch_size_ 
+            err_msg << "Not converge, current number of epoch = " << this->max_iter_
+                    << ", the batch size = " << this->batch_size_ 
                     << ", try apply different parameters." << std::endl;
             throw std::runtime_error(err_msg.str());
         }
-
-        return opt_w;
     }
-
 };
 
 }
