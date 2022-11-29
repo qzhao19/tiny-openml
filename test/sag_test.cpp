@@ -1,5 +1,7 @@
 #include "../src/core/loss/log_loss.hpp"
 #include "../src/core/optimizer/sgd/sag.hpp"
+// #include "../src/core/optimizer/sgd/sgd_2.hpp"
+
 using namespace openml;
 
 int main() {
@@ -13,20 +15,24 @@ int main() {
     data::loadtxt<MatType, VecType>("../dataset/ionosphere.txt", X, y);
 
     std::size_t num_features = X.cols();
-    
     std::cout << "sag test" <<std::endl;
-    loss::LogLoss<double> log_loss;
 
     VecType w(num_features);
-    w.setZero();
+    w.setOnes();
     VecType opt_w(num_features);
     
+    loss::LogLoss<double> log_loss;
+    optimizer::VanillaUpdate<double> weight_update;
+    // optimizer::MomentumUpdate<double> weight_update(0.6);
+    optimizer::StepDecay<double> step_decay(0.1);
+
     optimizer::SAG<double, 
         loss::LogLoss<double>, 
         optimizer::VanillaUpdate<double>, 
-        optimizer::StepDecay<double>> sag;
-
-    opt_w = sag.optimize(X, y, w);
+        optimizer::StepDecay<double>> sag(w, log_loss, weight_update, step_decay);
+    sag.optimize(X, y);
+    opt_w = sag.get_coef();
+    
     std::cout << opt_w <<std::endl;
 
 }
