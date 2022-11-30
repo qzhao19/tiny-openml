@@ -83,7 +83,7 @@ public:
                 grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
 
                 // W = W - lr * grad; 
-                this->x0_.noalias() = this->w_update_.update(this->x0_, grad, lr);
+                this->x0_ = this->w_update_.update(this->x0_, grad, lr);
                 double loss = this->loss_func_.evaluate(X_batch, y_batch, this->x0_);
                 loss_history(j, 0) = loss;
             }

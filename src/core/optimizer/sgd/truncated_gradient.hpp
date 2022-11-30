@@ -11,38 +11,31 @@ using namespace openml;
 namespace openml {
 namespace optimizer {
 
-template<typename DataType>
-class TruncatedGradient {
+template<typename DataType, 
+    typename LossFuncionType, 
+    typename UpdatePolicyType,
+    typename DecayPolicyType>
+class TruncatedGradient: public BaseOptimizer<DataType, 
+    LossFuncionType, 
+    UpdatePolicyType, 
+    DecayPolicyType> {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    MatType X_;
-    VecType y_;
-    std::size_t max_iter_;
-    std::size_t batch_size_;
-    std::size_t num_iters_no_change_;
-    DataType MAX_DLOSS = static_cast<DataType>(1e+10);
-    
-    double tol_;
     double alpha_;
     double l1_ratio_;
-    bool shuffle_;
-    bool verbose_;
-    
-    // internal callable parameters
-    std::size_t num_samples_;
-    std::size_t num_features_;
-    std::size_t num_batch_;
-
+   
     /**
      * truncated gradient implementation
     */
-    void update(VecType& weight, 
+    void truncate(VecType& weight, 
         VecType& cum_l1,
         DataType max_cum_l1) {
         
-        for (std::size_t j = 0; j < num_features_; ++j) {
+        std::size_t num_features = weight.rows();
+        
+        for (std::size_t j = 0; j < num_features; ++j) {
             DataType w_j = weight(j, 0);
             if (w_j > 0.0) {
                 weight(j, 0) = std::max(0.0, w_j - (max_cum_l1 + cum_l1(j, 0)));
@@ -57,84 +50,87 @@ private:
     }
 
 public:
-    TruncatedGradient(const MatType& X, 
-        const VecType& y,
+    TruncatedGradient(const VecType& x0,
+        const LossFuncionType& loss_func,
+        const UpdatePolicyType& w_update,
+        const DecayPolicyType& lr_decay,
         const std::size_t max_iter = 2000, 
-        const std::size_t batch_size = 256,
+        const std::size_t batch_size = 20,
         const std::size_t num_iters_no_change = 5,
         const double tol = 0.0001, 
         const double alpha = 0.0001,
         const double l1_ratio = 0.15,
         const bool shuffle = true, 
-        const bool verbose = true): X_(X), y_(y), 
-            max_iter_(max_iter), 
-            batch_size_(batch_size), 
-            num_iters_no_change_(num_iters_no_change),
-            tol_(tol), 
+        const bool verbose = true): BaseOptimizer<DataType, 
+            LossFuncionType, 
+            UpdatePolicyType, 
+            DecayPolicyType>(x0, 
+                loss_func, 
+                w_update, 
+                lr_decay, 
+                max_iter, 
+                batch_size, 
+                num_iters_no_change, 
+                tol, 
+                shuffle, 
+                verbose),
             alpha_(alpha),
-            l1_ratio_(l1_ratio),
-            shuffle_(shuffle),
-            verbose_(verbose) {
-                num_samples_ = X_.rows();
-                num_features_ = X_.cols();
-                num_batch_ = num_samples_ / batch_size_;
-            };
+            l1_ratio_(l1_ratio) {};
     ~TruncatedGradient() {};
 
-     template<typename LossFuncionType, 
-        typename UpdatePolicyType,
-        typename DecayPolicyType>
-    VecType optimize(const VecType& weights, 
-        LossFuncionType& loss_fn, 
-        UpdatePolicyType& w_update,
-        DecayPolicyType& lr_decay) {
+    
+    void optimize(const MatType& X, 
+        const VecType& y,
+        const VecType& w0) {
         
-        bool is_converged = false;
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        std::size_t num_batch = num_samples / this->batch_size_;
         std::size_t no_improvement_count = 0;
-        
+
+        bool is_converged = false;
         double best_loss = ConstType<double>::infinity();
         DataType max_cum_l1 = 0.0;
-        VecType cum_l1(num_features_);
+        
+        MatType X_new = X;
+        VecType y_new = y;
+        VecType cum_l1(num_features);
         cum_l1.setZero();
-
-        VecType W = weights;
-        VecType opt_W;
-        for (std::size_t iter = 0; iter < max_iter_; iter++) {
-            if (shuffle_) {
-                random::shuffle_data<MatType, VecType>(X_, y_, X_, y_);
+        for (std::size_t iter = 0; iter < this->max_iter_; iter++) {
+            if (this->shuffle_) {
+                random::shuffle_data<MatType, VecType>(X_new, y_new, X_new, y_new);
             }
-            MatType X_batch(batch_size_, num_features_);
-            VecType y_batch(batch_size_);
-            VecType loss_history(batch_size_);
+            MatType X_batch(this->batch_size_, num_features);
+            VecType y_batch(this->batch_size_);
+            VecType loss_history(this->batch_size_);
 
-            double lr = lr_decay.compute(iter);
+            double lr = lr_decay_.compute(iter);
 
-            for (std::size_t j = 0; j < num_batch_; j++) {
-                std::size_t begin = j * batch_size_;
-                X_batch = X_.middleRows(begin, batch_size_);
-                y_batch = y_.middleRows(begin, batch_size_);
+            for (std::size_t j = 0; j < num_batch; j++) {
+                std::size_t begin = j * this->batch_size_;
+                X_batch = X_new.middleRows(begin, this->batch_size_);
+                y_batch = y_new.middleRows(begin, this->batch_size_);
 
-                VecType grad(num_features_);
-                grad = loss_fn.gradient(X_batch, y_batch, W);
+                VecType grad(num_features);
+                grad = loss_func_.gradient(X_batch, y_batch, this->x0_);
 
                 // clip gradient with large value 
-                grad = utils::clip<MatType>(grad, MAX_DLOSS, -MAX_DLOSS);
+                grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
 
                 // W = W - lr * grad; 
-                W = w_update.update(W, grad, lr);
+                this->x0_ = w_update_.update(this->x0_, grad, lr);
 
                 max_cum_l1 += static_cast<DataType>(l1_ratio_) * 
                     static_cast<DataType>(lr) * static_cast<DataType>(alpha_);
-                update(W, cum_l1, max_cum_l1);
+                truncate(this->x0_, cum_l1, max_cum_l1);
 
-                double loss = loss_fn.evaluate(X_batch, y_batch, W);
+                double loss = loss_func_.evaluate(X_batch, y_batch, this->x0_);
 
                 loss_history(j, 0) = loss;
             }
 
             double sum_loss = static_cast<double>(loss_history.array().sum());
 
-            if (sum_loss > best_loss - tol_ * batch_size_) {
+            if (sum_loss > best_loss - this->tol_ * this->batch_size_) {
                 no_improvement_count +=1;
             }
             else {
@@ -145,29 +141,27 @@ public:
                 best_loss = sum_loss;
             }
 
-            if (no_improvement_count >= num_iters_no_change_) {
+            if (no_improvement_count >= this->num_iters_no_change_) {
                 is_converged = true;
-                opt_W = W;
+                this->opt_x_ = this->x0_;
                 break;
             }
 
-            if (verbose_) {
+            if (this->verbose_) {
                 if ((iter % 2) == 0) {
                     std::cout << "-- Epoch = " << iter << ", average loss value = " 
-                            << sum_loss / static_cast<double>(batch_size_) << std::endl;
+                              << sum_loss / static_cast<double>(this->batch_size_) << std::endl;
                 }
             }
         }
 
         if (!is_converged) {
             std::ostringstream err_msg;
-            err_msg << "Not converge, current number of epoch = " << max_iter_
-                    << ", the batch size = " << batch_size_ 
+            err_msg << "Not converge, current number of epoch = " << this->max_iter_
+                    << ", the batch size = " << this->batch_size_ 
                     << ", try apply different parameters." << std::endl;
             throw std::runtime_error(err_msg.str());
         }
-
-        return opt_W;
     }
 };
 
