@@ -80,8 +80,7 @@ public:
 
     
     void optimize(const MatType& X, 
-        const VecType& y,
-        const VecType& w0) {
+        const VecType& y) {
         
         std::size_t num_samples = X.rows(), num_features = X.cols();
         std::size_t num_batch = num_samples / this->batch_size_;

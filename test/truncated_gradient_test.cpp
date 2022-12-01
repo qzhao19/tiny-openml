@@ -13,23 +13,24 @@ int main() {
     data::loadtxt<MatType, VecType>("../dataset/ionosphere.txt", X, y);
 
     std::size_t num_features = X.cols();
-    
     std::cout << "Truncated gradient test" <<std::endl;
-    loss::LogLoss<double> log_loss;
 
-    VecType W(num_features);
-    W.setOnes();
+    VecType w(num_features);
+    w.setOnes();
+    VecType opt_w(num_features);
     
-    // std::cout << W <<std::endl;
-    VecType opt_W(num_features);
+    loss::LogLoss<double> log_loss;
     optimizer::VanillaUpdate<double> weight_update;
     // optimizer::MomentumUpdate<double> weight_update(0.6);
     optimizer::StepDecay<double> step_decay(0.1);
 
-    optimizer::TruncatedGradient<double> tg(X, y);
-    opt_W = tg.optimize(W, log_loss, weight_update, step_decay);
-    
-    std::cout << opt_W <<std::endl;
+    optimizer::TruncatedGradient<double,
+        loss::LogLoss<double>, 
+        optimizer::VanillaUpdate<double>, 
+        optimizer::StepDecay<double>> tg(w, log_loss, weight_update, step_decay);
+    tg.optimize(X, y);
+    opt_w = tg.get_coef();
+    std::cout << opt_w <<std::endl;
 
 }
 
