@@ -67,25 +67,25 @@ protected:
         VecType W(num_features);
         W.setRandom();
 
-        loss::LogLoss<DataType> log_loss;
-        optimizer::StepDecay<DataType> lr_decay(alpha_);
-        optimizer::VanillaUpdate<DataType> weight_update;
-        optimizer::SGD<DataType> sgd(X_new, y_new, 
-            max_iter_, 
-            batch_size_, 
-            alpha_, 
-            tol_, 
-            shuffle_, 
-            verbose_);
+        // loss::LogLoss<DataType> log_loss;
+        // optimizer::StepDecay<DataType> lr_decay(alpha_);
+        // optimizer::VanillaUpdate<DataType> weight_update;
+        // optimizer::SGD<DataType> sgd(X_new, y_new, 
+        //     max_iter_, 
+        //     batch_size_, 
+        //     alpha_, 
+        //     tol_, 
+        //     shuffle_, 
+        //     verbose_);
 
-        if (penalty_ == "l2") {
-            // xxx
-        } else if (penalty_ == "None") {
-            sgd.optimize(W, log_loss, weight_update, lr_decay);  
-        }
+        // if (penalty_ == "l2") {
+        //     // xxx
+        // } else if (penalty_ == "None") {
+        //     sgd.optimize(W, log_loss, weight_update, lr_decay);  
+        // }
             
         
-        W_ = W;
+        // W_ = W;
     };
 
     /**Predict confidence scores for samples.*/
