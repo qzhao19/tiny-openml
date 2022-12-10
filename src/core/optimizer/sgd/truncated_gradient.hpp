@@ -102,7 +102,7 @@ public:
             VecType y_batch(this->batch_size_);
             VecType loss_history(this->batch_size_);
 
-            double lr = lr_decay_.compute(iter);
+            double lr = this->lr_decay_.compute(iter);
 
             for (std::size_t j = 0; j < num_batch; j++) {
                 std::size_t begin = j * this->batch_size_;
@@ -110,19 +110,19 @@ public:
                 y_batch = y_new.middleRows(begin, this->batch_size_);
 
                 VecType grad(num_features);
-                grad = loss_func_.gradient(X_batch, y_batch, this->x0_);
+                grad = this->loss_func_.gradient(X_batch, y_batch, this->x0_);
 
                 // clip gradient with large value 
                 grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
 
                 // W = W - lr * grad; 
-                this->x0_ = w_update_.update(this->x0_, grad, lr);
+                this->x0_ = this->w_update_.update(this->x0_, grad, lr);
 
                 max_cum_l1 += static_cast<DataType>(l1_ratio_) * 
                     static_cast<DataType>(lr) * static_cast<DataType>(alpha_);
                 truncate(this->x0_, cum_l1, max_cum_l1);
 
-                double loss = loss_func_.evaluate(X_batch, y_batch, this->x0_);
+                double loss = this->loss_func_.evaluate(X_batch, y_batch, this->x0_);
 
                 loss_history(j, 0) = loss;
             }
