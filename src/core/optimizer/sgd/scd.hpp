@@ -16,8 +16,8 @@ namespace optimizer {
 */
 template<typename DataType, 
     typename LossFuncionType, 
-    typename UpdatePolicyType,
-    typename DecayPolicyType>
+    typename UpdatePolicyType = optimizer::VanillaUpdate<DataType>,
+    typename DecayPolicyType = optimizer::StepDecay<DataType>>
 class SCD: public BaseOptimizer<DataType, 
     LossFuncionType, 
     UpdatePolicyType, 
@@ -26,15 +26,9 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
-    // LossFuncionType loss_func_;
-    // std::size_t max_iter_;
-    
     double lambda_;
     double l1_ratio_;
     
-    // bool shuffle_;
-    // bool verbose_;
-
 public:
     SCD(const VecType& x0,
         const LossFuncionType& loss_func,
@@ -71,7 +65,7 @@ public:
                 random::shuffle_data<MatType, VecType>(X_new, y_new, X_new, y_new);
             }
 
-            grad = loss_func_.gradient(X_new, y_new, w);
+            grad = this->loss_func_.gradient(X_new, y_new, this->x0_);
 
             double pred_descent = 0.0;
             double best_descent = -1.0;
@@ -107,12 +101,13 @@ public:
             if (this->verbose_) {
                 if ((iter % 100) == 0) {
                     double w_norm = this->x0_.array().abs().sum();
-                    double loss = loss_func_.evaluate(X_new, y_new, this->x0_);
+                    double loss = this->loss_func_.evaluate(X_new, y_new, this->x0_);
                     std::cout << "-- Epoch = " << iter << ", weight norm = " 
                         << w_norm <<", loss value = " << loss / num_samples << std::endl;
                 }
             }
         }
+        this->opt_x_ = this->x0_;
     } 
 };
 
