@@ -23,17 +23,15 @@ int main() {
     std::cout << "scd test" <<std::endl;
     loss::MSE<double> mse_loss;
 
-    VecType W(num_features);
-    W.setZero();
-    
-    // std::cout << W <<std::endl;
-    VecType opt_W(num_features);
-    optimizer::StepDecay<double> step_decay(0.15);
+    VecType w(num_features);
+    w.setZero();
+    VecType opt_w(num_features);
 
-    optimizer::SCD<double> scd(X, y);
-    opt_W = scd.optimize(W, mse_loss);
-    
-    std::cout << opt_W <<std::endl;
+    optimizer::SCD<double, 
+        loss::MSE<double>> scd(w, mse_loss);
+    scd.optimize(X, y);
+    opt_w = scd.get_coef();
+    std::cout << opt_w <<std::endl;
 
 }
 
