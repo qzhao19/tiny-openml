@@ -1,11 +1,8 @@
 #ifndef CORE_OPTIMIZER_SGD_SCD_HPP
 #define CORE_OPTIMIZER_SGD_SCD_HPP
-#include "./decay_policies/step_decay.hpp"
-#include "./decay_policies/exponential_decay.hpp"
-#include "./update_policies/vanilla_update.hpp"
-#include "./update_policies/momentum_update.hpp"
 #include "../../../prereqs.hpp"
 #include "../../../core.hpp"
+#include "../base.hpp"
 using namespace openml;
 
 namespace openml {
@@ -15,13 +12,9 @@ namespace optimizer {
  * Stochastic coordinate descent algorithm
 */
 template<typename DataType, 
-    typename LossFuncionType, 
-    typename UpdatePolicyType = optimizer::VanillaUpdate<DataType>,
-    typename DecayPolicyType = optimizer::StepDecay<DataType>>
+    typename LossFuncionType>
 class SCD: public BaseOptimizer<DataType, 
-    LossFuncionType, 
-    UpdatePolicyType, 
-    DecayPolicyType> {
+    LossFuncionType> {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
@@ -37,9 +30,7 @@ public:
         const double lambda = 0.0001,
         const bool shuffle = true,
         const bool verbose = true): BaseOptimizer<DataType, 
-            LossFuncionType, 
-            UpdatePolicyType, 
-            DecayPolicyType>(x0, 
+            LossFuncionType>(x0, 
                 loss_func, 
                 max_iter, 
                 shuffle, 

@@ -1,9 +1,5 @@
 #ifndef CORE_OPTIMIZER_SGD_SGD_HPP
 #define CORE_OPTIMIZER_SGD_SGD_HPP
-#include "./decay_policies/step_decay.hpp"
-#include "./decay_policies/exponential_decay.hpp"
-#include "./update_policies/vanilla_update.hpp"
-#include "./update_policies/momentum_update.hpp"
 #include "../../../prereqs.hpp"
 #include "../../../core.hpp"
 #include "../base.hpp"
