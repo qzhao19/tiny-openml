@@ -1,5 +1,9 @@
 #ifndef CORE_OPTIMIZER_BASE_HPP
 #define CORE_OPTIMIZER_BASE_HPP
+#include "./sgd/decay_policies/step_decay.hpp"
+#include "./sgd/decay_policies/exponential_decay.hpp"
+#include "./sgd/update_policies/vanilla_update.hpp"
+#include "./sgd/update_policies/momentum_update.hpp"
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
@@ -8,8 +12,8 @@ namespace optimizer {
 
 template<typename DataType, 
     typename LossFuncionType, 
-    typename UpdatePolicyType,
-    typename DecayPolicyType>
+    typename UpdatePolicyType = optimizer::VanillaUpdate<DataType>,
+    typename DecayPolicyType = optimizer::StepDecay<DataType>>
 class BaseOptimizer {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
