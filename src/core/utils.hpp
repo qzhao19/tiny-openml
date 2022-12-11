@@ -351,7 +351,7 @@ std::tuple<VecType, VecType> unique(const VecType& x){
  * @return An array with index of elements 
 */
 template<typename VecType, typename IdxType>
-IdxType where(const auto& x) {
+IdxType where(const VecType& x) {
     std::vector<Eigen::Index> index_vec;
     for (std::size_t i = 0; i < x.size(); ++i) {
         if (x(i)) {

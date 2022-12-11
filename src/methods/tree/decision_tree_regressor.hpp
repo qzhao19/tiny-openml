@@ -80,9 +80,8 @@ protected:
         std::size_t left_num_samples = left_y.rows();
         std::size_t right_num_samples = right_y.rows();
 
-
+        double impurity = 0.0;
         if (criterion_ == "squared_error") {
-            
             auto total_var = math::var<MatType, VecType>(y, -1);
             auto left_var = math::var<MatType, VecType>(left_y, -1);
             auto right_var = math::var<MatType, VecType>(right_y, -1);
@@ -91,7 +90,7 @@ protected:
                 static_cast<double>(left_num_samples) * static_cast<double>(left_var.value()) -
                     static_cast<double>(right_num_samples) * static_cast<double>(right_var.value());
             
-            return mse;
+            impurity = mse;
         }
         else if (criterion_ == "absolute_error") {
             
@@ -111,8 +110,12 @@ protected:
                 static_cast<double>(left_num_samples) * static_cast<double>(left_y_bar_sum.value()) -
                     static_cast<double>(right_num_samples) * static_cast<double>(right_y_bar_sum.value());
 
-            return mae;
+            impurity = mae;
         }
+        else {
+            throw std::invalid_argument("The criterion must be 'absolute_error' or 'squared_error'");
+        }
+        return impurity;
     }
 
     /**
@@ -185,12 +188,21 @@ protected:
         // std::cout << "best_impurity = " << best_impurity << std::endl;
 
         VecType selected_x = X.col(best_feature_index);
-        IdxType left_selected_index = utils::where<VecType, IdxType>(
-            (selected_x.array() <= best_feature_value)
-        );
-        IdxType right_selected_index = utils::where<VecType, IdxType>(
-            (selected_x.array() > best_feature_value)
-        );
+        // IdxType left_selected_index = utils::where<VecType, IdxType>(
+        //     (selected_x.array() <= best_feature_value)
+        // );
+        // IdxType right_selected_index = utils::where<VecType, IdxType>(
+        //     (selected_x.array() > best_feature_value)
+        // );
+
+        auto tmp1 = (selected_x.array() <= best_feature_value);
+        VecType left_selected = tmp1.template cast<DataType>();
+        IdxType left_selected_index = utils::where<VecType, IdxType>(left_selected);
+
+        auto tmp2 = (selected_x.array() > best_feature_value);
+        VecType right_selected = tmp2.template cast<DataType>();
+        IdxType right_selected_index = utils::where<VecType, IdxType>(right_selected);
+
 
         MatType left_X = X(left_selected_index, Eigen::all);
         VecType left_y = y(left_selected_index);

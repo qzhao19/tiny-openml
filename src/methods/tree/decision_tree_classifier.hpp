@@ -87,12 +87,13 @@ protected:
         std::size_t left_num_samples = left_y.rows();
         std::size_t right_num_samples = right_y.rows();
 
+        double impurity = 0.0;
         if (criterion_ == "gini") {
             double left_gini = math::gini<VecType>(left_y);
             double right_gini = math::gini<VecType>(right_y);
             double g = static_cast<double>(left_num_samples) / static_cast<double>(num_samples) * left_gini +
                 static_cast<double>(right_num_samples) / static_cast<double>(num_samples) * right_gini;
-            return 1.0 - g;
+            impurity = 1.0 - g;
         }
         else if (criterion_ == "entropy") {
             double empirical_ent = math::entropy<VecType>(y);
@@ -101,8 +102,12 @@ protected:
             double ent = empirical_ent - 
                 static_cast<double>(left_num_samples) / static_cast<double>(num_samples) * left_ent -
                     static_cast<double>(right_num_samples) / static_cast<double>(num_samples) * right_ent;
-            return ent;
+            impurity = ent;
         }
+        else {
+            throw std::invalid_argument("The criterion must be 'gini' or 'entropy'");
+        }
+        return impurity;
     }
 
 
@@ -179,12 +184,13 @@ protected:
         // std::cout << "best_impurity = " << best_impurity << std::endl;
 
         VecType selected_x = X.col(best_feature_index);
-        IdxType left_selected_index = utils::where<VecType, IdxType>(
-            (selected_x.array() <= best_feature_value)
-        );
-        IdxType right_selected_index = utils::where<VecType, IdxType>(
-            (selected_x.array() > best_feature_value)
-        );
+        auto tmp1 = (selected_x.array() <= best_feature_value);
+        VecType left_selected = tmp1.template cast<DataType>();
+        IdxType left_selected_index = utils::where<VecType, IdxType>(left_selected);
+
+        auto tmp2 = (selected_x.array() > best_feature_value);
+        VecType right_selected = tmp2.template cast<DataType>();
+        IdxType right_selected_index = utils::where<VecType, IdxType>(right_selected);
 
         MatType left_X = X(left_selected_index, Eigen::all);
         VecType left_y = y(left_selected_index);
