@@ -61,12 +61,25 @@ public:
     BaseOptimizer(const VecType& x0,
         const LossFuncionType& loss_func,
         const std::size_t max_iter = 2000,
+        const double tol = 0.0001,
+        const bool shuffle = true, 
+        const bool verbose = true): x0_(x0),
+            loss_func_(loss_func),
+            max_iter_(max_iter), 
+            tol_(tol),
+            shuffle_(shuffle),
+            verbose_(verbose) {};
+    
+    BaseOptimizer(const VecType& x0,
+        const LossFuncionType& loss_func,
+        const std::size_t max_iter = 2000,
         const bool shuffle = true, 
         const bool verbose = true): x0_(x0),
             loss_func_(loss_func),
             max_iter_(max_iter), 
             shuffle_(shuffle),
             verbose_(verbose) {};
+    
     ~BaseOptimizer() {};
 
     virtual void optimize(const MatType& X, 
