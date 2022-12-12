@@ -188,13 +188,6 @@ protected:
         // std::cout << "best_impurity = " << best_impurity << std::endl;
 
         VecType selected_x = X.col(best_feature_index);
-        // IdxType left_selected_index = utils::where<VecType, IdxType>(
-        //     (selected_x.array() <= best_feature_value)
-        // );
-        // IdxType right_selected_index = utils::where<VecType, IdxType>(
-        //     (selected_x.array() > best_feature_value)
-        // );
-
         auto tmp1 = (selected_x.array() <= best_feature_value);
         VecType left_selected = tmp1.template cast<DataType>();
         IdxType left_selected_index = utils::where<VecType, IdxType>(left_selected);
