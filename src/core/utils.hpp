@@ -28,7 +28,9 @@ auto max_element(Container const &x)
 */
 template<typename MatType>
 MatType hstack(const MatType& x1, const MatType& x2) {
-    assert(x1.rows() == x2.rows() && "hstack with mismatching number of rows");
+    if (x1.rows() != x2.rows()) {
+        throw std::invalid_argument("hstack with mismatching number of rows")
+    }
     std::size_t num_rows = x1.rows(), num_cols1 = x1.cols(), num_cols2 = x2.cols();
     MatType retval(num_rows, (num_cols1 + num_cols2));
     retval << x1, x2;
@@ -44,7 +46,9 @@ MatType hstack(const MatType& x1, const MatType& x2) {
 */
 template<typename MatType>
 MatType vstack(const MatType& x1, const MatType& x2) {
-    assert(x1.cols() == x2.cols() && "vstack with mismatching number of columns");
+    if (x1.cols() != x2.cols()) {
+        throw std::invalid_argument("vstack with mismatching number of columns")
+    }
     std::size_t num_cols = x1.cols(), num_rows1 = x1.rows(), num_rows2 = x2.rows();
     MatType retval((num_rows1 + num_rows2), num_cols);
     retval << x1, 
