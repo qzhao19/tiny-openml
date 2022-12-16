@@ -4,6 +4,8 @@
 #include "./sgd/decay_policies/exponential_decay.hpp"
 #include "./sgd/update_policies/vanilla_update.hpp"
 #include "./sgd/update_policies/momentum_update.hpp"
+#include "./lbfgs/search_policies/backtracking.hpp"
+#include "./lbfgs/search_policies/bracketing.hpp"
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
 
