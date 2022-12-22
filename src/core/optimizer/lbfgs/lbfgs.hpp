@@ -1,5 +1,6 @@
 #ifndef CORE_OPTIMIZER_LBFGS_LBFGS_HPP
 #define CORE_OPTIMIZER_LBFGS_LBFGS_HPP
+#include "./search_policies/base.hpp"
 #include "../../../prereqs.hpp"
 #include "../../../core.hpp"
 #include "../base.hpp"
@@ -9,7 +10,7 @@ namespace openml {
 namespace optimizer {
 
 /**
- * Stochastic coordinate descent algorithm
+ * LBFGS algorithm
 */
 template<typename DataType, 
     typename LossFuncionType,
@@ -25,7 +26,7 @@ private:
     std::string linesearch_policy_;
     std::size_t mem_size_;
     std::size_t past_;
-    double tol_;
+    // double tol_;
     double delta_; 
     LineSearchParamType linesearch_params_;
 
@@ -44,12 +45,13 @@ public:
             LossFuncionType>(x0, 
                 loss_func, 
                 max_iter, 
+                tol,
                 shuffle, 
                 verbose),
             linesearch_params_(linesearch_params),
+            linesearch_policy_(linesearch_policy),
             mem_size_(mem_size),
             past_(past),
-            tol_(tol),
             delta_(delta) {};
     
     ~LBFGS() {};
@@ -68,7 +70,28 @@ public:
         VecType d(num_dims);
 
         // an array for storing previous values of the objective function
-        VecType fxp(past_);
+        VecType fxp;
+        fxp.resize(std::max(1, past_));
+
+        
+        // define step search policy
+        std::unique_ptr<LineSearch<DataType, LossFuncionType, LineSearchParamType>> linesearch;
+        if (linesearch_policy_ == "backtracking") {
+            linesearch = std::make_unique<LineSearchBacktracking<DataType, LossFuncionType, LineSearchParamType>>(
+                X, y, this->loss_func_, linesearch_params_
+            );
+        }
+        else if (linesearch_policy_ == "bracketing") {
+            linesearch = std::make_unique<LineSearchBracketing<DataType, LossFuncionType, LineSearchParamType>>(
+                X, y, this->loss_func_, linesearch_params_
+            );
+        }
+        else {
+            throw std::invalid_argument("Cannot find line search policy.")
+        }
+
+        // Initialize the limited memory variables
+
 
 
 
