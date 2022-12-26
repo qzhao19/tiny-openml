@@ -40,6 +40,52 @@ public:
         const VecType& xp, 
         const VecType& gp) {
         
+        
+        double dec_factor = this->linesearch_params_.decrease_factor;
+        double inc_factor = this->linesearch_params_.increase_factor;
+
+        if (step <= 0.0) {
+            std::cout << "'step' must be positive" << std::endl;
+            return -1;
+        }
+
+        const double fx_init = fx;
+        const double dg_init = d.dot(g);
+
+        if (dg_init > 0) {
+            std::cout << "Moving direction increases the objective function value" << std::endl;
+            return -1;
+        }
+
+        double dg_test = this->linesearch_params_.ftol * dg_init;
+        double width;
+        int count = 0;
+
+        while (true) {
+            // x_{k+1} = x_k + step * d_k
+            x.noalias() = xp + step * d;
+
+            fx = this->loss_func_.evaluate(this->X_, this->y_, x);
+            g = this->loss_func_.gradient(this->X_, this->y_, x);
+
+            ++count;
+
+            if (fx > fx_init + step * dg_test) {
+                width = dec_factor;
+            }
+            else {
+                // check Armijo condition
+                if (this->linesearch_params_.condition == "ARMIJO") {
+                    return 1;
+                }
+
+
+
+
+
+            }
+        }
+
 
     }
 
