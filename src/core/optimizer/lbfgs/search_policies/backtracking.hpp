@@ -52,7 +52,7 @@ public:
         const double fx_init = fx;
         const double dg_init = d.dot(g);
 
-        if (dg_init > 0) {
+        if (dg_init > 0.0) {
             std::cout << "Moving direction increases the objective function value" << std::endl;
             return -1;
         }
@@ -76,14 +76,43 @@ public:
             else {
                 // check Armijo condition
                 if (this->linesearch_params_.condition == "ARMIJO") {
-                    return 1;
+                    return count;
                 }
+                // compute the project of d on the direction d
+                double dg = d.dot(g);
+                if (dg < self.linesearch_params["wolfe"] * dg_init) {
+                    width = inc_factor;
+                }
+                else {
+                    if (this->linesearch_params_.condition == "WOLFE") {
+                        return count;
+                    }
 
-
-
-
-
+                    if (dg > (-self.linesearch_params["wolfe"] * dg_init)) {
+                        width = dec_factor;
+                    }
+                    else {
+                        return count;
+                    }
+                }
             }
+
+            if (step < linesearch_params_.min_step) {
+                std::cout << "ERROR: the line search step became smaller than the minimum value allowed." << std::endl;
+                return -1;
+            }
+
+            if (step > linesearch_params_.max_step) {
+                std::cout << "ERROR: the line search step became larger than the maximum value allowed." << std::endl;
+                return -1;
+            }
+
+            if (count >= linesearch_params_.max_linesearch) {
+                std::cout << "the line search step reached the max number of iterations." << std::endl;
+                return -1;
+            }
+
+            step *= width;
         }
 
 
