@@ -60,8 +60,8 @@ public:
         const VecType& y) {
         
         // the initial parameters and its size
-        VecType x0 = this->x0;
-        std::size_t num_dims = x0.rows();
+        // VecType x0 = this->x0_;
+        std::size_t num_dims = this->x0_.rows();
 
         // intermediate variables: previous x, gradient, previous gradient, directions
         VecType xp(num_dims);
@@ -70,8 +70,8 @@ public:
         VecType d(num_dims);
 
         // an array for storing previous values of the objective function
-        VecType fxp;
-        fxp.resize(std::max(1, past_));
+        VecType pfx;
+        pfx.resize(std::max(1, past_));
 
         
         // define step search policy
@@ -91,6 +91,24 @@ public:
         }
 
         // Initialize the limited memory variables
+        MatType mem_s(num_dims, mem_size_);
+        MatType mem_y(num_dims, mem_size_);
+        VecType mem_ys(mem_size_);
+        VecType mem_alpha(num_dims);
+
+        // Evaluate the function value and its gradient
+        double fx = this->loss_func_.evaluate(X, y, this->x0_);
+        VecType g = this->loss_func_.gradient(X, y, this->x0_);
+
+
+
+
+
+
+
+
+
+
 
 
 
