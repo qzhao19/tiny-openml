@@ -94,24 +94,76 @@ public:
         MatType mem_s(num_dims, mem_size_);
         MatType mem_y(num_dims, mem_size_);
         VecType mem_ys(mem_size_);
-        VecType mem_alpha(num_dims);
+        VecType mem_alpha(mem_size_);
 
         // Evaluate the function value and its gradient
         double fx = this->loss_func_.evaluate(X, y, this->x0_);
         VecType g = this->loss_func_.gradient(X, y, this->x0_);
 
+        // Store the initial value of the cost function
+        pfx(0, 0) = fx;
+
+        // Compute the direction we assume the initial hessian matrix H_0 as the identity matrix
+        d.noalias() = -g;
+
+        // make sure the intial points are not sationary points (minimizer)
+        double xnorm = static_cast<double>(this->x0_.norm());
+        double gnorm = static_cast<double>(g.norm());
+
+        if (xnorm < 1.0) {
+            xnorm = 1.0;
+        }
+        if (gnorm / xnorm <= this->tol_) {
+            std::cout << "ERROR: The initial variables already minimize the objective function" << std::endl;
+            return ;
+        }
+
+        // compute intial step = 1.0 / norm2(d)
+        double step = 1.0 / static_cast<double>(d.norm());
+
+        std::size_t k = 1;
+        std::size_t end = 0;
+
+        while (true) {
+            // store current x and gradient value
+            xp = this->x0_;
+            gp = g;
+
+            // apply line search function to find optimized step, search for an optimal step
+            int ls = linesearch.search(this->x0_, fx, g, d, step, xp, gp);
+            
+            if (ls < 0) {
+                this->x0_ = xp;
+                g = gp;
+                std::cout << "ERROR: lbfgs exit: the point return to the privious point." << std::endl;
+                return ;
+            }
+
+            // Convergence test -- gradient
+            // criterion is given by the following formula:
+            // ||g(x)|| / max(1, ||x||) < tol
+            xnorm = static_cast<double>(this->x0_.norm());
+            gnorm = static_cast<double>(g.norm());
+
+            if (this->verbose_) {
+                std::cout << "Iteration = " << k << ", fx = " << fx 
+                          << ", xnorm value = " << xnorm 
+                          << ", gnorm value = " << gnorm << std::endl;
+            }
+
+            if (xnorm < 1.0) {
+                xnorm = 1.0;
+            }
+            if (gnorm / xnorm <= this->tol_) {
+                std::cout << "INFO: success to reached convergence (tol)." << std::endl;
+                break;
+            }
+            
 
 
 
-
-
-
-
-
-
-
-
-
+        }
+        
 
     }
 
