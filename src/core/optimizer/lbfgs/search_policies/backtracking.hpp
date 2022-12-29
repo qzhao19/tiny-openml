@@ -45,7 +45,7 @@ public:
         double inc_factor = this->linesearch_params_.increase_factor;
 
         if (step <= 0.0) {
-            std::cout << "'step' must be positive" << std::endl;
+            std::cout << "ERROR: 'step' must be positive" << std::endl;
             return -1;
         }
 
@@ -108,7 +108,7 @@ public:
             }
 
             if (count >= linesearch_params_.max_linesearch) {
-                std::cout << "the line search step reached the max number of iterations." << std::endl;
+                std::cout << "ERROR: the line search step reached the max number of iterations." << std::endl;
                 return -1;
             }
 
