@@ -40,7 +40,6 @@ public:
         const VecType& xp, 
         const VecType& gp) {
         
-        
         double dec_factor = this->linesearch_params_.decrease_factor;
         double inc_factor = this->linesearch_params_.increase_factor;
 
