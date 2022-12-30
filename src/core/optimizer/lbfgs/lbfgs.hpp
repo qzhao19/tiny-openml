@@ -23,11 +23,10 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
+    double delta_; 
     std::string linesearch_policy_;
     std::size_t mem_size_;
     std::size_t past_;
-    // double tol_;
-    double delta_; 
     LineSearchParamType linesearch_params_;
 
 public:
@@ -59,9 +58,11 @@ public:
     void optimize(const MatType& X, 
         const VecType& y) {
         
-        // the initial parameters and its size
-        // VecType x0 = this->x0_;
-        std::size_t num_dims = this->x0_.rows();
+        // define the initial parameters
+        VecType x = this->x0_;
+        std::size_t num_dims = x.rows();
+        std::size_t i, j, k, end, bound;
+        double ys, yy, rate, beta;
 
         // intermediate variables: previous x, gradient, previous gradient, directions
         VecType xp(num_dims);
@@ -73,7 +74,6 @@ public:
         VecType pfx;
         pfx.resize(std::max(1, past_));
 
-        
         // define step search policy
         std::unique_ptr<LineSearch<DataType, LossFuncionType, LineSearchParamType>> linesearch;
         if (linesearch_policy_ == "backtracking") {
@@ -97,17 +97,17 @@ public:
         VecType mem_alpha(mem_size_);
 
         // Evaluate the function value and its gradient
-        double fx = this->loss_func_.evaluate(X, y, this->x0_);
-        VecType g = this->loss_func_.gradient(X, y, this->x0_);
+        double fx = this->loss_func_.evaluate(X, y, x);
+        VecType g = this->loss_func_.gradient(X, y, x);
 
         // Store the initial value of the cost function
-        pfx(0, 0) = fx;
+        pfx(0) = fx;
 
         // Compute the direction we assume the initial hessian matrix H_0 as the identity matrix
-        d.noalias() = -g;
+        d = -g;
 
         // make sure the intial points are not sationary points (minimizer)
-        double xnorm = static_cast<double>(this->x0_.norm());
+        double xnorm = static_cast<double>(x.norm());
         double gnorm = static_cast<double>(g.norm());
 
         if (xnorm < 1.0) {
@@ -121,19 +121,19 @@ public:
         // compute intial step = 1.0 / norm2(d)
         double step = 1.0 / static_cast<double>(d.norm());
 
-        std::size_t k = 1;
-        std::size_t end = 0;
-
+        k = 1;
+        end = 0;
+        bound = 0;
         while (true) {
             // store current x and gradient value
-            xp = this->x0_;
+            xp = x;
             gp = g;
 
             // apply line search function to find optimized step, search for an optimal step
-            int ls = linesearch.search(this->x0_, fx, g, d, step, xp, gp);
+            int ls = linesearch.search(x, fx, g, d, step, xp, gp);
             
             if (ls < 0) {
-                this->x0_ = xp;
+                x = xp;
                 g = gp;
                 std::cout << "ERROR: lbfgs exit: the point return to the privious point." << std::endl;
                 return ;
@@ -142,7 +142,7 @@ public:
             // Convergence test -- gradient
             // criterion is given by the following formula:
             // ||g(x)|| / max(1, ||x||) < tol
-            xnorm = static_cast<double>(this->x0_.norm());
+            xnorm = static_cast<double>(x.norm());
             gnorm = static_cast<double>(g.norm());
 
             if (this->verbose_) {
@@ -159,12 +159,69 @@ public:
                 break;
             }
             
+            // Convergence test -- objective function value
+            // The criterion is given by the following formula:
+            // |f(past_x) - f(x)| / max(1, |f(x)|) < delta.
+            if (past_ <= k) {
+                rate = std::abs(pfx(k % past_) - fx) / std::max(std::abs(fx), 1.0);
+                if (rate < delta_) {
+                    std::cout << "INFO: success to meet stopping criteria (ftol)." << std::endl;
+                    break;
+                }
+                pfx(k % past_) = fx;
+            }
+            if ((this->max_iter_ != 0) && (this->max_iter_ < k + 1)) {
+                std::cout << "INFO: the algorithm routine reaches the maximum number of iterations" << std::endl;
+                break
+            }
 
+            // Update vectors s and y:
+            // s_{k+1} = x_{k+1} - x_{k} = \step * d_{k}.
+            // y_{k+1} = g_{k+1} - g_{k}.
+            mem_s.col(end) = x - xp;
+            mem_y.col(end) = g - gp;
 
+            // Compute scalars ys and yy:
+            // ys = y^t \cdot s = 1 / \rho.
+            // yy = y^t \cdot y.
+            // Notice that yy is used for scaling the hessian matrix H_0 (Cholesky factor).
+            ys = mem_y.col(end).dot(mem_s.col(end));
+            yy = mem_y.col(end).dot(mem_y.col(end));
+            mem_ys(end) = ys;
 
+            // Compute the negative of gradients
+            d = -g;
+
+            bound = (mem_size_ <= k) ? mem_size_ : k;
+            ++k;
+            end = (end + 1) % mem_size_;
+            j = end;
+
+            // Loop 1
+            for (i = 0; i < bound; ++i) {
+                // if (--j == -1) j = m-1
+                j = (j + mem_size_ - 1) % mem_size_;
+                // \alpha_{j} = \rho_{j} s^{t}_{j} \cdot q_{k+1}
+                mem_alpha(j) = mem_s.col(j).dot(d) / mem_ys(j);
+                // \q_{i} = \q_{i+1} - \alpha_{i} y_{i}
+                d.noalias() += (-mem_alpha(j)) * mem_y.col(j);
+            }
+
+            d *= ys / yy;
+
+            // loop 2
+            for (i = 0; i < bound; ++i) {
+                /* \beta_{j} = \rho_{j} y^t_{j} \cdot \gamm_{i}. */
+                beta = mem_y.col(j).dot(d) / mem_ys(j);
+                /* \gamm_{i+1} = \gamm_{i} + (\alpha_{j} - \beta_{j}) s_{j}. */
+                d.noalias() += (mem_alpha(j) - beta) * mem_s.col(j);
+                /* if (++j == m) j = 0; */
+                j = (j + 1) % mem_size_; 
+            }
+
+            step = 1.0;  
         }
-        
-
+        this->opt_x_ = x;
     }
 
 };
