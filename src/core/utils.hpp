@@ -29,7 +29,7 @@ auto max_element(Container const &x)
 template<typename MatType>
 MatType hstack(const MatType& x1, const MatType& x2) {
     if (x1.rows() != x2.rows()) {
-        throw std::invalid_argument("hstack with mismatching number of rows")
+        throw std::invalid_argument("hstack with mismatching number of rows");
     }
     std::size_t num_rows = x1.rows(), num_cols1 = x1.cols(), num_cols2 = x2.cols();
     MatType retval(num_rows, (num_cols1 + num_cols2));
@@ -47,7 +47,7 @@ MatType hstack(const MatType& x1, const MatType& x2) {
 template<typename MatType>
 MatType vstack(const MatType& x1, const MatType& x2) {
     if (x1.cols() != x2.cols()) {
-        throw std::invalid_argument("vstack with mismatching number of columns")
+        throw std::invalid_argument("vstack with mismatching number of columns");
     }
     std::size_t num_cols = x1.cols(), num_rows1 = x1.rows(), num_rows2 = x2.rows();
     MatType retval((num_rows1 + num_rows2), num_cols);
@@ -210,45 +210,36 @@ IdxType argmin(const MatType& x, int axis = 0) {
 */
 template<typename AnyType, typename IdxType>
 IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
-
     std::size_t num_rows = x.rows(), num_cols = x.cols();
-    
+    IdxType index ;
+    if (axis == 1) {
+        index = IdxType::LinSpaced(num_rows, 0, num_rows);
+    }
+    else if (axis == 0) {
+        index = IdxType::LinSpaced(num_cols, 0, num_cols);
+    }
+
     if (order == "asc") {
-        IdxType index ;
-        if (axis == 1) {
-            index = IdxType::LinSpaced(num_rows, 0, num_rows);
-        }
-        else if (axis == 0) {
-            index = IdxType::LinSpaced(num_cols, 0, num_cols);
-        }
-        
         std::stable_sort(index.data(), index.data() + index.size(), 
             [&x](std::size_t i, std::size_t j) -> bool {
                 return x(i, 0) < x(j, 0);
             }
         );
-        return index;
     }
     else if (order == "desc") {
-        IdxType index;
-        if (axis == 1) {
-            index = IdxType::LinSpaced(num_rows, 0, num_rows);
-        }
-        else if (axis == 0) {
-            index = IdxType::LinSpaced(num_cols, 0, num_cols);
-        }
         std::stable_sort(index.data(), index.data() + index.size(), 
             [&x](std::size_t i, std::size_t j) -> bool {
                 return x(i, 0) > x(j, 0);
             }
         );
-        return index;
     }
     else {
         std::ostringstream err_msg;
         err_msg << "Invalid given sort order " << order.c_str() << std::endl;
         throw std::out_of_range(err_msg.str());
     }
+
+    return index;
 };
 
 /**
