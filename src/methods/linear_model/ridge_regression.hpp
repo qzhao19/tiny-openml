@@ -42,12 +42,12 @@ protected:
         pinv = X_new.transpose() * X_new + lambda_ * eyes;
         pinv = pinv.inverse().eval();
 
-        this->W_ = pinv * X_new.transpose() * y;
+        this->w_ = pinv * X_new.transpose() * y;
     };
 
 public:
     /**
-     * *empty constructor, we initialize the default value of 
+     * empty constructor, we initialize the default value of 
      * the lambda and intercedpt 0.0 and true
     */
     RidgeRegression(): BaseLinearModel<DataType>(true), 
@@ -60,7 +60,7 @@ public:
      * @param intercept: bool, default = True. whether to fit the intercept for the model. 
     */
     RidgeRegression(const double lambda, 
-        const bool intercept): 
+        bool intercept): 
             BaseLinearModel<DataType>(intercept), 
             lambda_(lambda) {};
 

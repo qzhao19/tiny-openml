@@ -42,7 +42,7 @@ protected:
         pinv = X_new.transpose() * X_new;
         pinv = pinv.inverse().eval();
 
-        this->W_ = pinv * X_new.transpose() * y;
+        this->w_ = pinv * X_new.transpose() * y;
     };
     
 public:

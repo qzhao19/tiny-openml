@@ -18,7 +18,7 @@ private:
 protected:
     std::size_t max_iter_;
     double lambda_;
-    double rho_;
+    double l1_ratio_;
 
     bool shuffle_;
     bool verbose_;
@@ -40,20 +40,21 @@ protected:
         }
         
         num_features = X_new.cols();
-        VecType opt_W(num_features);
-        VecType W(num_features);
-        W.setZero();
+        VecType opt_w(num_features);
+        VecType w(num_features);
+        w.setZero();
 
         loss::MSE<DataType> mse_loss;
-        optimizer::SCD<DataType> scd(X_new, 
-            y_new, 
-            max_iter_, 
-            rho_, 
-            lambda_, 
-            shuffle_, 
-            verbose_);
-        opt_W = scd.optimize(W, mse_loss);
-        this->W_ = opt_W;
+        optimizer::SCD<DataType, 
+            loss::MSE<DataType>> scd(w, 
+                mse_loss, 
+                max_iter_, 
+                l1_ratio_, 
+                lambda_, 
+                shuffle_, 
+                verbose_);
+        scd.optimize(X, y);
+        this->w_ = scd.get_coef();
     };
 
 public:
@@ -64,7 +65,7 @@ public:
     LassoRegression(): BaseLinearModel<DataType>(true), 
             max_iter_(5000),
             lambda_(0.001), 
-            rho_(1.0), 
+            l1_ratio_(1.0), 
             shuffle_(true), 
             verbose_(true) {};
 
@@ -76,14 +77,14 @@ public:
     */
     LassoRegression(const std::size_t max_iter, 
         const double lambda, 
-        const double rho,
+        const double l1_ratio,
         const bool shuffle,
         const bool verbose,
         const bool intercept): 
             BaseLinearModel<DataType>(intercept), 
             max_iter_(max_iter),
             lambda_(lambda), 
-            rho_(rho), 
+            l1_ratio_(l1_ratio), 
             shuffle_(shuffle), 
             verbose_(verbose) {};
 

@@ -16,12 +16,12 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     
 protected:
-
     bool shuffle_;
     bool verbose_;
     double alpha_;
     double tol_;
     double lambda_;
+    std::size_t num_iters_no_change_;
     std::size_t batch_size_;
     std::size_t max_iter_;
     std::string penalty_;
@@ -43,22 +43,30 @@ protected:
         }
 
         num_features = X_new.cols();
-        VecType W(num_features);
-        W.setRandom();
+        VecType w(num_features);
+        w.setZero();
 
         loss::HingeLoss<DataType> hinge_loss(lambda_, 0.0);
         optimizer::StepDecay<DataType> lr_decay(alpha_);
         optimizer::VanillaUpdate<DataType> weight_update;
-        optimizer::SGD<DataType> sgd(X_new, y_new, 
-            max_iter_, 
-            batch_size_, 
-            alpha_, 
-            tol_, 
-            shuffle_, 
-            verbose_);
-        this->W_ = sgd.optimize(W, hinge_loss, weight_update, lr_decay);  
-    };
 
+        optimizer::SGD<DataType, 
+            loss::HingeLoss<DataType>, 
+            optimizer::VanillaUpdate<DataType>, 
+            optimizer::StepDecay<DataType>> sgd(
+                w, 
+                hinge_loss, 
+                weight_update, 
+                lr_decay, 
+                max_iter_, 
+                batch_size_, 
+                num_iters_no_change_,
+                tol_, 
+                shuffle_, 
+                verbose_);
+        sgd.optimize(X, y);
+        this->w_ = sgd.get_coef();
+    };
 
 public:
     /**
@@ -66,14 +74,15 @@ public:
      * the lambda and intercedpt 0.0 and true
     */
     Perceptron(): BaseLinearModel<DataType>(true), 
-        shuffle_(true), 
-        verbose_(true), 
         alpha_(0.001), 
         lambda_(0.5), 
         tol_(0.0001), 
         batch_size_(512), 
         max_iter_(1000), 
-        penalty_("l2") {};
+        num_iters_no_change_(5),
+        penalty_("l2"), 
+        shuffle_(true), 
+        verbose_(true) {};
 
     /**
      * Non-empty constructor, create the model with lamnda and intercept
@@ -81,15 +90,16 @@ public:
      *      Constant that multiplies the regularization term
      * @param intercept: bool, default = True. whether to fit the intercept for the model. 
     */
-    Perceptron(bool intercept,
-        bool shuffle, 
-        bool verbose, 
-        const double alpha, 
+    Perceptron(const double alpha, 
         const double lambda,
         const double tol, 
         const std::size_t batch_size, 
         const std::size_t max_iter, 
-        const std::string penalty): 
+        const std::size_t num_iters_no_change,
+        const std::string penalty, 
+        bool intercept,
+        bool shuffle, 
+        bool verbose): 
             BaseLinearModel<DataType>(intercept), 
             shuffle_(shuffle), 
             verbose_(verbose), 
@@ -98,6 +108,7 @@ public:
             tol_(tol), 
             batch_size_(batch_size), 
             max_iter_(max_iter), 
+            num_iters_no_change_(num_iters_no_change),
             penalty_(penalty_) {};
 
     /**deconstructor*/

@@ -15,13 +15,13 @@ private:
 
 protected:
     /**
-     * @param W_ ndarray_like data of shape [num_samples,]. 
+     * @param w_ ndarray_like data of shape [num_samples,]. 
      *      the parameters that we want ot calculate, initialized and 
      *      filled by constructor for the least square method
      * @param intercept_ bool, default = True. 
      *      whether to fit the intercept for the model.  
     */
-    VecType W_;
+    VecType w_;
     bool intercept_;
     
     /**
@@ -43,14 +43,14 @@ protected:
         VecType y_pred(num_samples);
 
         if (intercept_) {
-            y_pred = X * W_.topRows(num_features);
+            y_pred = X * w_.topRows(num_features);
             VecType b(num_samples);
-            b = utils::repeat<VecType>(W_.bottomRows(1), num_samples, 0);
+            b = utils::repeat<VecType>(w_.bottomRows(1), num_samples, 0);
             y_pred += b;
             return y_pred;
         }
         else {
-            y_pred = X * W_;
+            y_pred = X * w_;
             return y_pred;
         }
     }
@@ -70,7 +70,7 @@ public:
 
     /**public get_coef interface*/
     const VecType get_coef() const {
-        return W_;
+        return w_;
     };
 
     /**
