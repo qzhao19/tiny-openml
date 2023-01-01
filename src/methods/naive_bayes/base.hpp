@@ -46,7 +46,7 @@ protected:
             ++num_classes_;
             classes.push_back(label.first);
             prior_prob.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
-            i++;
+            ++i;
         }
         classes_ = utils::vec2mat<VecType>(classes);
         prior_prob_ = utils::vec2mat<VecType>(prior_prob);

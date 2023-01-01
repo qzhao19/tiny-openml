@@ -47,7 +47,7 @@ protected:
             VecType sum_log_var = math::sum<MatType, VecType>(val.array().log().matrix()) * (-0.5);
             MatType sum_log_var_tmp = utils::repeat<MatType>(sum_log_var, num_samples, 0);
             
-            MatType X_minus_mean = X.array() - utils::repeat<MatType>(mean_.row(i), num_samples, 0).array();
+            MatType X_minus_mean = X - utils::repeat<MatType>(mean_.row(i), num_samples, 0);
             MatType X_minus_mean_squared = X_minus_mean.array().square();
             MatType var_tmp = utils::repeat<MatType>(var_.row(i), num_samples, 0);
 

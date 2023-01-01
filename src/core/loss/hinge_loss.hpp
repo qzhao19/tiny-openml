@@ -74,10 +74,10 @@ public:
             if (x_w_y > threshold_) {
                 VecType tmp(num_features);
                 tmp.setZero();
-                grad += tmp;
+                grad.noalias() += tmp;
             }
             else {
-                grad += (X.row(i).transpose() * (-y(i, 0))).eval();
+                grad.noalias() += (X.row(i).transpose() * (-y(i, 0)));
             }
         }
 
