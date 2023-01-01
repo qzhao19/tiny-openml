@@ -9,7 +9,7 @@ namespace optimizer {
 template <typename DataType,
     typename LossFuncionType,
     typename LineSearchParamType>
-class LineSearch {
+class BaseLineSearch {
 private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
@@ -22,8 +22,8 @@ protected:
     LineSearchParamType linesearch_params_;
 
 public:
-    LineSearch() {};
-    LineSearch(const MatType& X, 
+    BaseLineSearch() {};
+    BaseLineSearch(const MatType& X, 
         const VecType& y,
         const LossFuncionType& loss_func,
         const LineSearchParamType& linesearch_params): X_(X), 
@@ -31,7 +31,7 @@ public:
             loss_func_(loss_func), 
             linesearch_params_(linesearch_params) {};
 
-    ~LineSearch() {};
+    ~BaseLineSearch() {};
 
     virtual int search(VecType& x, 
         double& fx, 

@@ -62,7 +62,7 @@ public:
         VecType x = this->x0_;
         std::size_t num_dims = x.rows();
         std::size_t i, j, k, end, bound;
-        double ys, yy, rate, beta;
+        double fx, ys, yy, rate, beta;
 
         // intermediate variables: previous x, gradient, previous gradient, directions
         VecType xp(num_dims);
@@ -71,11 +71,10 @@ public:
         VecType d(num_dims);
 
         // an array for storing previous values of the objective function
-        VecType pfx;
-        pfx.resize(std::max(1, past_));
+        VecType pfx(std::max(static_cast<std::size_t>(1), past_));
 
         // define step search policy
-        std::unique_ptr<LineSearch<DataType, LossFuncionType, LineSearchParamType>> linesearch;
+        std::unique_ptr<BaseLineSearch<DataType, LossFuncionType, LineSearchParamType>> linesearch;
         if (linesearch_policy_ == "backtracking") {
             linesearch = std::make_unique<LineSearchBacktracking<DataType, LossFuncionType, LineSearchParamType>>(
                 X, y, this->loss_func_, linesearch_params_
@@ -87,7 +86,7 @@ public:
             );
         }
         else {
-            throw std::invalid_argument("Cannot find line search policy.")
+            throw std::invalid_argument("Cannot find line search policy.");
         }
 
         // Initialize the limited memory variables
@@ -97,8 +96,8 @@ public:
         VecType mem_alpha(mem_size_);
 
         // Evaluate the function value and its gradient
-        double fx = this->loss_func_.evaluate(X, y, x);
-        VecType g = this->loss_func_.gradient(X, y, x);
+        fx = this->loss_func_.evaluate(X, y, x);
+        g = this->loss_func_.gradient(X, y, x);
 
         // Store the initial value of the cost function
         pfx(0) = fx;
@@ -130,13 +129,13 @@ public:
             gp = g;
 
             // apply line search function to find optimized step, search for an optimal step
-            int ls = linesearch.search(x, fx, g, d, step, xp, gp);
+            int ls = linesearch->search(x, fx, g, d, step, xp, gp);
             
             if (ls < 0) {
                 x = xp;
                 g = gp;
                 std::cout << "ERROR: lbfgs exit: the point return to the privious point." << std::endl;
-                return ;
+                break ;
             }
 
             // Convergence test -- gradient
@@ -172,7 +171,7 @@ public:
             }
             if ((this->max_iter_ != 0) && (this->max_iter_ < k + 1)) {
                 std::cout << "INFO: the algorithm routine reaches the maximum number of iterations" << std::endl;
-                break
+                break;
             }
 
             // Update vectors s and y:

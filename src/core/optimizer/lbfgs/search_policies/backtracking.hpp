@@ -10,7 +10,7 @@ namespace optimizer {
 template <typename DataType,
     typename LossFuncionType,
     typename LineSearchParamType>
-class LineSearchBacktracking: public LineSearch<DataType, 
+class LineSearchBacktracking: public BaseLineSearch<DataType, 
     LossFuncionType, 
     LineSearchParamType> {
 private:
@@ -22,7 +22,7 @@ public:
     LineSearchBacktracking(const MatType& X, 
         const VecType& y,
         const LossFuncionType& loss_func,
-        const LineSearchParamType& linesearch_params): LineSearch<DataType, 
+        const LineSearchParamType& linesearch_params): BaseLineSearch<DataType, 
             LossFuncionType, 
             LineSearchParamType>(
                 X, y, 
@@ -110,11 +110,8 @@ public:
                 std::cout << "ERROR: the line search step reached the max number of iterations." << std::endl;
                 return -1;
             }
-
             step *= width;
         }
-
-
     }
 
 };

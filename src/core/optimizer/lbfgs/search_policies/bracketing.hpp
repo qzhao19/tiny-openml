@@ -10,7 +10,7 @@ namespace optimizer {
 template <typename DataType,
     typename LossFuncionType,
     typename LineSearchParamType>
-class LineSearchBracketing: public LineSearch<DataType, 
+class LineSearchBracketing: public BaseLineSearch<DataType, 
     LossFuncionType, 
     LineSearchParamType> {
 private:
@@ -22,7 +22,7 @@ public:
     LineSearchBracketing(const MatType& X, 
         const VecType& y,
         const LossFuncionType& loss_func,
-        const LineSearchParamType& linesearch_params): LineSearch<DataType, 
+        const LineSearchParamType& linesearch_params): BaseLineSearch<DataType, 
             LossFuncionType, 
             LineSearchParamType>(
                 X, y, 
