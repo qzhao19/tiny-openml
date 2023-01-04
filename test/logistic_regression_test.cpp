@@ -11,25 +11,24 @@ int main() {
 
     data::loadtxt<MatType, VecType>("../dataset/ionosphere.txt", X, y);
 
-    MatType X_train;
-    MatType X_test;
-    VecType y_train;
-    VecType y_test;
-    std::tie(X_train, X_test, y_train, y_test) = data::train_test_split<MatType, VecType>(X, y, 0.9);
+    std::size_t num_features = X.cols();
+    std::cout << "sgd test" <<std::endl;
+    
+    VecType w(num_features);
+    w.setOnes();
+    VecType opt_w(num_features);
 
     linear_model::LogisticRegression<double> lr;   
-    lr.fit(X_train, y_train);
+    lr.fit(X, y);
 
     VecType y_pred;
-    y_pred = lr.predict(X_test);
+    y_pred = lr.predict(X);
     std::cout << "y_pred" << std::endl;
     std::cout << y_pred << std::endl;
 
     MatType y_pred_prob;
-    y_pred_prob = lr.predict_prob(X_test);
+    y_pred_prob = lr.predict_prob(X);
     std::cout << "y_pred_prob" << std::endl;
     std::cout << y_pred_prob << std::endl;
-
-
 
 }
