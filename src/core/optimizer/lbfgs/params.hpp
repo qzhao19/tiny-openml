@@ -29,6 +29,18 @@ public:
         max_linesearch_(40), 
         condition_("WOLFE") {};
 
+    LinearSearchParams(DataType ftol,
+        DataType wolfe,
+        std::size_t max_linesearch,
+        std::string condition): dec_factor_(0.5), 
+            inc_factor_(2.1), 
+            ftol_(ftol), 
+            wolfe_(wolfe), 
+            max_step_(1e+20), 
+            min_step_(1e-20), 
+            max_linesearch_(max_linesearch), 
+            condition_(condition) {};
+
     LinearSearchParams(DataType dec_factor,
         DataType inc_factor,
         DataType ftol,
@@ -44,7 +56,7 @@ public:
             min_step_(min_step), 
             max_linesearch_(max_linesearch), 
             condition_(condition) {};
-
+    
 };
 
 }
