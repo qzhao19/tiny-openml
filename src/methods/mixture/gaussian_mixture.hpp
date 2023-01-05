@@ -338,8 +338,7 @@ private:
      * Compute the log prob, weighted log prob per
      * component and resp for each sample in X 
     */
-    const std::tuple<MatType, VecType> 
-    estimate_log_prob_resp(
+    const std::tuple<MatType, VecType> estimate_log_prob_resp(
         const MatType& X) const {
         
         std::size_t num_samples = X.rows();
