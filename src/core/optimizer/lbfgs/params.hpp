@@ -8,7 +8,7 @@ namespace openml {
 namespace optimizer {
 
 template<typename DataType = double>
-class LinearSearchParams {
+class LineSearchParams {
 public:
     DataType dec_factor_;
     DataType inc_factor_;
@@ -20,7 +20,7 @@ public:
     std::string condition_;
 
 public:
-    LinearSearchParams(): dec_factor_(0.5), 
+    LineSearchParams(): dec_factor_(0.5), 
         inc_factor_(2.1), 
         ftol_(1e-4), 
         wolfe_(0.9), 
@@ -29,7 +29,7 @@ public:
         max_linesearch_(40), 
         condition_("WOLFE") {};
 
-    LinearSearchParams(DataType ftol,
+    LineSearchParams(DataType ftol,
         DataType wolfe,
         std::size_t max_linesearch,
         std::string condition): dec_factor_(0.5), 
@@ -41,7 +41,7 @@ public:
             max_linesearch_(max_linesearch), 
             condition_(condition) {};
 
-    LinearSearchParams(DataType dec_factor,
+    LineSearchParams(DataType dec_factor,
         DataType inc_factor,
         DataType ftol,
         DataType wolfe,
