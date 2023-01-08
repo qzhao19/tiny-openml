@@ -22,11 +22,11 @@ int main() {
     VecType opt_w(num_features);
 
     loss::LogLoss<double> log_loss;
-    optimizer::LinearSearchParams<double> linear_search_params;
+    optimizer::LineSearchParams<double> ls_params;
 
     optimizer::LBFGS<double, 
         loss::LogLoss<double>, 
-        optimizer::LinearSearchParams<double>> lbfgs(w, log_loss, linear_search_params);
+        optimizer::LineSearchParams<double>> lbfgs(w, log_loss, ls_params);
     
     lbfgs.optimize(X, y);
     opt_w = lbfgs.get_coef();
