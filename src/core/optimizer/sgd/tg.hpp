@@ -1,11 +1,8 @@
-#ifndef CORE_OPTIMIZER_SGD_TRUNCATED_GRADIENT_HPP
-#define CORE_OPTIMIZER_SGD_TRUNCATED_GRADIENT_HPP
-#include "./decay_policies/step_decay.hpp"
-#include "./decay_policies/exponential_decay.hpp"
-#include "./update_policies/vanilla_update.hpp"
-#include "./update_policies/momentum_update.hpp"
+#ifndef CORE_OPTIMIZER_SGD_TG_HPP
+#define CORE_OPTIMIZER_SGD_TG_HPP
 #include "../../../prereqs.hpp"
 #include "../../../core.hpp"
+#include "../base.hpp"
 using namespace openml;
 
 namespace openml {
@@ -100,7 +97,7 @@ public:
             }
             MatType X_batch(this->batch_size_, num_features);
             VecType y_batch(this->batch_size_);
-            VecType loss_history(this->batch_size_);
+            VecType loss_history(num_batch);
 
             double lr = this->lr_decay_.compute(iter);
 
@@ -166,4 +163,4 @@ public:
 
 }
 }
-#endif /*CORE_OPTIMIZER_SGD_TRUNCATED_GRADIENT_HPP*/
+#endif /*CORE_OPTIMIZER_SGD_TG_HPP*/
