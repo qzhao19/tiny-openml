@@ -18,11 +18,12 @@
 #include "../src/core/loss/log_loss.hpp"
 #include "../src/core/loss/hinge_loss.hpp"
 #include "../src/core/loss/mean_squared_error.hpp"
+#include "../src/core/loss/softmax_loss.hpp"
 
 #include "../src/core/optimizer/base.hpp"
 #include "../src/core/optimizer/sgd/sgd.hpp"
 #include "../src/core/optimizer/sgd/sag.hpp"
-#include "../src/core/optimizer/sgd/truncated_gradient.hpp"
+#include "../src/core/optimizer/sgd/tg.hpp"
 #include "../src/core/optimizer/sgd/scd.hpp"
 #include "../src/core/optimizer/lbfgs/lbfgs.hpp"
 #include "../src/core/optimizer/lbfgs/params.hpp"

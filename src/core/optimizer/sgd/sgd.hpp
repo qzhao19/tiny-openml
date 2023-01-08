@@ -65,7 +65,7 @@ public:
             }
             MatType X_batch(this->batch_size_, num_features);
             VecType y_batch(this->batch_size_);
-            VecType loss_history(this->batch_size_);
+            VecType loss_history(num_batch);
 
             double lr = this->lr_decay_.compute(iter);
 
@@ -77,15 +77,14 @@ public:
                 grad = this->loss_func_.gradient(X_batch, y_batch, this->x0_);
                 // clip gradient with large value 
                 grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
-
                 // W = W - lr * grad; 
                 this->x0_ = this->w_update_.update(this->x0_, grad, lr);
                 double loss = this->loss_func_.evaluate(X_batch, y_batch, this->x0_);
                 loss_history(j, 0) = loss;
             }
-
+            // compute total loss from one batch
             double sum_loss = static_cast<double>(loss_history.array().sum());
-
+            
             if (sum_loss > best_loss - this->tol_ * this->batch_size_) {
                 no_improvement_count +=1;
             }
@@ -118,6 +117,7 @@ public:
                     << ", try apply different parameters." << std::endl;
             throw std::runtime_error(err_msg.str());
         }
+        std::cout << "optimization w" << this->opt_x_ << std::endl;
     }
 };
 

@@ -68,7 +68,7 @@ public:
             }
             MatType X_batch(this->batch_size_, num_features);
             VecType y_batch(this->batch_size_);
-            VecType loss_history(this->batch_size_);
+            VecType loss_history(num_batch);
 
             double lr = this->lr_decay_.compute(iter);
 

@@ -37,26 +37,28 @@ protected:
      * @param X the test sample
      * @return Returns predicted values, ndarray of shape (num_samples,)
     */
-    virtual const VecType predict_label(const MatType& X) const {
+    const VecType predict_label(const MatType& X) const {
         // y_pred = X * theta
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType y_pred(num_samples);
 
         if (intercept_) {
-            y_pred = X * w_.topRows(num_features);
+            y_pred = X * this->w_.topRows(num_features);
             VecType b(num_samples);
-            b = utils::repeat<VecType>(w_.bottomRows(1), num_samples, 0);
+            b = utils::repeat<VecType>(this->w_.bottomRows(1), num_samples, 0);
             y_pred += b;
             return y_pred;
         }
         else {
-            y_pred = X * w_;
+            y_pred = X * this->w_;
             return y_pred;
         }
     }
 
 public:
-    /**empty constructor*/
+    /**
+     * empty constructor
+    */
     BaseLinearModel(): intercept_(true){};
 
     /**
@@ -65,7 +67,9 @@ public:
     */
     explicit BaseLinearModel(bool intercept): intercept_(intercept) {};
 
-    /**deconstructor*/
+    /**
+     * deconstructor
+    */
     ~BaseLinearModel() {};
 
     /**public get_coef interface*/
@@ -95,7 +99,7 @@ public:
      * 
      * @return Vector containing the class labels for each sample.
     */
-    const VecType predict(const MatType& X) const{
+    virtual const VecType predict(const MatType& X) const{
         VecType y_pred;
         y_pred = predict_label(X);
         return y_pred;
