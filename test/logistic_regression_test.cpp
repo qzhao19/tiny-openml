@@ -15,6 +15,14 @@ int main() {
     linear_model::LogisticRegression<double> lr;
     lr.fit(X, y);
 
+    VecType y_pred;
+    y_pred = lr.predict(X);
+    std::cout << "y_pred" << std::endl;
+    std::cout << y_pred << std::endl;
 
+    MatType y_pred_prob;
+    y_pred_prob = lr.predict_prob(X);
+    std::cout << "y_pred_prob" << std::endl;
+    std::cout << y_pred_prob << std::endl;
 
 };

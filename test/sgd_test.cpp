@@ -28,7 +28,12 @@ int main() {
     optimizer::SGD<double, 
         loss::LogLoss<double>, 
         optimizer::VanillaUpdate<double>, 
-        optimizer::StepDecay<double>> sgd(w, log_loss, weight_update, step_decay);
+        optimizer::StepDecay<double>> sgd(
+            w, 
+            log_loss, 
+            weight_update, 
+            step_decay, 
+            2000, 16, 5, 0.0001, true, true);
     sgd.optimize(X, y);
     opt_w = sgd.get_coef();
     
