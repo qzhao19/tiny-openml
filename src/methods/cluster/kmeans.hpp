@@ -43,7 +43,7 @@ private:
         centers.row(0) = X.row(center_index.value());
 
         // compute the distance between all sample point and the first center point
-        MatType diff1 = X - utils::repeat<MatType>(centers.row(0), num_samples, 0);
+        MatType diff1 = X - common::repeat<MatType>(centers.row(0), num_samples, 0);
         VecType closest_dist = math::row_norms<MatType, VecType>(diff1, true);
 
         // compute the sume of distance, this param allows map a random value of 
@@ -76,7 +76,7 @@ private:
                     candidate_index = closest_dist.size() - 1;
                 }
                 //  Compute distances to center candidates
-                MatType diff2 = X - utils::repeat<MatType>(X.row(candidate_index), num_samples, 0);
+                MatType diff2 = X - common::repeat<MatType>(X.row(candidate_index), num_samples, 0);
                 VecType dist_to_candidates = math::row_norms<MatType, VecType>(diff2, true);
 
                 // update closest distances squared and potential for each candidate

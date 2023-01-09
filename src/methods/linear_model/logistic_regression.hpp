@@ -35,19 +35,16 @@ private:
     std::string linesearch_condition_;
 
 protected:
-    /**
-     * Train the logistic model with the given optimizer
-     * logistic regression must have intercept term, because we want to 
-     * find a decision boundary that is able to seperate 2 class data,
-     * intercept term does not exist, the decision boundary no doubt 
-     * pass through the origin point.
-    */
     void fit_data(const MatType& X, 
         const VecType& y) {
         
         MatType X_new = X;
         VecType y_new = y;
         
+        // logistic regression must have intercept term, because we want to 
+        // find a decision boundary that is able to seperate 2 class data,
+        // intercept term does not exist, the decision boundary no doubt 
+        // pass through the origin point.
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType ones(num_samples);
         ones.fill(1.0);
@@ -157,7 +154,7 @@ protected:
         y_pred = math::sigmoid(decision_boundary);
 
         MatType prob(num_samples, 2);
-        prob = utils::hstack<MatType>(y_pred, ones - y_pred);
+        prob = common::hstack<MatType>(y_pred, ones - y_pred);
 
         return prob;
     }

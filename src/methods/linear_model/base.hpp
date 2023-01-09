@@ -45,7 +45,7 @@ protected:
         if (intercept_) {
             y_pred = X * this->w_.topRows(num_features);
             VecType b(num_samples);
-            b = utils::repeat<VecType>(this->w_.bottomRows(1), num_samples, 0);
+            b = common::repeat<VecType>(this->w_.bottomRows(1), num_samples, 0);
             y_pred += b;
             return y_pred;
         }

@@ -78,7 +78,7 @@ public:
                 y_batch = y_new.middleRows(begin, this->batch_size_);
 
                 grad = this->loss_func_.gradient(X_batch, y_batch, this->x0_);
-                grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
+                grad = common::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
 
                 // update average gradient, then replace with new grad
                 avg_grad.noalias() += ((grad - grad_history.col(j)) / static_cast<DataType>(this->batch_size_));

@@ -143,7 +143,7 @@ private:
                 diff.row(i) = X.row(i).array() - means.row(k).array();
             }
 
-            MatType resp_tmp = utils::repeat<MatType>(resp.col(k), num_features, 1);
+            MatType resp_tmp = common::repeat<MatType>(resp.col(k), num_features, 1);
             // matrix product dot 
             MatType resp_diff_tmp = resp_tmp.array() * diff.array();
             MatType resp_diff = resp_diff_tmp.transpose() * diff;
@@ -195,7 +195,7 @@ private:
         // MatType avg_means = 
 
         MatType nk_tmp(num_components, num_features);
-        nk_tmp = utils::repeat<MatType>(nk, num_features, 1);
+        nk_tmp = common::repeat<MatType>(nk, num_features, 1);
         auto sum_nk = math::sum<MatType, VecType>(nk, 0);
 
         MatType avg_means = (nk_tmp.array() * means.array()).matrix().transpose() * means;
@@ -234,7 +234,7 @@ private:
         nk = nk.array() + eps.array(); 
 
         MatType nk_tmp;
-        nk_tmp = utils::repeat<MatType>(nk, num_features, 1);
+        nk_tmp = common::repeat<MatType>(nk, num_features, 1);
         
         MatType means_tmp = resp.transpose() * X;
         MatType means = means_tmp.array() / nk_tmp.array();
@@ -287,7 +287,7 @@ private:
             tmp2 = mu.transpose() * prec_chol;
 
             MatType tmp3(num_samples, num_features);
-            tmp3 = utils::repeat<MatType>(tmp2, num_samples, 0);
+            tmp3 = common::repeat<MatType>(tmp2, num_samples, 0);
 
             MatType y = tmp1.array() - tmp3.array();
             MatType y_square = y.array().square();
@@ -302,7 +302,7 @@ private:
         C.fill(v);
 
         MatType tmp4(num_samples, num_components);
-        tmp4 = utils::repeat<MatType>(log_det.transpose(), num_samples, 0);
+        tmp4 = common::repeat<MatType>(log_det.transpose(), num_samples, 0);
 
         return log_prob * (-0.5) + C + tmp4;
     }
@@ -324,7 +324,7 @@ private:
         log_weights = weights_.array().log();
 
         MatType tmp(num_samples, num_components_);
-        tmp = utils::repeat<MatType>(log_weights.transpose(), num_samples, 0);
+        tmp = common::repeat<MatType>(log_weights.transpose(), num_samples, 0);
 
         MatType weighted_log_prob;
         weighted_log_prob = log_prob + tmp;
@@ -350,7 +350,7 @@ private:
         log_prob_norm = math::logsumexp<MatType, VecType>(weighted_log_prob, 1);
 
         MatType tmp(num_samples, num_components_);
-        tmp = utils::repeat<MatType>(log_prob_norm, num_components_, 1);
+        tmp = common::repeat<MatType>(log_prob_norm, num_components_, 1);
 
         MatType log_resp(num_samples, num_components_);
         log_resp = weighted_log_prob - tmp;
@@ -369,7 +369,7 @@ private:
             resp = random::rand<MatType>(num_samples, num_components_);
 
             VecType sum_resp = math::sum<MatType, VecType>(resp, 1);
-            MatType sum_resp_tmp = utils::repeat<MatType>(sum_resp, num_components_, 1);
+            MatType sum_resp_tmp = common::repeat<MatType>(sum_resp, num_components_, 1);
             resp = resp.array() / sum_resp_tmp.array();
         }
 
@@ -559,7 +559,7 @@ public:
         MatType weighted_log_prob(num_samples, num_components_);
         weighted_log_prob = estimate_weighted_log_prob(X);
 
-        auto argmax_index = utils::argmax<MatType, VecType, IdxType>(weighted_log_prob, 1);
+        auto argmax_index = common::argmax<MatType, VecType, IdxType>(weighted_log_prob, 1);
 
         VecType y_pred = argmax_index.template cast<DataType>();
         return y_pred;

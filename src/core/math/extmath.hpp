@@ -16,7 +16,7 @@ namespace math {
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
 MatType sigmoid(const MatType& x) {
-    MatType new_x = utils::fmin<MatType>(x, static_cast<DataType>(0));
+    MatType new_x = common::fmin<MatType>(x, static_cast<DataType>(0));
     return new_x.array().exp() / 
         (static_cast<DataType>(1) + (-x.array().abs()).exp());
 };
@@ -59,7 +59,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     if (u_based_decision) {
         // columns of u, rows of v
         MatType abs_U = abs<MatType>(U);
-        IdxType max_abs_index = utils::argmax<MatType, VecType, IdxType>(abs_U, 0);
+        IdxType max_abs_index = common::argmax<MatType, VecType, IdxType>(abs_U, 0);
 
         std::size_t num_elems = max_abs_index.rows();
         VecType max_abs_cols(num_elems);
@@ -75,7 +75,7 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
     else {
         // rows of v, columns of u
         MatType abs_Vt = abs<MatType>(Vt);
-        IdxType max_abs_index = utils::argmax<MatType, VecType, IdxType>(abs_Vt, 1);
+        IdxType max_abs_index = common::argmax<MatType, VecType, IdxType>(abs_Vt, 1);
 
         std::size_t num_elems = max_abs_index.rows();
         VecType max_abs_rows(num_elems);

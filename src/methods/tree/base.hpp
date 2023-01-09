@@ -22,7 +22,7 @@ protected:
     */
     const VecType choose_feature_threshold(const VecType& x) const {
         std::size_t num_samples = x.rows();
-        IdxType sorted_index = utils::argsort<VecType, IdxType>(x);
+        IdxType sorted_index = common::argsort<VecType, IdxType>(x);
         VecType sorted_x = x(sorted_index);
         
         std::vector<DataType> stdvec_x;

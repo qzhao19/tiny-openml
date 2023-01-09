@@ -40,16 +40,16 @@ protected:
         jll.setZero();
 
         VecType log_prior = this->prior_prob_.array().log();
-        MatType lp = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
+        MatType lp = common::repeat<MatType>(log_prior.transpose(), num_samples, 0);
         for (std::size_t i = 0; i < this->num_classes_; i++) {
             
             auto val = var_.row(i) * 2.0 * M_PI;
             VecType sum_log_var = math::sum<MatType, VecType>(val.array().log().matrix()) * (-0.5);
-            MatType sum_log_var_tmp = utils::repeat<MatType>(sum_log_var, num_samples, 0);
+            MatType sum_log_var_tmp = common::repeat<MatType>(sum_log_var, num_samples, 0);
             
-            MatType X_minus_mean = X - utils::repeat<MatType>(mean_.row(i), num_samples, 0);
+            MatType X_minus_mean = X - common::repeat<MatType>(mean_.row(i), num_samples, 0);
             MatType X_minus_mean_squared = X_minus_mean.array().square();
-            MatType var_tmp = utils::repeat<MatType>(var_.row(i), num_samples, 0);
+            MatType var_tmp = common::repeat<MatType>(var_.row(i), num_samples, 0);
 
             MatType X_minus_mean_div_var = X_minus_mean_squared.array() / var_tmp.array();
             VecType ll = sum_log_var_tmp.array() - 
@@ -72,7 +72,7 @@ protected:
         MatType var(num_features, this->num_classes_);
 
         MatType X_y(num_samples, num_features + 1);
-        X_y = utils::hstack<MatType>(X, y);
+        X_y = common::hstack<MatType>(X, y);
         
         std::size_t new_i = 0;
         for (auto& label : this->label_map_) {

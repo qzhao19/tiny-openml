@@ -48,8 +48,8 @@ protected:
             prior_prob.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
             ++i;
         }
-        classes_ = utils::vec2mat<VecType>(classes);
-        prior_prob_ = utils::vec2mat<VecType>(prior_prob);
+        classes_ = common::vec2mat<VecType>(classes);
+        prior_prob_ = common::vec2mat<VecType>(prior_prob);
     }
 
 public:
@@ -74,7 +74,7 @@ public:
         log_prob_x = math::logsumexp<MatType, VecType>(jll, 1);
         
         MatType tmp;
-        tmp = utils::repeat<MatType>(log_prob_x, num_classes_, 1);
+        tmp = common::repeat<MatType>(log_prob_x, num_classes_, 1);
 
         return jll.array() - tmp.array();
     }
@@ -104,7 +104,7 @@ public:
         MatType jll;
         jll = this->joint_log_likelihood(X);
 
-        IdxType jll_max_idx = utils::argmax<MatType, VecType, IdxType>(jll, 1);
+        IdxType jll_max_idx = common::argmax<MatType, VecType, IdxType>(jll, 1);
         VecType y_pred(num_samples);
 
         std::vector<DataType> y_pred_;
@@ -113,7 +113,7 @@ public:
             y_pred_.push_back(classes_(idx, 0));
         }
 
-        y_pred = utils::vec2mat<VecType>(y_pred_);
+        y_pred = common::vec2mat<VecType>(y_pred_);
         return y_pred;
     }
 

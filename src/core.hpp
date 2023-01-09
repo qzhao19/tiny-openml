@@ -2,8 +2,7 @@
 #define CORE_HPP
 
 // #include "../src/methods/base.hpp"
-
-#include "../src/core/utils.hpp"
+#include "../src/core/common.hpp"
 
 #include "../src/core/math/ops.hpp"
 #include "../src/core/math/shuffle.hpp"
@@ -28,11 +27,6 @@
 #include "../src/core/optimizer/lbfgs/lbfgs.hpp"
 #include "../src/core/optimizer/lbfgs/params.hpp"
 
-
-
 #include "../src/core/metric.hpp"
-
-
-
 
 #endif /*CORE_HPP*/

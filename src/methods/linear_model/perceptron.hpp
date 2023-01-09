@@ -44,7 +44,7 @@ protected:
 
         num_features = X_new.cols();
         VecType w(num_features);
-        w.setZero();
+        w.setRandom();
 
         loss::HingeLoss<DataType> hinge_loss(lambda_, 0.0);
         optimizer::StepDecay<DataType> lr_decay(alpha_);
@@ -75,10 +75,10 @@ public:
     */
     Perceptron(): BaseLinearModel<DataType>(true), 
         alpha_(0.001), 
-        lambda_(0.5), 
+        lambda_(0.0), 
         tol_(0.0001), 
-        batch_size_(512), 
-        max_iter_(1000), 
+        batch_size_(32), 
+        max_iter_(2000), 
         num_iters_no_change_(5),
         penalty_("l2"), 
         shuffle_(true), 
@@ -101,15 +101,15 @@ public:
         bool shuffle, 
         bool verbose): 
             BaseLinearModel<DataType>(intercept), 
-            shuffle_(shuffle), 
-            verbose_(verbose), 
             alpha_(alpha), 
             lambda_(lambda), 
             tol_(tol), 
             batch_size_(batch_size), 
             max_iter_(max_iter), 
             num_iters_no_change_(num_iters_no_change),
-            penalty_(penalty_) {};
+            penalty_(penalty),
+            shuffle_(shuffle), 
+            verbose_(verbose) {};
 
     /**deconstructor*/
     ~Perceptron() {};

@@ -190,11 +190,11 @@ protected:
         VecType selected_x = X.col(best_feature_index);
         auto tmp1 = (selected_x.array() <= best_feature_value);
         VecType left_selected = tmp1.template cast<DataType>();
-        IdxType left_selected_index = utils::where<VecType, IdxType>(left_selected);
+        IdxType left_selected_index = common::where<VecType, IdxType>(left_selected);
 
         auto tmp2 = (selected_x.array() > best_feature_value);
         VecType right_selected = tmp2.template cast<DataType>();
-        IdxType right_selected_index = utils::where<VecType, IdxType>(right_selected);
+        IdxType right_selected_index = common::where<VecType, IdxType>(right_selected);
 
 
         MatType left_X = X(left_selected_index, Eigen::all);

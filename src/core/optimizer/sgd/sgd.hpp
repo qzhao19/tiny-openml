@@ -76,7 +76,7 @@ public:
 
                 grad = this->loss_func_.gradient(X_batch, y_batch, this->x0_);
                 // clip gradient with large value 
-                grad = utils::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
+                grad = common::clip<MatType>(grad, this->MAX_DLOSS, this->MIN_DLOSS);
                 // W = W - lr * grad; 
                 this->x0_ = this->w_update_.update(this->x0_, grad, lr);
                 double loss = this->loss_func_.evaluate(X_batch, y_batch, this->x0_);
@@ -117,7 +117,6 @@ public:
                     << ", try apply different parameters." << std::endl;
             throw std::runtime_error(err_msg.str());
         }
-        std::cout << "optimization w" << this->opt_x_ << std::endl;
     }
 };
 

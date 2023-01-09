@@ -32,7 +32,7 @@ protected:
         VecType class_count(this->num_classes_);
 
         MatType X_y(num_samples, num_features_ + 1);
-        X_y = utils::hstack<MatType>(X, y);
+        X_y = common::hstack<MatType>(X, y);
 
         std::size_t new_i = 0;
         for (auto& label : this->label_map_) {
@@ -86,7 +86,7 @@ protected:
         ll.setZero();
 
         VecType log_prior = this->prior_prob_.array().log();
-        MatType lp = utils::repeat<MatType>(log_prior.transpose(), num_samples, 0);
+        MatType lp = common::repeat<MatType>(log_prior.transpose(), num_samples, 0);
         for (std::size_t i = 0; i < num_samples; ++i) {        
             for (std::size_t c = 0; c < this->num_classes_; ++c) {
                 VecType row = X.row(i).transpose();
