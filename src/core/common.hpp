@@ -1,9 +1,9 @@
-#ifndef CORE_UTILS_HPP
-#define CORE_UTILS_HPP
+#ifndef CORE_COMMON_HPP
+#define CORE_COMMON_HPP
 #include "../prereqs.hpp"
 
 namespace openml {
-namespace utils {
+namespace common {
 
 /**
  *find the maximum value in a std::map and return the corresponding std::pair
@@ -370,4 +370,4 @@ MatType clip(const MatType& x, DataType max, DataType min) {
 
 }
 }
-#endif /*CORE_UTILS_HPP*/
+#endif /*CORE_COMMON_HPP*/
