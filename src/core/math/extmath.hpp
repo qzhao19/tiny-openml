@@ -223,6 +223,52 @@ MatType row_norms(const MatType& x, bool squared = false) {
 };
 
 
+/**
+ * Compute the softmax function.
+ * softmax(x) = exp(x)/sum(exp(x))
+ * @param x ndarray of shape [rows, cols]
+ *    The input array data
+ * @param axis int. 
+ *    The axis along which to compute values. 
+*/
+template<typename MatType>
+MatType softmax(const MatType& x, int axis = 0) {
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    if (num_rows == 1 || num_cols == 1) {
+        throw std::invalid_argument("Input ndarray should be 2 dimension");
+    }
+
+    MatType c, div, retval;
+    if (axis == 0) {
+        c = x.colwise().maxCoeff().colwise().replicate(num_rows);
+    }
+    else if (axis == 1) {
+        c = x.rowwise().maxCoeff().rowwise().replicate(num_cols);
+    }
+    else if (axis == -1) {
+        auto maxval = x.maxCoeff();
+        c.resize(num_rows, num_cols);
+        c.fill(maxval);
+    }
+    MatType exp_x = (x - c).array().exp();
+
+    if (axis == 0) {
+        div = exp_x.colwise().sum().colwise().replicate(num_rows);
+    }
+    else if (axis == 1) {
+        div = exp_x.rowwise().sum().rowwise().replicate(num_cols);
+    }
+    else if (axis == -1) {
+        auto sum = exp_x.sum();
+        div.resize(num_rows, num_cols);
+        div.fill(sum);
+    }
+
+    retval = exp_x.array() / div.array();
+    return retval;
+
+};
+
 }
 }
 
