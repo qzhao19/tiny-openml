@@ -23,17 +23,30 @@ public:
     /**
      * evaluate the softmax loss function
      * with the given parameters.
-     *       sum(-y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)) / len(y_hat)
+     *       L(W) = -1/N * logP(Y|X, W)
+     *            = 1/N {sum(X_i * W_k) + sum(log(sum(exp(-X_i * W_k))))}
      * 
      * @param X ndarray of shape (num_samples, num_features), the matrix of input data
      * @param y ndarray of shape (num_samples) 
-     * @param W ndarray of shape (num_features, 1) coefficient of the features 
+     * @param W ndarray of shape (num_features, num_classes) coefficient of the features 
     */
     const double evaluate(const MatType& X, 
         const VecType& y, 
-        const VecType& W) const {
+        const MatType& w) const {
         
         std::size_t num_samples = X.rows();
+        std::size_t num_features = X.cols();
+        std::size_t num_classes = w.cols();
+        MatType xw(num_samples, num_classes);
+        xw = X.dot(w);
+
+        xw.noalias() -= xw.maxCoeff();
+        MatType exp_xw = xw.array().exp();
+
+        VecType sum_exp_xw = exp_xw.rowwise().sum();
+
+        
+
 
     }
 
@@ -45,7 +58,7 @@ public:
     */
     const VecType gradient(const MatType& X, 
         const VecType& y,
-        const VecType& W) const{
+        const MatType& W) const{
         
     };
 
