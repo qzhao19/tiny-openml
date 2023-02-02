@@ -24,7 +24,7 @@ public:
      * evaluate the softmax loss function
      * with the given parameters.
      *       L(W) = -1/N * logP(Y|X, W)
-     *            = 1/N {sum(X_i * W_k) + sum(log(sum(exp(-X_i * W_k))))}
+     *            = 1/N {sum(X_i * W_k) + sum(log(sum(exp(X_i * W_k))))}
      * 
      * @param X ndarray of shape (num_samples, num_features), the matrix of input data
      * @param y ndarray of shape (num_samples) 
@@ -81,12 +81,8 @@ public:
         auto tmp1 = xw.array() - xw.maxCoeff();
         MatType exp_xw = tmp1.array().exp();
         VecType sum_exp_xw = exp_xw.rowwise().sum();
-
-        // std::cout << "sum_exp_xw: " << sum_exp_xw << std::endl;
-
         MatType normalized_exp_xw = exp_xw.array().colwise() / sum_exp_xw.array();
 
-        // std::cout << "normalized_exp_xw: " << normalized_exp_xw << std::endl;
         std::size_t index;
         for (int i = 0; i < num_samples; ++i) {
             index = static_cast<std::size_t>(y(i, 0));
