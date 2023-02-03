@@ -21,7 +21,7 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
 public:
-    SGD(const VecType& x0,
+    SGD(const MatType& x0,
         const LossFuncionType& loss_func,
         const UpdatePolicyType& w_update,
         const DecayPolicyType& lr_decay,
@@ -30,7 +30,8 @@ public:
         const std::size_t num_iters_no_change = 5,
         const double tol = 0.0001, 
         const bool shuffle = true, 
-        const bool verbose = true): BaseOptimizer<DataType, 
+        const bool verbose = true,
+        const bool multi_class = false): BaseOptimizer<DataType, 
             LossFuncionType, 
             UpdatePolicyType, 
             DecayPolicyType>(x0, 
@@ -42,7 +43,8 @@ public:
                 num_iters_no_change, 
                 tol, 
                 shuffle, 
-                verbose) {};
+                verbose, 
+                multi_class) {};
     ~SGD() {};
 
     void optimize(const MatType& X, 
@@ -57,7 +59,15 @@ public:
 
         MatType X_new = X;
         VecType y_new = y;
-        VecType grad(num_features);
+        MatType grad;
+        if (this->multi_class_) {
+            std::set<std::size_t> label_set{y_new.begin(), y_new.end()};
+            std::size_t num_classes = label_set.size();
+            grad.resize(num_features, num_classes);
+        }
+        else {
+            grad.resize(num_features, 1);
+        }
         
         for (std::size_t iter = 0; iter < this->max_iter_; iter++) {
             if (this->shuffle_) {
