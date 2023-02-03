@@ -32,15 +32,16 @@ protected:
     double tol_;
     bool shuffle_;
     bool verbose_;
+    bool multi_class_;
 
-    VecType x0_;
-    VecType opt_x_;
+    MatType x0_;
+    MatType opt_x_;
     // internal callable parameters
     DataType MAX_DLOSS = static_cast<DataType>(1e+10);
     DataType MIN_DLOSS = -static_cast<DataType>(1e+10);
 
 public:
-    BaseOptimizer(const VecType& x0,
+    BaseOptimizer(const MatType& x0,
         const LossFuncionType& loss_func,
         const UpdatePolicyType& w_update,
         const DecayPolicyType& lr_decay,
@@ -49,7 +50,8 @@ public:
         const std::size_t num_iters_no_change = 5,
         const double tol = 0.0001, 
         const bool shuffle = true, 
-        const bool verbose = true): x0_(x0),
+        const bool verbose = true,
+        const bool multi_class = false): x0_(x0),
             loss_func_(loss_func),
             w_update_(w_update),
             lr_decay_(lr_decay),
@@ -58,25 +60,29 @@ public:
             num_iters_no_change_(num_iters_no_change),
             tol_(tol), 
             shuffle_(shuffle),
-            verbose_(verbose) {};
+            verbose_(verbose),
+            multi_class_(multi_class) {};
     
-    BaseOptimizer(const VecType& x0,
+    BaseOptimizer(const MatType& x0,
         const LossFuncionType& loss_func,
         const std::size_t max_iter = 2000,
         const double tol = 1e-5,
         const bool shuffle = true, 
-        const bool verbose = true): x0_(x0),
+        const bool verbose = true, 
+        const bool multi_class = false): x0_(x0),
             loss_func_(loss_func),
             max_iter_(max_iter), 
             tol_(tol),
             shuffle_(shuffle),
-            verbose_(verbose) {};
+            verbose_(verbose), 
+            multi_class_(multi_class) {};
     
-    BaseOptimizer(const VecType& x0,
+    BaseOptimizer(const MatType& x0,
         const LossFuncionType& loss_func,
         const std::size_t max_iter = 2000,
         const bool shuffle = true, 
-        const bool verbose = true): x0_(x0),
+        const bool verbose = true,
+        const bool multi_class = false): x0_(x0),
             loss_func_(loss_func),
             max_iter_(max_iter), 
             shuffle_(shuffle),
@@ -87,7 +93,7 @@ public:
     virtual void optimize(const MatType& X, 
         const VecType& y) = 0;
 
-    const VecType get_coef() const {
+    const MatType get_coef() const {
         return opt_x_;
     }
 };
