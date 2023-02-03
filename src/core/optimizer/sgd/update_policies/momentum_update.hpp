@@ -21,14 +21,14 @@ public:
     /**
      * SGD with Momentum optimization method
     */
-    const VecType update(const VecType& W, 
-        const VecType& grad, 
+    const MatType update(const MatType& W, 
+        const MatType& grad, 
         const double lr) const{
-        std::size_t num_rows = W.rows();
-        VecType V(num_rows);
+        std::size_t num_features = W.rows(), num_classes = W.cols();
+        MatType V(num_features, num_classes);
         V.setZero();
-        V = mu_ * V + static_cast<DataType>(lr) * grad;
-        VecType updated_W = W - V;
+        V = V * mu_ + grad * lr;
+        MatType updated_W = W - V;
         return updated_W;
     };
 

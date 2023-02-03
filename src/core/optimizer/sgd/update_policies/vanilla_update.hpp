@@ -16,10 +16,10 @@ public:
     VanillaUpdate() {};
     ~VanillaUpdate() {}; 
 
-    const VecType update(const VecType& W, 
-        const VecType& grad, 
+    const MatType update(const MatType& W, 
+        const MatType& grad, 
         const double lr) const {
-        VecType updated_W = W - static_cast<DataType>(lr) * grad;
+        MatType updated_W = W - static_cast<DataType>(lr) * grad;
         return updated_W;
     };
 };
