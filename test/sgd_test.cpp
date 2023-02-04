@@ -11,29 +11,30 @@ int main() {
     MatType X;
     VecType y;
 
-    data::loadtxt<MatType, VecType>("../dataset/ionosphere.txt", X, y);
+    data::loadtxt<MatType, VecType>("../dataset/iris.txt", X, y);
 
     std::size_t num_features = X.cols();
     std::cout << "sgd test" <<std::endl;
     
-    VecType w(num_features);
+    MatType w(num_features, 3);
     w.setOnes();
-    VecType opt_w(num_features);
+    MatType opt_w(num_features, 3);
 
-    loss::LogLoss<double> log_loss;
+    // loss::LogLoss<double> log_loss;
+    loss::SoftmaxLoss<double> softmax_loss;
     optimizer::VanillaUpdate<double> weight_update;
     // optimizer::MomentumUpdate<double> weight_update(0.6);
-    optimizer::StepDecay<double> step_decay(0.1);
+    optimizer::StepDecay<double> step_decay(0.01);
 
     optimizer::SGD<double, 
-        loss::LogLoss<double>, 
+        loss::SoftmaxLoss<double>, 
         optimizer::VanillaUpdate<double>, 
         optimizer::StepDecay<double>> sgd(
             w, 
-            log_loss, 
+            softmax_loss, 
             weight_update, 
             step_decay, 
-            2000, 16, 5, 0.0001, true, true);
+            2000, 16, 5, 0.0001, true, true, true);
     sgd.optimize(X, y);
     opt_w = sgd.get_coef();
     
