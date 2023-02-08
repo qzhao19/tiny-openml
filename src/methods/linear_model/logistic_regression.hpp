@@ -78,7 +78,8 @@ protected:
                         num_iters_no_change_, 
                         tol_, 
                         shuffle_, 
-                        verbose_);
+                        verbose_, 
+                        false);
             }
             else if (solver_ == "sag") {
                 opt = std::make_unique<optimizer::SAG<
