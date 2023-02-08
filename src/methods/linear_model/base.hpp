@@ -21,7 +21,7 @@ protected:
      * @param intercept_ bool, default = True. 
      *      whether to fit the intercept for the model.  
     */
-    VecType w_;
+    MatType w_;
     bool intercept_;
     
     /**
@@ -43,14 +43,12 @@ protected:
         VecType y_pred(num_samples);
 
         if (intercept_) {
-            y_pred = X * this->w_.topRows(num_features);
-            VecType b(num_samples);
-            b = common::repeat<VecType>(this->w_.bottomRows(1), num_samples, 0);
-            y_pred += b;
-            return y_pred;
+            y_pred = X * w_.topRows(num_features);
+            auto b = w_.bottomRows(1).value();
+            return y_pred.array() + b;
         }
         else {
-            y_pred = X * this->w_;
+            y_pred = X * w_;
             return y_pred;
         }
     }
