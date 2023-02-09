@@ -37,7 +37,7 @@ protected:
      * @param X the test sample
      * @return Returns predicted values, ndarray of shape (num_samples,)
     */
-    const VecType predict_label(const MatType& X) const {
+    virtual const VecType predict_label(const MatType& X) const {
         // y_pred = X * theta
         std::size_t num_samples = X.rows(), num_features = X.cols();
         VecType y_pred(num_samples);
