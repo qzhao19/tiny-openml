@@ -119,7 +119,7 @@ protected:
                 throw std::invalid_argument("SGD, SAG and LBFGS solvers only support l2 regularization.");
             }
         }
-        else if ("penality" == "l1") {
+        else if (penalty_ == "l1") {
             if (solver_ == "scd") {
                 opt = std::make_unique<optimizer::SCD<
                     DataType, 
