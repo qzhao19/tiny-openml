@@ -26,6 +26,18 @@ protected:
     std::size_t max_iter_;
     std::string penalty_;
 
+    /**
+     * check input parameter for optimizer
+    */
+    void check_parameters() {
+        if (penalty_ == "l2" && lambda_ == 0.0) {
+            std::ostringstream err_msg;
+            err_msg << "Parameter error: given 'l2' penliaty"
+                    << "but regularization coefficient is 0." << std::endl;
+            throw std::invalid_argument(err_msg.str());
+        }
+    }
+
     /**fit data implementation*/
     void fit_data(const MatType& X, 
         const VecType& y) {
