@@ -14,6 +14,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     bool shuffle_;
     bool verbose_;
@@ -35,7 +36,21 @@ private:
     std::string linesearch_policy_;
     std::string linesearch_condition_;
 
+    // MatType boundary_;
+
 protected:
+    /**
+     * check input parameter for optimizer
+    */
+    void check_parameters() {
+        if (penalty_ == "l2" && lambda_ == 0.0) {
+            std::ostringstream err_msg;
+            err_msg << "Parameter error: given 'l2' penliaty"
+                    << "but regularization coefficient is 0." << std::endl;
+            throw std::invalid_argument(err_msg.str());
+        }
+    }
+
     /**
      * Train the linear regression model, using the sample weights
      * 
@@ -44,7 +59,7 @@ protected:
     */
     void fit_data(const MatType& X, 
         const VecType& y) {
-
+        check_parameters();
         std::size_t num_samples = X.rows(), num_features = X.cols();
         MatType X_new = X;
         VecType y_new = y;
@@ -82,9 +97,24 @@ protected:
                 verbose_, 
                 true);
         sgd.optimize(X, y);
-        this->w_ = sgd.get_coef();
-        
+        this->w_ = sgd.get_coef();    
     };
+
+    const MatType compute_decision_boundary(const MatType& X) const {
+        // y_pred = X * theta
+        std::size_t num_samples = X.rows(), num_features = X.cols();
+        std::size_t num_classes = this->w_.cols();
+        MatType boundary(num_samples, num_classes);
+        if (this->intercept_) {
+            auto xw = X * this->w_.topRows(num_features);
+            auto b = this->w_.bottomRows(1);
+            boundary = xw;
+        }
+        else {
+            boundary = X * this->w_;
+        }
+        return boundary;
+    }
     
 public:
     /**
@@ -95,7 +125,7 @@ public:
         alpha_(0.01), 
         lambda_(0.0), 
         tol_(0.0001), 
-        batch_size_(16), 
+        batch_size_(4), 
         max_iter_(2000), 
         num_iters_no_change_(5),
         solver_("sgd"),
@@ -132,6 +162,34 @@ public:
     /**deconstructor*/
     ~SoftmaxRegression() {};
 
+    /**
+     * Predict class labels for samples in X.
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      The data matrix for which we want to get the predictions.
+     * @return Vector containing the class labels for each sample.
+    */
+    const VecType predict(const MatType& X) const{
+        VecType y_pred;
+        auto boundary = compute_decision_boundary(X);
+        auto tmp = common::argmax<MatType, VecType, IdxType>(boundary, 1);
+        y_pred = tmp.template cast<DataType>();
+        return y_pred;
+    };
+
+    /**
+     * Probability estimates. The returned estimates for all 
+     * classes are ordered by the label of classes.
+     * 
+     * @param X ndarray of shape [num_samples, num_features], 
+     *      The data matrix for which we want to get the predictions.
+     * @return Returns the probability of the sample for each class in the model
+    */
+    const MatType predict_prob(const MatType& X) const {
+        auto boundary = compute_decision_boundary(X);
+        auto prob = math::softmax<MatType>(boundary, 1);
+        return prob;
+    }
 };
 
 } // namespace openml
