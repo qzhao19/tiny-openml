@@ -13,7 +13,8 @@ class LogisticRegression: public BaseLinearModel<DataType> {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    
+    using ErrType = std::ostringstream;
+
     bool shuffle_;
     bool verbose_;
     double alpha_;
@@ -35,6 +36,26 @@ private:
     std::string linesearch_condition_;
 
 protected:
+    /**
+     * check input parameter for optimizer
+    */
+    void check_parameters() {
+        if (penalty_ == "l2" && lambda_ == 0.0) {
+            ErrType err_msg;
+            err_msg << "Parameter error: given 'l2' penliaty, "
+                    << "but regularization coefficient is 0." << std::endl;
+            throw std::invalid_argument(err_msg.str());
+        }
+
+        if (penalty_ == "l2" || penalty_ == "None") {
+            std::cout << "Setting penalty=None / l2 will ignore l1_ratio parameters" << std::endl;
+        }
+
+    }
+
+    /**
+     * fit dataset
+    */
     void fit_data(const MatType& X, 
         const VecType& y) {
         
@@ -173,7 +194,9 @@ public:
         solver_("sag"),
         penalty_("None"), 
         shuffle_(true), 
-        verbose_(true) {};
+        verbose_(true) {
+            check_parameters();
+        };
 
     // Constructor for sgd/sag
     LogisticRegression(const double alpha, 
@@ -196,7 +219,9 @@ public:
             solver_(solver),
             penalty_(penalty), 
             shuffle_(shuffle), 
-            verbose_(verbose) {};
+            verbose_(verbose) {
+                check_parameters();
+            };
 
     // Constructor for scd
     LogisticRegression(const double lambda,
@@ -213,7 +238,9 @@ public:
             solver_(solver),
             penalty_(penalty), 
             shuffle_(shuffle), 
-            verbose_(verbose) {};    
+            verbose_(verbose) {
+                check_parameters();
+            };    
 
     // Constructor for lbfgs
     LogisticRegression(const double tol, 
@@ -263,7 +290,7 @@ public:
         VecType y_pred(num_samples);
         decision_boundary = this->predict_label(X);
         y_pred = math::sigmoid(decision_boundary);
-        for(auto& value:y_pred) {
+        for(auto& value: y_pred) {
             if (value > 0.5) {
                 value = 0;
             }
