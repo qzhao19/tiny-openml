@@ -46,6 +46,37 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
 };
 
 /**
+ * Compute randomized svd
+ * @param X ndarray of shape (n_samples, n_features),
+ *      Matrix to compute decomposition
+ * @param num_components std::size_t
+ *      Number of singular values and vectors to extract.
+ * @param num_iters std::size_t 
+ *      Number of power iterations
+ * @param power_iter_nomalizer string
+ *      Whether the power iterations are normalized with step-by-step
+ *      it has 3 value: 'QR', 'LU', 'none'
+ * @return a tuple contains U matrix, s vector and Vt matrix.
+*/
+template<typename MatType, typename VecType>
+std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X, 
+    std::size_t num_components, 
+    std::size_t num_oversamples,
+    std::size_t num_iters = 4, 
+    std::string power_iter_normalizer = "QR", 
+    bool flip_sign = true) {
+    
+    std::size_t num_samples = X.rows(), num_features = X.cols();
+    std::size_t num_random = num_components + num_oversamples;
+
+    MatType Q = random::randn<MatType>(num_features, num_random);
+    
+
+}
+
+
+
+/**
  * Compute the (Moore-Penrose) pseudo-inverse of a matrix. 
  * Calculate the generalized inverse of a matrix using its 
  * singular-value decomposition (SVD) and including all 

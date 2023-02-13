@@ -222,7 +222,6 @@ MatType row_norms(const MatType& x, bool squared = false) {
     }
 };
 
-
 /**
  * Compute the softmax function.
  * softmax(x) = exp(x)/sum(exp(x))
