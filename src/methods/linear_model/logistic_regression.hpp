@@ -13,7 +13,6 @@ class LogisticRegression: public BaseLinearModel<DataType> {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using ErrType = std::ostringstream;
 
     bool shuffle_;
     bool verbose_;
@@ -36,23 +35,6 @@ private:
     std::string linesearch_condition_;
 
 protected:
-    /**
-     * check input parameter for optimizer
-    */
-    void check_parameters() {
-        if (penalty_ == "l2" && lambda_ == 0.0) {
-            ErrType err_msg;
-            err_msg << "Parameter error: given 'l2' penliaty, "
-                    << "but regularization coefficient is 0." << std::endl;
-            throw std::invalid_argument(err_msg.str());
-        }
-
-        if (penalty_ == "l2" || penalty_ == "None") {
-            std::cout << "Setting penalty=None / l2 will ignore l1_ratio parameters" << std::endl;
-        }
-
-    }
-
     /**
      * fit dataset
     */
@@ -137,7 +119,9 @@ protected:
                         verbose_);
             }
             else {
-                throw std::invalid_argument("SGD, SAG and LBFGS solvers only support l2 regularization.");
+                throw std::invalid_argument(
+                    "SGD, SAG and LBFGS solvers only support l2 regularization."
+                );
             }
         }
         else if (penalty_ == "l1") {
@@ -153,11 +137,15 @@ protected:
                         verbose_);
             }
             else {
-                throw std::invalid_argument("SCD solver only supports l1 regularization.");
+                throw std::invalid_argument(
+                    "SCD solver only supports l1 regularization."
+                );
             }
         }
         else {
-            throw std::invalid_argument("Penalty type {l1, l2, none}, default=l2");
+            throw std::invalid_argument(
+                "Penalty type {l1, l2, none}, default=l2"
+            );
         }
         opt->optimize(X_new, y_new);
         this->w_ = opt->get_coef();
@@ -194,9 +182,7 @@ public:
         solver_("sag"),
         penalty_("None"), 
         shuffle_(true), 
-        verbose_(true) {
-            check_parameters();
-        };
+        verbose_(true) {};
 
     // Constructor for sgd/sag
     LogisticRegression(const double alpha, 
@@ -219,9 +205,7 @@ public:
             solver_(solver),
             penalty_(penalty), 
             shuffle_(shuffle), 
-            verbose_(verbose) {
-                check_parameters();
-            };
+            verbose_(verbose) {};
 
     // Constructor for scd
     LogisticRegression(const double lambda,
@@ -238,9 +222,7 @@ public:
             solver_(solver),
             penalty_(penalty), 
             shuffle_(shuffle), 
-            verbose_(verbose) {
-                check_parameters();
-            };    
+            verbose_(verbose) {};    
 
     // Constructor for lbfgs
     LogisticRegression(const double tol, 

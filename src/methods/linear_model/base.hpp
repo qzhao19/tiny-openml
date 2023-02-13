@@ -53,8 +53,6 @@ protected:
         }
     }
 
-    virtual void check_parameters() {};
-
 public:
     /**
      * empty constructor

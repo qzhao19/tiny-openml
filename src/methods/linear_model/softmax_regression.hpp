@@ -15,13 +15,13 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using ErrType = std::ostringstream;
 
     bool shuffle_;
     bool verbose_;
     double alpha_;
     double lambda_;
     double tol_;
-    double l1_ratio_;
     double ftol_;
     double wolfe_;
     double delta_;
@@ -39,19 +39,7 @@ private:
     // MatType boundary_;
 
 protected:
-    /**
-     * check input parameter for optimizer
-    */
-    void check_parameters() {
-        if (penalty_ == "l2" && lambda_ == 0.0) {
-            std::ostringstream err_msg;
-            err_msg << "Parameter error: given 'l2' penliaty"
-                    << "but regularization coefficient is 0." << std::endl;
-            throw std::invalid_argument(err_msg.str());
-        }
-    }
-
-    /**
+        /**
      * Train the linear regression model, using the sample weights
      * 
      * @param X, the matrix of dataset 
@@ -59,7 +47,6 @@ protected:
     */
     void fit_data(const MatType& X, 
         const VecType& y) {
-        check_parameters();
         std::size_t num_samples = X.rows(), num_features = X.cols();
         MatType X_new = X;
         VecType y_new = y;
@@ -107,6 +94,7 @@ protected:
         MatType boundary(num_samples, num_classes);
         if (this->intercept_) {
             auto xw = X * this->w_.topRows(num_features);
+            // auto b = this->w_.bottomRows(1).colwise().replicate(num_samples);
             auto b = this->w_.bottomRows(1);
             boundary = xw;
         }
@@ -172,7 +160,8 @@ public:
     const VecType predict(const MatType& X) const{
         VecType y_pred;
         auto boundary = compute_decision_boundary(X);
-        auto tmp = common::argmax<MatType, VecType, IdxType>(boundary, 1);
+        auto prob = math::softmax<MatType>(boundary, 1);
+        auto tmp = common::argmax<MatType, VecType, IdxType>(prob, 1);
         y_pred = tmp.template cast<DataType>();
         return y_pred;
     };
