@@ -7,8 +7,63 @@ namespace openml {
 namespace math {
 
 /**
+ * Compute LU decomposition of a matrix.
+ * @param x ndarray of shape (num_rows, num_cols)
+ *      Matrix to decomposition
+ * @return a tuple contains P permutation matrix, 
+ *      L lower matrix, U upper matrix
+*/
+template<typename MatType>
+std::tuple<MatType, MatType, MatType> lu(const MatType& x) {
+
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    Eigen::PartialPivLU<MatType> lu_decomposition(x);
+    
+    MatType lu_m = lu_decomposition.matrixLU();
+    MatType L = lu_m.template triangularView<Eigen::UnitLower>().toDenseMatrix();
+    MatType U = lu_m.template triangularView<Eigen::Upper>();
+    MatType P = lu_decomposition.permutationP();
+
+    return std::make_tuple(P, L, U.topRows(num_cols));
+};
+
+/**
+ * Compute QR decomposition of a matrix.
+ * Calculate the decomposition X = QR where 
+ * Q is unitary/orthogonal and R upper triangular
+ * 
+ * @param x ndarray of shape (num_rows, num_cols)
+ *      Matrix to decomposition
+ * @param full_matrix bool, default true
+ *      If full_matrices_ is true then Q is m x m and R is m x n
+ *      Otherwise, Q is m x min(m, n), and R is min(m, n) x n.
+*/
+template<typename MatType>
+std::tuple<MatType, MatType> qr(const MatType& x, bool full_matrix = false) {
+    const std::size_t num_rows = x.rows(), num_cols = x.cols();
+    const int min_size = std::min(num_rows, num_cols);
+    Eigen::HouseholderQR<MatType> qr_decomposition(x);
+
+    MatType Q, R;
+    if (full_matrix) {
+        Q = qr_decomposition.householderQ();
+        R = qr_decomposition.matrixQR().template triangularView<Eigen::Upper>();
+    }
+    else {
+        MatType tmp(num_rows, min_size);
+        tmp.setIdentity();
+
+        Q = qr_decomposition.householderQ() * tmp;
+        auto qr_top = qr_decomposition.matrixQR().block(0, 0, min_size, num_cols);
+        R = qr_top.template triangularView<Eigen::Upper>();
+    }
+
+    return std::make_tuple(Q, R);
+};
+
+/**
  * Singular Value Decomposition
- * @param X ndarray of shape (n_samples, n_features),
+ * @param X ndarray of shape (num_rows, num_cols),
  *          A real or complex array
  * @param full_matrices, bool, default = false
  *        If True (default), u and vh have the shapes (M, M) and (N, N). 
@@ -47,7 +102,7 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
 
 /**
  * Compute randomized svd
- * @param X ndarray of shape (n_samples, n_features),
+ * @param X ndarray of shape (num_rows, num_cols),
  *      Matrix to compute decomposition
  * @param num_components std::size_t
  *      Number of singular values and vectors to extract.
@@ -71,7 +126,16 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
 
     MatType Q = random::randn<MatType>(num_features, num_random);
     
+    for (std::size_t i = 0; i < num_iters; ++i) {
 
+        if (power_iter_normalizer == "None") {
+            Q = (X * Q).eval();
+            Q = (X.transpose() * Q).eval();
+        }
+    }
+
+    MatType R;
+    std::tie(Q, R) = qr<MatType>(X * Q);
 }
 
 
@@ -108,8 +172,8 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
             s_inv(i, i) = static_cast<DataType>(0);
         }
     }
-    MatType pinv_mat = Vt * s_inv * U.transpose();
-    return pinv_mat;
+    MatType pv = Vt * s_inv * U.transpose();
+    return pv;
 }
 
 
