@@ -10,21 +10,42 @@ namespace math {
  * Compute LU decomposition of a matrix.
  * @param x ndarray of shape (num_rows, num_cols)
  *      Matrix to decomposition
+ * @param permute_l bool
+ *      Perform the multiplication P*L
  * @return a tuple contains P permutation matrix, 
- *      L lower matrix, U upper matrix
+ *      L lower matrix, U upper matrix, if permute_l
+ *      is false, otherwise returns a tuple containing
+ *      P * L, lower matrix, upper matrix
+ *      P is (M, M), L is (M, K), K = min(M, N), 
+ *      U is (K, N) 
 */
 template<typename MatType>
-std::tuple<MatType, MatType, MatType> lu(const MatType& x) {
+std::tuple<MatType, MatType, MatType> lu(const MatType& x, 
+    bool permute_l = false) {
 
     std::size_t num_rows = x.rows(), num_cols = x.cols();
-    Eigen::PartialPivLU<MatType> lu_decomposition(x);
-    
-    MatType lu_m = lu_decomposition.matrixLU();
-    MatType L = lu_m.template triangularView<Eigen::UnitLower>().toDenseMatrix();
-    MatType U = lu_m.template triangularView<Eigen::Upper>();
-    MatType P = lu_decomposition.permutationP();
+    std::size_t min_size = std::min(num_rows, num_cols);
+    Eigen::FullPivLU<MatType> lu_decomposition(x);
 
-    return std::make_tuple(P, L, U.topRows(num_cols));
+    MatType lu_m = lu_decomposition.matrixLU();
+    // L is (M, min(M, N))
+    MatType L = lu_m.template triangularView<Eigen::UnitLower>().toDenseMatrix();
+    L = L.leftCols(min_size).eval();
+
+    // U is (min(M, N), K)
+    MatType U = lu_m.template triangularView<Eigen::Upper>();
+    U = U.topRows(min_size).eval();
+
+    MatType P = lu_decomposition.permutationP();
+    // MatType Q = lu_decomposition.permutationQ();
+    MatType Q;
+    if (permute_l) {
+        Q = (P * L);
+    }
+    else {
+        Q = P;
+    }
+    return std::make_tuple(Q, L, U);
 };
 
 /**
@@ -39,7 +60,8 @@ std::tuple<MatType, MatType, MatType> lu(const MatType& x) {
  *      Otherwise, Q is m x min(m, n), and R is min(m, n) x n.
 */
 template<typename MatType>
-std::tuple<MatType, MatType> qr(const MatType& x, bool full_matrix = false) {
+std::tuple<MatType, MatType> qr(const MatType& x, 
+    bool full_matrix = false) {
     const std::size_t num_rows = x.rows(), num_cols = x.cols();
     const int min_size = std::min(num_rows, num_cols);
     Eigen::HouseholderQR<MatType> qr_decomposition(x);
@@ -115,8 +137,8 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
 */
 template<typename MatType, typename VecType>
 std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X, 
-    std::size_t num_components, 
-    std::size_t num_oversamples,
+    std::size_t num_components = 3, 
+    std::size_t num_oversamples = 10,
     std::size_t num_iters = 4, 
     std::string power_iter_normalizer = "QR", 
     bool flip_sign = true) {
@@ -132,10 +154,26 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
             Q = (X * Q).eval();
             Q = (X.transpose() * Q).eval();
         }
+        else if (power_iter_normalizer == "LU") {
+            MatType L, U;
+            auto XQ = (X * Q).eval();
+            std::tie(Q, L, U) = lu<MatType>(XQ, true);
+            auto Xt_Q = (X.transpose() * Q).eval();
+            std::tie(Q, L, U) = lu<MatType>(Xt_Q, true);
+
+        }
+        else if (power_iter_normalizer == "QR") {
+            MatType R;
+            auto XQ = (X * Q).eval();
+            std::tie(Q, R) = qr<MatType>(XQ, false);
+            auto Xt_Q = (X.transpose() * Q).eval();
+            std::tie(Q, R) = qr<MatType>(Xt_Q, false);
+        }
+        
     }
 
     MatType R;
-    std::tie(Q, R) = qr<MatType>(X * Q);
+    std::tie(Q, R) = qr<MatType>(X * Q, false);
 }
 
 
