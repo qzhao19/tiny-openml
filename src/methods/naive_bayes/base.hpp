@@ -39,17 +39,15 @@ protected:
             label_map_[y[i]]++;
         }
         std::size_t i = 0;
-        std::vector<DataType> classes;
-        std::vector<DataType> prior_prob;
-        num_classes_ = 0;
+        num_classes_ = label_map_.size();
+        
+        prior_prob_.resize(num_classes_);
+        classes_.resize(num_classes_);
         for (auto &label : label_map_) {
-            ++num_classes_;
-            classes.push_back(label.first);
-            prior_prob.push_back(static_cast<DataType>(label.second) / static_cast<DataType>(num_samples));
+            classes_(i, 0) = label.first;
+            prior_prob_(i, 0) = static_cast<DataType>(label.second) / static_cast<DataType>(num_samples);
             ++i;
         }
-        classes_ = common::vec2mat<VecType>(classes);
-        prior_prob_ = common::vec2mat<VecType>(prior_prob);
     }
 
 public:
@@ -104,16 +102,8 @@ public:
         MatType jll;
         jll = this->joint_log_likelihood(X);
 
-        IdxType jll_max_idx = common::argmax<MatType, VecType, IdxType>(jll, 1);
-        VecType y_pred(num_samples);
-
-        std::vector<DataType> y_pred_;
-        for (std::size_t i = 0; i < num_samples; i++) {
-            std::size_t idx = jll_max_idx(i);
-            y_pred_.push_back(classes_(idx, 0));
-        }
-
-        y_pred = common::vec2mat<VecType>(y_pred_);
+        IdxType argmax_jll = common::argmax<MatType, VecType, IdxType>(jll, 1);
+        VecType y_pred = argmax_jll.template cast<DataType>();
         return y_pred;
     }
 

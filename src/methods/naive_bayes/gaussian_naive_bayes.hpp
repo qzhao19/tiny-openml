@@ -41,19 +41,14 @@ protected:
 
         VecType log_prior = this->prior_prob_.array().log();
         MatType lp = common::repeat<MatType>(log_prior.transpose(), num_samples, 0);
+        
         for (std::size_t i = 0; i < this->num_classes_; i++) {
-            
             auto val = var_.row(i) * 2.0 * M_PI;
-            VecType sum_log_var = math::sum<MatType, VecType>(val.array().log().matrix()) * (-0.5);
-            MatType sum_log_var_tmp = common::repeat<MatType>(sum_log_var, num_samples, 0);
-            
-            MatType X_minus_mean = X - common::repeat<MatType>(mean_.row(i), num_samples, 0);
-            MatType X_minus_mean_squared = X_minus_mean.array().square();
-            MatType var_tmp = common::repeat<MatType>(var_.row(i), num_samples, 0);
 
-            MatType X_minus_mean_div_var = X_minus_mean_squared.array() / var_tmp.array();
-            VecType ll = sum_log_var_tmp.array() - 
-                0.5 * math::sum<MatType, VecType>(X_minus_mean_div_var, 1).array();
+            DataType sum_log_var = -0.5 * val.array().log().sum();
+            MatType X_centered = (X.rowwise() - mean_.row(i)).array().square();
+            MatType X_centered_reduced = X_centered.array().rowwise() / var_.row(i).array();
+            VecType ll = sum_log_var - X_centered_reduced.array().rowwise().sum() * 0.5;
 
             jll.col(i) = ll.array() + lp.array();
         }
