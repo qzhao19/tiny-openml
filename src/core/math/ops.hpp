@@ -43,20 +43,20 @@ VecType var(const MatType& x, int axis = -1) {
         // compute means and element-wise square along to axis 1
         VecType col_mean(num_cols);
         col_mean = x.colwise().mean();
-        VecType mean_x_squared(num_cols);
-        mean_x_squared = x.array().square().colwise().mean().transpose();
+        VecType x_mean_squared(num_cols);
+        x_mean_squared = x.array().square().colwise().mean().transpose();
         VecType col_var(num_cols);
-        col_var = mean_x_squared - col_mean.array().square().matrix();
+        col_var = x_mean_squared - col_mean.array().square().matrix();
 
         return col_var;
     }
     else if (axis == 1) {
         VecType row_mean(num_rows);
         row_mean = x.rowwise().mean();
-        VecType mean_x_squared(num_rows);
-        mean_x_squared = x.array().square().rowwise().mean();
+        VecType x_mean_squared(num_rows);
+        x_mean_squared = x.array().square().rowwise().mean();
         VecType row_var(num_rows);
-        row_var = mean_x_squared - row_mean.array().square().matrix();
+        row_var = x_mean_squared - row_mean.array().square().matrix();
 
         return row_var;
     }
@@ -65,10 +65,10 @@ VecType var(const MatType& x, int axis = -1) {
         VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
         VecType mean(1);
         mean = flatten_x.colwise().mean();
-        VecType mean_x_squared(1);
-        mean_x_squared = flatten_x.array().square().colwise().mean();
+        VecType x_mean_squared(1);
+        x_mean_squared = flatten_x.array().square().colwise().mean();
         VecType var(1);
-        var = mean_x_squared - mean.array().square().matrix();
+        var = x_mean_squared - mean.array().square().matrix();
 
         return var;
     }
