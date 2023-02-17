@@ -169,11 +169,17 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
             auto Xt_Q = (X.transpose() * Q).eval();
             std::tie(Q, R) = qr<MatType>(Xt_Q, false);
         }
-        
     }
 
     MatType R;
     std::tie(Q, R) = qr<MatType>(X * Q, false);
+
+    MatType B = Q.transpose() * X;
+    MatType U, s, Vt;
+    std::tie(U, s, Vt) = exact_svd<MatType, VecType>(B, true);
+    B.resize(0, 0);
+
+
 }
 
 
