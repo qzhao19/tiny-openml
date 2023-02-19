@@ -174,12 +174,23 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
     MatType R;
     std::tie(Q, R) = qr<MatType>(X * Q, false);
 
+    // project M to the (k + p) dimensional space
     MatType B = Q.transpose() * X;
-    MatType U, s, Vt;
-    std::tie(U, s, Vt) = exact_svd<MatType, VecType>(B, true);
+    // compute the SVD on the thin matrix: (k + p) wide
+    MatType Uhat, Vt;
+    VecType s;
+    std::tie(Uhat, s, Vt) = exact_svd<MatType, VecType>(B, true);
     B.resize(0, 0);
 
+    MatType U = Q * Uhat;
 
+    if (flip_sign) {
+        std::tie(U, Vt) = math::flip_sign<MatType, MatType>(U, Vt);
+    }
+
+    return std::make_tuple(
+        U.topRows(num_components), s.topRows(num_components), Vt.topRows(num_components)
+    );
 }
 
 
