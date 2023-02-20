@@ -2,6 +2,7 @@
 #define METHODS_DECOMPOSITION_PCA_HPP
 #include "../../prereqs.hpp"
 #include "../../core.hpp"
+#include "./base.hpp"
 using namespace openml;
 
 namespace openml{
@@ -18,34 +19,18 @@ namespace decomposition {
  * @param scale Whether or not to scale the data.
 */
 template<typename DataType>
-class PCA {
+class PCA: public BaseDecompositionModel<DataType> {
 private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
-    /**
-     * @param components: ndarray of shape (n_components, n_features)
-     *      Principal axes in feature space, representing the directions of 
-     *      maximum variance in the data.
-     * @param explained_var: ndarray of shape (n_components,)
-     *      The amount of variance explained by each of the selected components. 
-     * @param explained_variance_ratio: ndarray of shape (n_components,)
-     *      Percentage of variance explained by each of the selected components.
-    */
-    MatType precision_;
-    MatType covariance_;
-    MatType components_;
-    VecType explained_var_;
-    VecType explained_var_ratio_;
-
     std::string solver_;
-    std::size_t num_components_;
+    // std::size_t num_components_;
     double noise_var_;
 
 protected:
-
     void fit_data(const MatType& X) {
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
@@ -70,17 +55,17 @@ protected:
         VecType total_var = math::sum<MatType, VecType>(explained_var);
         explained_var_ratio = explained_var / total_var(0, 0);
 
-        if (num_components_ < std::min(num_samples, num_features)) {
-            std::size_t num_noise_var = std::min(num_samples, num_features) - num_components_;
+        if (this->num_components_ < std::min(num_samples, num_features)) {
+            std::size_t num_noise_var = std::min(num_samples, num_features) - this->num_components_;
             VecType noise_var = math::mean<MatType, VecType>(explained_var.bottomRows(num_noise_var));
             noise_var_ = static_cast<double>(noise_var.value());
         }
         else {
             noise_var_ = 0.0;
         }
-        components_ = components.topRows(num_components_);
-        explained_var_ = explained_var.topRows(num_components_);
-        explained_var_ratio_ = explained_var_ratio.topRows(num_components_);
+        this->components_ = components.topRows(this->num_components_);
+        this->explained_var_ = explained_var.topRows(this->num_components_);
+        this->explained_var_ratio_ = explained_var_ratio.topRows(this->num_components_);
 
     }
 
@@ -88,7 +73,7 @@ protected:
     const MatType transform_data(const MatType& X) const{
         std::size_t num_samples = X.rows();
         
-        MatType transformed_X(num_samples, num_components_);
+        MatType transformed_X(num_samples, this->num_components_);
         transformed_X = X * components_.transpose();
         return transformed_X; 
     }
@@ -98,25 +83,25 @@ protected:
         std::size_t num_features = components_.cols();
         // MatType components_ = components;
 
-        MatType explained_var(num_components_, num_components_);
-        explained_var = math::diagmat<MatType, VecType>(explained_var_);
+        MatType explained_var(this->num_components_, this->num_components_);
+        explained_var = math::diagmat<MatType, VecType>(this->explained_var_);
 
         MatType explained_var_diff = explained_var.array() - noise_var_;
         explained_var_diff = explained_var_diff.matrix().cwiseMax(static_cast<DataType>(0));
 
         MatType cov(num_features, num_features);
-        cov = components_.transpose() * explained_var_diff * components_; 
+        cov = components_.transpose() * explained_var_diff * this->components_; 
 
         MatType eye(num_features, num_features);
         eye.setIdentity();
-        cov += eye * noise_var_;
+        cov += (eye * noise_var_).eval();
 
-        covariance_ = cov;
+        this->covariance_ = cov;
     }
 
     /**Compute data precision matrix*/
     void compute_precision_matrix() {
-        precision_ = math::pinv<MatType, VecType>(covariance_);
+        this->precision_ = math::pinv<MatType, VecType>(this->covariance_);
     }
 
     /**compute log_likelihood of each sample*/
@@ -124,7 +109,7 @@ protected:
         std::size_t num_samples = X.rows(), num_features = X.cols();
         
         MatType log_like_(num_samples, num_features);
-        log_like_ = (X.array() * (X * precision_).array());
+        log_like_ = X.array() * (X * this->precision_).array();
 
         VecType log_like(num_samples);
         log_like = math::sum<MatType, VecType>(log_like_, 1);
@@ -132,19 +117,19 @@ protected:
 
         log_like.array() -= 0.5 * (static_cast<DataType>(num_features) * \
             std::log(2.0 * M_PI) - \
-                math::logdet<MatType>(precision_));
+                math::logdet<MatType>(this->precision_));
 
         return log_like;
     }
 
 public:
-    PCA(): solver_("svd"), 
-        num_components_(2) {};
+    PCA(): BaseDecompositionModel<DataType>(2), 
+        solver_("svd") {};
 
     PCA(std::string solver, 
         std::size_t num_components): 
-            solver_(solver), 
-            num_components_(num_components) {};
+            BaseDecompositionModel<DataType>(num_components),
+            solver_(solver) {};
 
     /**deconstructor*/
     ~PCA() {};
@@ -196,9 +181,9 @@ public:
         VecType log_like(num_samples);
         log_like = compute_score_samples(centered_X);
 
-        auto average_log_like = math::mean<MatType, VecType>(log_like);
+        auto average_log_like = math::mean<MatType, VecType>(log_like, -1);
 
-        return average_log_like(0, 0);
+        return average_log_like.value();
     }
 
      /**
@@ -211,7 +196,7 @@ public:
     */
     const MatType get_covariance() {
         compute_data_covariance();
-        return covariance_;
+        return this->covariance_;
     }
 
     /**
@@ -221,21 +206,21 @@ public:
     */
     const MatType get_precision() {
         compute_precision_matrix();
-        return precision_;
+        return this->precision_;
     }
 
     /**override get_coef interface*/
-    const VecType get_components() const {
-        return components_;
-    };
+    // const VecType get_components() const {
+    //     return components_;
+    // };
 
-    const VecType get_explained_var() const {
-        return explained_var_;
-    };
+    // const VecType get_explained_var() const {
+    //     return explained_var_;
+    // };
 
-    const VecType get_explained_var_ratio() const {
-        return explained_var_ratio_;
-    };
+    // const VecType get_explained_var_ratio() const {
+    //     return explained_var_ratio_;
+    // };
 
 };
 
