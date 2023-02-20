@@ -135,19 +135,27 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
  *      it has 3 value: 'QR', 'LU', 'none'
  * @return a tuple contains U matrix, s vector and Vt matrix.
 */
-template<typename MatType, typename VecType>
+template<typename MatType, typename VecType, typename IdxType>
 std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X, 
     std::size_t num_components = 3, 
     std::size_t num_oversamples = 10,
     std::size_t num_iters = 4, 
-    std::string power_iter_normalizer = "QR", 
+    std::string power_iter_normalizer = "LU", 
     bool flip_sign = true) {
     
     std::size_t num_samples = X.rows(), num_features = X.cols();
     std::size_t num_random = num_components + num_oversamples;
 
+    if (num_random > std::min(num_samples, num_features)) {
+        std::ostringstream err_msg;
+        err_msg << "Randomized_svd requires k + p <= min(M, N) " 
+                << "k: num_components, p: num_oversamples." 
+                << std::endl;
+        throw std::invalid_argument(err_msg.str());
+    }
+
+    // init a random matrix Q
     MatType Q = random::randn<MatType>(num_features, num_random);
-    
     for (std::size_t i = 0; i < num_iters; ++i) {
 
         if (power_iter_normalizer == "None") {
@@ -160,7 +168,6 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
             std::tie(Q, L, U) = lu<MatType>(XQ, true);
             auto Xt_Q = (X.transpose() * Q).eval();
             std::tie(Q, L, U) = lu<MatType>(Xt_Q, true);
-
         }
         else if (power_iter_normalizer == "QR") {
             MatType R;
@@ -169,12 +176,19 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
             auto Xt_Q = (X.transpose() * Q).eval();
             std::tie(Q, R) = qr<MatType>(Xt_Q, false);
         }
+        else {
+            std::ostringstream err_msg;
+            err_msg << "power_iter_normalizer: {LU, QR, None}, default is LU, "
+                    << "but got an unknown option: " << power_iter_normalizer
+                    << std::endl;
+            throw std::invalid_argument(err_msg.str());
+        }
     }
 
     MatType R;
     std::tie(Q, R) = qr<MatType>(X * Q, false);
 
-    // project M to the (k + p) dimensional space
+    // project X to the (k + p) dimensional space
     MatType B = Q.transpose() * X;
     // compute the SVD on the thin matrix: (k + p) wide
     MatType Uhat, Vt;
@@ -185,12 +199,13 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
     MatType U = Q * Uhat;
 
     if (flip_sign) {
-        std::tie(U, Vt) = math::flip_sign<MatType, MatType>(U, Vt);
+        std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxType>(U, Vt);
     }
 
     return std::make_tuple(
-        U.topRows(num_components), s.topRows(num_components), Vt.topRows(num_components)
-    );
+        U.leftCols(num_components),
+        s.topRows(num_components),
+        Vt.topRows(num_components));
 }
 
 
@@ -243,9 +258,9 @@ template <typename MatType,
     typename DataType = typename MatType::value_type>
 DataType logdet(const MatType& x) {
     DataType ld = static_cast<DataType>(0);
-    Eigen::PartialPivLU<MatType> lu(x);
-    auto& LU = lu.matrixLU();
-    DataType c = lu.permutationP().determinant(); // -1 or 1
+    Eigen::PartialPivLU<MatType> lu_decomposition(x);
+    auto& LU = lu_decomposition.matrixLU();
+    DataType c = lu_decomposition.permutationP().determinant(); // -1 or 1
     for (std::size_t i = 0; i < LU.rows(); ++i) {
         const auto& lii = LU(i,i);
         if (lii < static_cast<DataType>(0)) {
@@ -274,14 +289,14 @@ VecType logsumexp(const MatType& x, int axis){
     std::size_t num_rows = x.rows(), num_cols = x.cols();
     if (axis == 1) {
         VecType c = x.rowwise().maxCoeff();
-        MatType c_tmp = c.rowwise().replicate(num_cols);
-        VecType log_sum_exp = (x - c_tmp).array().exp().rowwise().sum().log();
+        MatType tmp = c.rowwise().replicate(num_cols);
+        VecType log_sum_exp = (x - tmp).array().exp().rowwise().sum().log();
         return log_sum_exp + c;
     }
     else if (axis == 0) {
         VecType c = x.colwise().maxCoeff();
-        MatType c_tmp = c.transpose().colwise().replicate(num_rows);
-        VecType log_sum_exp = (x - c_tmp).array().exp().colwise().sum().log();
+        MatType tmp = c.transpose().colwise().replicate(num_rows);
+        VecType log_sum_exp = (x - tmp).array().exp().colwise().sum().log();
         return log_sum_exp + c;
     }
     else if (axis == -1) {
