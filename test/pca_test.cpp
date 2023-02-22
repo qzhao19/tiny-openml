@@ -15,8 +15,17 @@ int main() {
 
     pca.fit(X);
 
+    std::cout << "transform data" << std::endl;
+    std::cout << pca.transform(X) << std::endl;
+
     std::cout << "data covariance" << std::endl;
     std::cout << pca.get_covariance() << std::endl;
+
+    std::cout << "data explained_variance" << std::endl;
+    std::cout << pca.get_explained_var() << std::endl;
+
+    std::cout << "components" << std::endl;
+    std::cout << pca.get_components() << std::endl;
 
     std::cout << "precision matrix" << std::endl;
     std::cout << pca.get_precision() << std::endl;
@@ -24,7 +33,6 @@ int main() {
     std::cout << "score" << std::endl;
     std::cout << pca.score(X) << std::endl;
 
-    std::cout << "transform data" << std::endl;
-    std::cout << pca.transform(X) << std::endl;
+    
 
 }

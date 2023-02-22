@@ -27,7 +27,6 @@ private:
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::string solver_;
-    // std::size_t num_components_;
     double noise_var_;
 
 protected:
@@ -74,13 +73,13 @@ protected:
         std::size_t num_samples = X.rows();
         
         MatType transformed_X(num_samples, this->num_components_);
-        transformed_X = X * components_.transpose();
+        transformed_X = X * this->components_.transpose();
         return transformed_X; 
     }
 
     /**calculate the covariance*/
     void compute_data_covariance() {
-        std::size_t num_features = components_.cols();
+        std::size_t num_features = this->components_.cols();
         // MatType components_ = components;
 
         MatType explained_var(this->num_components_, this->num_components_);
@@ -90,7 +89,7 @@ protected:
         explained_var_diff = explained_var_diff.matrix().cwiseMax(static_cast<DataType>(0));
 
         MatType cov(num_features, num_features);
-        cov = components_.transpose() * explained_var_diff * this->components_; 
+        cov = this->components_.transpose() * explained_var_diff * this->components_; 
 
         MatType eye(num_features, num_features);
         eye.setIdentity();
@@ -208,19 +207,6 @@ public:
         compute_precision_matrix();
         return this->precision_;
     }
-
-    /**override get_coef interface*/
-    // const VecType get_components() const {
-    //     return components_;
-    // };
-
-    // const VecType get_explained_var() const {
-    //     return explained_var_;
-    // };
-
-    // const VecType get_explained_var_ratio() const {
-    //     return explained_var_ratio_;
-    // };
 
 };
 

@@ -15,12 +15,12 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
+protected:
     MatType precision_;
     MatType covariance_;
     MatType components_;
     VecType explained_var_;
     VecType explained_var_ratio_;
-
     std::size_t num_components_;
 
 
