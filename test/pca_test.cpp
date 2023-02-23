@@ -24,6 +24,9 @@ int main() {
     std::cout << "data explained_variance" << std::endl;
     std::cout << pca.get_explained_var() << std::endl;
 
+    std::cout << "singular_values_" << std::endl;
+    std::cout << pca.get_singular_values() << std::endl;
+
     std::cout << "components" << std::endl;
     std::cout << pca.get_components() << std::endl;
 
