@@ -132,7 +132,7 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
  *      Number of power iterations
  * @param power_iter_nomalizer string
  *      Whether the power iterations are normalized with step-by-step
- *      it has 3 value: 'QR', 'LU', 'none'
+ *      it has 3 value: 'QR', 'LU', 'None'
  * @return a tuple contains U matrix, s vector and Vt matrix.
 */
 template<typename MatType, typename VecType, typename IdxType>
@@ -165,16 +165,16 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
         else if (power_iter_normalizer == "LU") {
             MatType L, U;
             auto XQ = (X * Q).eval();
-            std::tie(Q, L, U) = lu<MatType>(XQ, true);
+            std::tie(Q, L, U) = math::lu<MatType>(XQ, true);
             auto Xt_Q = (X.transpose() * Q).eval();
-            std::tie(Q, L, U) = lu<MatType>(Xt_Q, true);
+            std::tie(Q, L, U) = math::lu<MatType>(Xt_Q, true);
         }
         else if (power_iter_normalizer == "QR") {
             MatType R;
             auto XQ = (X * Q).eval();
-            std::tie(Q, R) = qr<MatType>(XQ, false);
+            std::tie(Q, R) = math::qr<MatType>(XQ, false);
             auto Xt_Q = (X.transpose() * Q).eval();
-            std::tie(Q, R) = qr<MatType>(Xt_Q, false);
+            std::tie(Q, R) = math::qr<MatType>(Xt_Q, false);
         }
         else {
             std::ostringstream err_msg;
@@ -186,14 +186,15 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
     }
 
     MatType R;
-    std::tie(Q, R) = qr<MatType>(X * Q, false);
+    std::tie(Q, R) = math::qr<MatType>(X * Q, false);
 
     // project X to the (k + p) dimensional space
     MatType B = Q.transpose() * X;
     // compute the SVD on the thin matrix: (k + p) wide
     MatType Uhat, Vt;
     VecType s;
-    std::tie(Uhat, s, Vt) = exact_svd<MatType, VecType>(B, true);
+    std::tie(Uhat, s, Vt) = math::exact_svd<MatType, VecType>(B, true);
+    Vt = Vt.transpose().eval();
     B.resize(0, 0);
 
     MatType U = Q * Uhat;
