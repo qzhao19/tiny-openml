@@ -32,19 +32,20 @@ private:
 protected:
     void fit_data(const MatType& X) {
         std::size_t num_samples = X.rows(), num_features = X.cols();
+
+        MatType centered_X;
+        centered_X = math::center<MatType>(X);
         
         MatType components;
         VecType explained_var;
         VecType explained_var_ratio;
 
+        VecType s;
+        MatType U, Vt;
         if (solver_ == "svd") {
-            MatType U;
-            VecType s; 
-            MatType V;
-            std::tie(U, s, V) = math::exact_svd<MatType, VecType>(X, false);
-            
+            std::tie(U, s, Vt) = math::exact_svd<MatType, VecType>(centered_X, false);
             // flip eigenvectors' sign to enforce deterministic output
-            MatType Vt = V.transpose();
+            Vt = Vt.transpose().eval();
             std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxType>(U, Vt);
 
             explained_var = math::power<VecType>(s, 2.0) / (static_cast<DataType>(num_samples) - 1.);
@@ -62,18 +63,20 @@ protected:
         else {
             noise_var_ = 0.0;
         }
+        this->singular_values_ = s.topRows(this->num_components_);
         this->components_ = components.topRows(this->num_components_);
         this->explained_var_ = explained_var.topRows(this->num_components_);
         this->explained_var_ratio_ = explained_var_ratio.topRows(this->num_components_);
-
     }
 
     /** transform the new data */
     const MatType transform_data(const MatType& X) const{
         std::size_t num_samples = X.rows();
-        
+        MatType centered_X;
+        centered_X = math::center<MatType>(X);
+
         MatType transformed_X(num_samples, this->num_components_);
-        transformed_X = X * this->components_.transpose();
+        transformed_X = centered_X * this->components_.transpose();
         return transformed_X; 
     }
 
@@ -86,7 +89,7 @@ protected:
         explained_var = math::diagmat<MatType, VecType>(this->explained_var_);
 
         MatType explained_var_diff = explained_var.array() - noise_var_;
-        explained_var_diff = explained_var_diff.matrix().cwiseMax(static_cast<DataType>(0));
+        explained_var_diff = explained_var_diff.cwiseMax(static_cast<DataType>(0));
 
         MatType cov(num_features, num_features);
         cov = this->components_.transpose() * explained_var_diff * this->components_; 
@@ -132,37 +135,6 @@ public:
 
     /**deconstructor*/
     ~PCA() {};
-
-    /**
-     * Fit the model with X.
-     * @param X array-like of shape (num_samples, num_features)
-     *      Training data, where num_samples is the number of 
-     *      samples and num_features is the number of features.
-    */
-    void fit(const MatType& X) {
-        MatType centered_X;
-        centered_X = math::center<MatType>(X);
-        fit_data(centered_X);
-    }
-
-    /**
-     * Apply dimensionality reduction to X. X is projected on the 
-     * first principal components previously extracted from a 
-     * training set.
-     * 
-     * @param X array-like of shape (num_samples, num_features)
-     *      New data
-     * @return X_new array-like of shape
-     *      Projection of X in the first principal components
-    */
-    const MatType transform(const MatType& X) const{
-        MatType centered_X;
-        centered_X = math::center<MatType>(X);
-
-        MatType transformed_X;
-        transformed_X = transform_data(centered_X); 
-        return transformed_X;
-    }
 
     /**
      * Return the average log-likelihood of all samples.
@@ -211,6 +183,6 @@ public:
 };
 
 } // namespace openml
-} // namespace regression
+} // namespace decomposition
 
 #endif /*METHODS_DECOMPOSITION_PCA_HPP*/
