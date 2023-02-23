@@ -46,7 +46,7 @@ VecType var(const MatType& x, int axis = -1) {
         VecType x_mean_squared(num_cols);
         x_mean_squared = x.array().square().colwise().mean().transpose();
         VecType col_var(num_cols);
-        col_var = x_mean_squared - col_mean.array().square().matrix();
+        col_var = x_mean_squared.array() - col_mean.array().square();
 
         return col_var;
     }
@@ -56,7 +56,7 @@ VecType var(const MatType& x, int axis = -1) {
         VecType x_mean_squared(num_rows);
         x_mean_squared = x.array().square().rowwise().mean();
         VecType row_var(num_rows);
-        row_var = x_mean_squared - row_mean.array().square().matrix();
+        row_var = x_mean_squared.array() - row_mean.array().square();
 
         return row_var;
     }
@@ -68,7 +68,7 @@ VecType var(const MatType& x, int axis = -1) {
         VecType x_mean_squared(1);
         x_mean_squared = flatten_x.array().square().colwise().mean();
         VecType var(1);
-        var = x_mean_squared - mean.array().square().matrix();
+        var = x_mean_squared.array() - mean.array().square();
 
         return var;
     }
