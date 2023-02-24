@@ -108,18 +108,16 @@ protected:
         const VecType& x_squared_norms) {
         
         std::size_t num_samples = X.rows(), num_features = X.cols(); 
-        MatType centroids(num_clusters_, num_features);
+        centroids_.resize(num_clusters_, num_features);
 
         if (init_ == "random") {
             IdxType index = random::permutation<IdxType>(num_samples);
             IdxType selected_index = index.topRows(num_clusters_);
-            centroids = X(selected_index, Eigen::all);
+            centroids_ = X(selected_index, Eigen::all);
         } 
         else if (init_ == "kmeans++") {
-            centroids = kmeans_plusplus(X);
+            centroids_ = kmeans_plusplus(X);
         }
-
-        centroids_ = centroids;
     }
     
 
@@ -224,7 +222,6 @@ public:
      *    the input dataset
     */
     const VecType predict(const MatType& X) {
-
         VecType y_pred = predict_label(X);
         return y_pred;
 
