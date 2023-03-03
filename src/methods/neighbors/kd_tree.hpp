@@ -22,39 +22,22 @@ private:
 
     struct Node {
         bool is_leaf;
-        double impurity;
-        std::size_t num_samples;
-        VecType num_samples_per_class;
-        std::size_t feature_index;
-        DataType feature_value;
-        DataType predict_value;
+        IdxType data_indices_per_node;
+        std::weak_ptr<Node> parent;
         std::shared_ptr<Node> left_child;
         std::shared_ptr<Node> right_child;
 
         Node():is_leaf(true),
-            impurity(0.0),
-            num_samples(0),
-            num_samples_per_class(VecType()),
-            feature_index(ConstType<std::size_t>::max()),
-            feature_value(ConstType<DataType>::quiet_NaN()),
-            predict_value(ConstType<DataType>::quiet_NaN()),
+            data_indices_per_node(IdxType()),
+            parent(std::weak_ptr<Node>()),
             left_child(std::shared_ptr<Node>()), 
             right_child(std::shared_ptr<Node>()) {};
 
-        explicit Node(bool is_leaf_,
-            double impurity_ = 0.0,
-            std::size_t num_samples_ = 0,
-            VecType num_samples_per_class_ = VecType(), 
-            std::size_t feature_index_ = ConstType<std::size_t>::max(), 
-            DataType feature_value_ = ConstType<DataType>::quiet_NaN(), 
-            DataType predict_value_ = ConstType<DataType>::quiet_NaN()): 
-                is_leaf(is_leaf_),
-                impurity(impurity_),
-                num_samples(num_samples_), 
-                num_samples_per_class(num_samples_per_class_),
-                feature_index(feature_index_),
-                feature_value(feature_value_),
-                predict_value(predict_value_),
+        Node(bool is_leaf_,
+            IdxType data_indices_per_node_): 
+            is_leaf(is_leaf_),
+            data_indices_per_node(data_indices_per_node_),
+                parent(std::weak_ptr<Node>()),
                 left_child(std::shared_ptr<Node>()), 
                 right_child(std::shared_ptr<Node>()) {};
 
