@@ -19,8 +19,8 @@ void loadtxt(const std::string &fp,
     VecType& y) {
 
     std::vector<std::vector<DataType>> stdmat;
-    std::ifstream file_in(fp);
-    for (std::string line; std::getline(file_in, line); ) {
+    std::ifstream fin(fp);
+    for (std::string line; std::getline(fin, line); ) {
         std::stringstream str_stream(line);
         std::vector<DataType> row;
 
@@ -38,6 +38,34 @@ void loadtxt(const std::string &fp,
     }
     X = mat.leftCols(n_cols - 1);
     y = mat.rightCols(1);
+    
+};
+
+template<typename DataType>
+void loadtxt(const std::string &fp, 
+    std::vector<std::vector<DataType>>& X) {
+    
+    std::ifstream fin(fp);
+    if(!fin) {
+        throw std::runtime_error("Input file could not be opened");
+        exit(0);
+    }
+    std::string str;
+    while(!getline(fin, str).eof()){
+        std::vector<DataType> row;
+        int pre = 0;
+        for(int i = 0; i < str.size(); i++){
+            if(str[i] == '\t') {
+                int num = atoi(str.substr(pre, i).c_str());
+                row.push_back(num);
+                pre = i+1;
+            }
+        }
+        std::size_t num = atoi(str.substr(pre, str.size()).c_str());
+        row.push_back(num);
+        
+        X.push_back(arr);
+    }
     
 };
 
