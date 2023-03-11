@@ -20,6 +20,10 @@ void loadtxt(const std::string &fp,
 
     std::vector<std::vector<DataType>> stdmat;
     std::ifstream fin(fp);
+    if(!fin) {
+        throw std::runtime_error("Input file could not be opened");
+        exit(0);
+    }
     for (std::string line; std::getline(fin, line); ) {
         std::stringstream str_stream(line);
         std::vector<DataType> row;
@@ -64,7 +68,7 @@ void loadtxt(const std::string &fp,
         std::size_t num = atoi(str.substr(pre, str.size()).c_str());
         row.push_back(num);
         
-        X.push_back(arr);
+        X.push_back(row);
     }
     
 };
