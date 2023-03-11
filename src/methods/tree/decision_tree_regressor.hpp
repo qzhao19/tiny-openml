@@ -266,7 +266,7 @@ public:
      void fit(const MatType& X, 
         const VecType& y) {
         
-        root_ = std::make_unique<Node>();
+        root_ = std::make_shared<Node>();
         build_tree(X, y, root_, 0);
     }
 

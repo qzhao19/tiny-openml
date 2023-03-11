@@ -268,7 +268,7 @@ public:
             label_count_[y(i)]++;
         }
         num_classes_ = label_count_.size();
-        root_ = std::make_unique<Node>();
+        root_ = std::make_shared<Node>();
         build_tree(X, y, root_, 0);
 
     }
