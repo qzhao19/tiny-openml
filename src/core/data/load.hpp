@@ -60,12 +60,12 @@ void loadtxt(const std::string &fp,
         int pre = 0;
         for(int i = 0; i < str.size(); i++){
             if(str[i] == '\t') {
-                int num = atoi(str.substr(pre, i).c_str());
+                int num = std::atoi(str.substr(pre, i).c_str());
                 row.push_back(num);
                 pre = i+1;
             }
         }
-        std::size_t num = atoi(str.substr(pre, str.size()).c_str());
+        std::size_t num = std::atoi(str.substr(pre, str.size()).c_str());
         row.push_back(num);
         
         X.push_back(row);
