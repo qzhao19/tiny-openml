@@ -30,6 +30,7 @@ protected:
         std::vector<DataType> itemset, 
         std::size_t count) {
         
+        std::size_t key;
         // if current itemset is the last one, just insert it
         if (node.index == itemset.size()) {
             node.bucket[itemset] = count;
@@ -39,7 +40,7 @@ protected:
         }
 
         if (!node.is_leaf) {
-            std::size_t key = hash(itemset[node.index]);
+            key = hash(itemset[node.index]);
             if (node.children.find(key) == node.children.end()) {
                 node.children[key] = std::make_shared<NodeType>;
             }
@@ -53,10 +54,23 @@ protected:
                 node.bucket[itemset] = (++count);
             }
 
-            
+            if (node.bucket.size() > max_leaf_size_) {
+                ++node.index;
+
+                // bucket is a map struct and key is vector
+                for (auto& bucket : node.bucket) {
+                    key = hash(bucket.first[node.index]);
+                    if (node.children.find(key) == node.children.end()) {
+                        node.children[key] = std::make_shared<NodeType>;
+                    }
+                    node.children[key].index = std::min(node.index, bucket.first.size() - 1);
+                    insert(node.children[key], bucket.first, bucket.second);
+                }
+                node.bucket = std::map<std::vector<DataType>, std::size_t>();
+                node.is_leaf = false;
+
+            }   
         }
-
-
     }
 
 
