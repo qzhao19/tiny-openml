@@ -92,7 +92,12 @@ protected:
         }
     }
 
-    
+    void add_support(std::shared_ptr<NodeType> node, 
+        std::vector<DataType> pick_itemset, 
+        std::vector<DataType> rest_itemset, 
+        std::size_t k) {
+            
+        }
 
 public:
     HashTree(): max_leaf_size_(3), max_child_size_(3) {
