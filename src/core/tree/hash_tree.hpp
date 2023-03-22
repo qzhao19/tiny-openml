@@ -96,7 +96,33 @@ protected:
         std::vector<DataType> pick_itemset, 
         std::vector<DataType> rest_itemset, 
         std::size_t k) {
-            
+            if (node->is_leaf) {
+                std::vector<DataType> superset = pick_itemset;
+                superset.insert(superset.end(), rest_itemset.begin(), rest_itemset.end());
+
+                for (auto& itemset : node->bucket) {
+                    if (added_.find(itemset.first) != added_.end()) {
+                        continue;
+                    }
+                    std::vector<DataType> tmp;
+                    for (auto item : superset) {
+                        if (item >= itemset.first[0] && item <= itemset.first.back().c) {
+                            tmp.emplace_back(item);
+                        }
+                    }
+
+                    for (auto item : itemset) {
+                        if (std::find(tmp.begin(), tmp.end(), item) != tmp.end()) {
+                            node->bucket[itemset]++;
+                            added_.insert(itemset);
+                        }
+                    }
+                }
+            }
+            else {
+                std::size_t num_pick_items = picked_items.size();
+                std::size_t num_rest_items = rest_itemset.size();
+            }
         }
 
 public:
