@@ -122,6 +122,16 @@ protected:
             else {
                 std::size_t num_pick_items = picked_items.size();
                 std::size_t num_rest_items = rest_itemset.size();
+                std::size_t min_num_rest_items = k - num_pick_items - 1;
+                if (min_num_rest_items < 0) {
+                    return ;
+                }
+
+                std::size_t num_iters = num_rest_items - min_num_rest_items;
+
+                
+
+
             }
         }
 
