@@ -61,7 +61,7 @@ public:
         VecType y_new = y;
         MatType grad;
         if (this->multi_class_) {
-            std::set<std::size_t> label_set{y_new.begin(), y_new.end()};
+            std::set<DataType> label_set{y_new.begin(), y_new.end()};
             std::size_t num_classes = label_set.size();
             grad.resize(num_features, num_classes);
         }
