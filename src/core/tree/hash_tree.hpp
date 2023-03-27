@@ -120,7 +120,7 @@ protected:
                 }
             }
             else {
-                std::size_t num_pick_items = picked_items.size();
+                std::size_t num_pick_items = pick_itemset.size();
                 std::size_t num_rest_items = rest_itemset.size();
                 std::size_t min_num_rest_items = k - num_pick_items - 1;
                 if (min_num_rest_items < 0) {
@@ -129,9 +129,14 @@ protected:
 
                 std::size_t num_iters = num_rest_items - min_num_rest_items;
 
-                
-
-
+                for (std::size_t i = 0; i < num_iters; ++i) {
+                    std::vector<DataType> cur_pick = pick_itemset.emplace_back(rest_itemset[i]);
+                    std::vector<DataType> cur_rest = {rest.begin() + i, rest.end()};
+                    std::size_t key = hash(cur_pick[node->index]);
+                    if (node->children.find(key) != node->children.end()) {
+                        add_support(node->children[key], cur_pick, cur_rest, k);
+                    }
+                }
             }
         }
 
