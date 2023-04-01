@@ -21,7 +21,7 @@ void loadtxt(const std::string &fp,
     std::vector<std::vector<DataType>> stdmat;
     std::ifstream fin(fp);
     if(!fin) {
-        throw std::runtime_error("Input file could not be opened");
+        throw std::runtime_error("Input file could not be opened.");
         exit(0);
     }
     for (std::string line; std::getline(fin, line); ) {
@@ -51,26 +51,18 @@ void loadtxt(const std::string &fp,
     
     std::ifstream fin(fp);
     if(!fin) {
-        throw std::runtime_error("Input file could not be opened");
+        throw std::runtime_error("Input file could not be opened.");
         exit(0);
     }
-    std::string str;
-    while(!getline(fin, str).eof()){
+    for (std::string line; std::getline(fin, line); ) {
+        std::stringstream str_stream(line);
         std::vector<DataType> row;
-        int pre = 0;
-        for(int i = 0; i < str.size(); i++){
-            if(str[i] == '\t') {
-                int num = std::atoi(str.substr(pre, i).c_str());
-                row.push_back(num);
-                pre = i+1;
-            }
+
+        for (DataType elem; str_stream >> elem; ) {
+            row.push_back(elem);
         }
-        std::size_t num = std::atoi(str.substr(pre, str.size()).c_str());
-        row.push_back(num);
-        
         X.push_back(row);
     }
-    
 };
 
 }
