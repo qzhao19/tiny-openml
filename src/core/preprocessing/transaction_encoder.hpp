@@ -10,6 +10,10 @@ namespace preprocessing {
 template<typename DataType>
 class TransactionEncoder {
 private:
+
+    using SpMatType = Eigen::SparseMatrix<DataType>;
+    using TripletType = Eigen::Triplet<DataType>;
+
     std::set<DataType> cols_;
     std::map<DataType, std::size_t> cols_map_;
 
@@ -20,10 +24,10 @@ private:
                 cols_.insert(X[i][j]);
             }
         }
-        std::size_t index = 0;
-        for (auto it = ss.begin(); it != ss.end(); it++) {
-            cols_map_[index] = it;
-            ++index;
+        std::size_t idx = 0;
+        for (auto it = cols_.begin(); it != cols_.end(); it++) {
+            cols_map_[*it] = idx;
+            ++idx;
         }
     }
 
@@ -31,16 +35,34 @@ private:
     void transform_data(const std::vector<std::vector<DataType>>& X, bool sparse) {
 
         if (sparse) {
-            std::vector<std::size_t> indices;
+
+            std::vector<std::size_t> col_idx;
+            std::vector<std::size_t> row_idx;
+
+            std::vector<std::pair<std::size_t, std::size_t>> duplicate_indices;
+
             for (std::size_t i = 0; i < X.size(); ++i) {
+
+                std::set<DataType> seen;
+
                 for (std::size_t j = 0; j < X[i].size(); ++j) {
-                    auto col_idx = cols_map_[X[i]]
-                    indices.emplace_back(col_idx);
+                    
+
+                    if (cols_map_.find(X[i][j]) != cols_map_.end()) {
+                        row_idx.emplace_back(i);
+                        col_idx.emplace_back(cols_map_[X[i][j]]);
+                    }
+
+                    if (seen.find(X[i][j]) != seen.end()) {
+                        duplicate_indices.emplace_back(std::make_pair(i, j));
+                    }
+                    else{
+                        seen.insert(X[i][j]);
+                    }
                 }
-                indptr.emplace_back(indices.size());
+                
             }
-            auto non_sparse_values = indices.size()
-            auto array = csr_matrix(non_sparse_values, indices, indptr)
+
         }
         else{
 
