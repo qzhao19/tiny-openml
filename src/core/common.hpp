@@ -367,6 +367,18 @@ MatType clip(const MatType& x, DataType max, DataType min) {
     return x.array().min(max).max(min);
 };
 
+/**
+ * convert a string to size_t
+ * @param s string, input string to convert
+*/
+template <class DataType>  
+DataType string_to_integer(const std::string& s){  
+    std::istringstream iss(s);  
+    DataType num;  
+    iss >> num;  
+    return num;      
+};
+
 
 }
 }
