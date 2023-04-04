@@ -48,6 +48,9 @@ using ConstType = std::numeric_limits<DataType>;
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
 
+// add Eigen sparse module 
+#include <Eigen/SparseCore>
+
 
 #ifndef EIGEN_MAX_CPP_VER
   #define EIGEN_MAX_CPP_VER 14
