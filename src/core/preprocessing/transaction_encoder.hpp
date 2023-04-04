@@ -1,7 +1,7 @@
 #ifndef CORE_PREPPROCESSING_TRANSACTION_ENCODER_HPP
 #define CORE_PREPPROCESSING_TRANSACTION_ENCODER_HPP
-#include "../../../prereqs.hpp"
-#include "../../../core.hpp"
+#include "../../prereqs.hpp"
+#include "../../core.hpp"
 using namespace openml;
 
 namespace openml {
@@ -10,70 +10,62 @@ namespace preprocessing {
 template<typename DataType>
 class TransactionEncoder {
 private:
-
-    using SpMatType = Eigen::SparseMatrix<DataType>;
     using TripletType = Eigen::Triplet<DataType>;
+    using SpMatType = Eigen::SparseMatrix<DataType>;
+    using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
 
-    std::set<DataType> cols_;
-    std::map<DataType, std::size_t> cols_map_;
-
-    void fit_data(const std::vector<std::vector<DataType>>& X) {
+public:
+    const SpMatType fit_transform(const std::vector<std::vector<DataType>>& X) const {
+        
+        std::set<DataType> cols_set;
+        std::map<DataType, std::size_t> cols_map;
 
         for (std::size_t i = 0; i < X.size(); ++i) {
             for (std::size_t j = 0; j < X[i].size(); ++j) {
-                cols_.insert(X[i][j]);
+                cols_set.insert(X[i][j]);
             }
         }
         std::size_t idx = 0;
-        for (auto it = cols_.begin(); it != cols_.end(); it++) {
-            cols_map_[*it] = idx;
+        for (auto it = cols_set.begin(); it != cols_set.end(); it++) {
+            cols_map[*it] = idx;
             ++idx;
         }
-    }
 
+        idx = 0;
+        std::vector<DataType> non_sparse_values;
+        std::vector<std::size_t> col_idx, row_idx;
+        std::vector<std::vector<DataType>> copy_X = X;
 
-    void transform_data(const std::vector<std::vector<DataType>>& X, bool sparse) {
-
-        if (sparse) {
-
-            std::vector<std::size_t> col_idx;
-            std::vector<std::size_t> row_idx;
-
-            std::vector<std::pair<std::size_t, std::size_t>> duplicate_indices;
-
-            for (std::size_t i = 0; i < X.size(); ++i) {
-
-                std::set<DataType> seen;
-
-                for (std::size_t j = 0; j < X[i].size(); ++j) {
-                    
-
-                    if (cols_map_.find(X[i][j]) != cols_map_.end()) {
-                        row_idx.emplace_back(i);
-                        col_idx.emplace_back(cols_map_[X[i][j]]);
-                    }
-
-                    if (seen.find(X[i][j]) != seen.end()) {
-                        duplicate_indices.emplace_back(std::make_pair(i, j));
-                    }
-                    else{
-                        seen.insert(X[i][j]);
-                    }
-                }
-                
+        for (auto& row : copy_X) {
+            // remove row duplicate
+            std::set<DataType> seen;
+            for (auto& x : row) {
+                seen.insert(x);
             }
-
+            row.assign(seen.begin(), seen.end());
+            for (auto& x : row) {
+                if (cols_map.find(x) != cols_map.end()) {
+                    row_idx.emplace_back(idx);
+                    col_idx.emplace_back(cols_map[x]);
+                    non_sparse_values.emplace_back(static_cast<DataType>(1));
+                }
+            }
+            ++idx;
         }
-        else{
 
-
-
-
+        std::size_t num_rows = X.size();
+        std::size_t num_cols = cols_set.size();
+        std::size_t num_non_sparse_values = non_sparse_values.size();
+        
+        SpMatType sp_mat(num_rows, num_cols);
+        std::vector<TripletType> triplets;
+        for (std::size_t i = 0; i < num_non_sparse_values; i++) {
+            triplets.emplace_back(row_idx[i], col_idx[i], non_sparse_values[i]);
         }
+        sp_mat.setFromTriplets(triplets.begin(), triplets.end());
+
+        return sp_mat;
     }
-
-
-
 
 };
 
