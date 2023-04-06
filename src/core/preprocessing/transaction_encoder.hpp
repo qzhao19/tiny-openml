@@ -47,7 +47,7 @@ public:
                 if (cols_map.find(x) != cols_map.end()) {
                     row_idx.emplace_back(idx);
                     col_idx.emplace_back(cols_map[x]);
-                    non_sparse_values.emplace_back(static_cast<DataType>(1));
+                    non_sparse_values.emplace_back(x);
                 }
             }
             ++idx;
