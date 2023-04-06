@@ -379,6 +379,41 @@ DataType string_to_integer(const std::string& s){
     return num;      
 };
 
+/**
+ * Get all non-repeating combinations of numbers (permutations)
+ * 
+ * @param x input list
+ * @param k the length subsequences
+ * @return k length subsequences of elements from the input
+*/
+template <typename DataType>
+std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, std::size_t k) {
+    if (x.size() < k) {
+        throw std::invalid_argument("k is more that number of array.");
+    }
+
+    std::vector<DataType> copy_x = x;
+    if (!std::is_sorted(copy_x.begin(), copy_x.end())) {
+        std::sort(copy_x.begin(), copy_x.end());
+    }
+
+    std::vector<bool> bitset(k, 1);
+    bitset.resize(copy_x.size(), 0);
+
+    std::vector<std::vector<DataType>> combs;
+    do {
+        std::vector<DataType> tmp;
+        for (std::size_t i = 0; i != x.size(); ++i) {
+            if (bitset[i]) {
+                tmp.emplace_back(copy_x[i]);
+            }
+        }
+        combs.emplace_back(tmp);
+    } while (std::prev_permutation(bitset.begin(), bitset.end()));
+
+    return combs;
+};
+
 
 }
 }
