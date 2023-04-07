@@ -415,6 +415,29 @@ std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, 
 };
 
 
+/**
+ * check whether a vector is a subvector of another
+ * @param v2 the target vector to check if it is a subset
+ * @param v1 the source vector we want to compare
+*/
+template <typename DataType>
+bool contains(const std::vector<DataType>& v1, const std::vector<DataType>& v2){
+    for (typename std::vector<DataType>::const_iterator i = v1.begin(); i != v1.end(); i++){
+        bool found = false;
+        for (typename std::vector<DataType>::const_iterator j = v2.begin(); j != v2.end(); j++){
+            if (*i == *j){
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            return false;
+        }
+    }
+    return true;
+};
+
+
 }
 }
 #endif /*CORE_COMMON_HPP*/
