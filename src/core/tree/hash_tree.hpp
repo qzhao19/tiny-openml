@@ -31,7 +31,7 @@ protected:
         if (node->index == itemset.size()) {
             // if itemset is in bucket
             if (node->bucket.find(itemset) != node->bucket.end()) {
-                node->bucket[itemset] = (++count);
+                node->bucket[itemset] += count;
             }
             else {
                 node->bucket[itemset] = count;
@@ -53,7 +53,7 @@ protected:
                 node->bucket[itemset] = count;
             }
             else {
-                node->bucket[itemset] = (++count);
+                node->bucket[itemset] += count;
             }
 
             if (node->bucket.size() > max_leaf_size_) {
@@ -94,6 +94,7 @@ protected:
 public:
     HashTree(): max_leaf_size_(3), max_child_size_(3) {
         root_ = std::make_shared<NodeType>();
+        root_->is_leaf = false;
     };
 
     HashTree(std::size_t max_leaf_size, 
@@ -101,7 +102,10 @@ public:
             max_leaf_size_(max_leaf_size), 
             max_child_size_(max_child_size) {
         root_ = std::make_shared<NodeType>();
-    };   
+        root_->is_leaf = false;
+    };
+
+    ~HashTree() {};
 
     void build_tree(const std::vector<std::vector<DataType>>& itemsets) {
         for (std::size_t i = 0; i < itemsets.size(); ++i) {
@@ -112,58 +116,63 @@ public:
     void compute_frequency_itemsets(std::size_t support, 
         std::vector<std::size_t>& count_list,
         std::vector<std::vector<DataType>>& itemset_list) {
+    
         dfs(root_, support);
         count_list = count_list_;
         itemset_list = itemset_list_;
     }
 
+    
     void add_support(std::shared_ptr<NodeType> node, 
         std::vector<DataType> pick_itemset, 
         std::vector<DataType> rest_itemset, 
         std::size_t k) {
-            if (node->is_leaf) {
-                std::vector<DataType> superset = pick_itemset;
-                superset.insert(superset.end(), rest_itemset.begin(), rest_itemset.end());
+        
+        if (node->is_leaf) {
+            std::vector<DataType> superset = pick_itemset;
+            superset.insert(superset.end(), rest_itemset.begin(), rest_itemset.end());
 
-                for (auto& itemset : node->bucket) {
-                    if (added_.find(itemset.first) != added_.end()) {
-                        continue;
-                    }
-                    std::vector<DataType> tmp;
-                    for (auto item : superset) {
-                        if (item >= itemset.first[0] && item <= itemset.first.back().c) {
-                            tmp.emplace_back(item);
-                        }
-                    }
-
-                    for (auto item : itemset) {
-                        if (std::find(tmp.begin(), tmp.end(), item) != tmp.end()) {
-                            node->bucket[itemset]++;
-                            added_.insert(itemset);
-                        }
+            for (auto& itemset : node->bucket) {
+                if (added_.find(itemset.first) != added_.end()) {
+                    continue;
+                }
+                std::vector<DataType> tmp;
+                for (auto item : superset) {
+                    if (item >= itemset.first[0] && item <= itemset.first.back().c) {
+                        tmp.emplace_back(item);
                     }
                 }
-            }
-            else {
-                std::size_t num_pick_items = pick_itemset.size();
-                std::size_t num_rest_items = rest_itemset.size();
-                std::size_t min_num_rest_items = k - num_pick_items - 1;
-                if (min_num_rest_items < 0) {
-                    return ;
-                }
 
-                std::size_t num_iters = num_rest_items - min_num_rest_items;
-
-                for (std::size_t i = 0; i < num_iters; ++i) {
-                    std::vector<DataType> cur_pick = pick_itemset.emplace_back(rest_itemset[i]);
-                    std::vector<DataType> cur_rest = {rest.begin() + i, rest.end()};
-                    std::size_t key = hash(cur_pick[node->index]);
-                    if (node->children.find(key) != node->children.end()) {
-                        add_support(node->children[key], cur_pick, cur_rest, k);
+                for (auto item : itemset) {
+                    if (std::find(tmp.begin(), tmp.end(), item) != tmp.end()) {
+                        node->bucket[itemset]++;
+                        added_.insert(itemset);
                     }
                 }
             }
         }
+        else {
+            std::size_t num_pick_items = pick_itemset.size();
+            std::size_t num_rest_items = rest_itemset.size();
+            std::size_t min_num_rest_items = k - num_pick_items - 1;
+            if (min_num_rest_items < 0) {
+                return ;
+            }
+
+            std::size_t num_iters = num_rest_items - min_num_rest_items;
+
+            for (std::size_t i = 0; i < num_iters; ++i) {
+                std::vector<DataType> cur_pick = pick_itemset.emplace_back(rest_itemset[i]);
+                std::vector<DataType> cur_rest = {rest_itemset.begin() + i, rest_itemset.end()};
+                std::size_t key = hash(cur_pick[node->index]);
+                if (node->children.find(key) != node->children.end()) {
+                    add_support(node->children[key], cur_pick, cur_rest, k);
+                }
+            }
+        }
+    }
+    
+
 };
 
 }
