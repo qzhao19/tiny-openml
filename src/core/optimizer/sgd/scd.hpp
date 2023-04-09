@@ -87,6 +87,8 @@ public:
             }
             feat_index = best_index;
             eta = best_eta;
+
+            // update weight vector w
             this->x0_(feat_index, 0) += eta;
 
             if (this->verbose_) {

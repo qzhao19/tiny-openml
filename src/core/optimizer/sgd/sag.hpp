@@ -56,7 +56,7 @@ public:
 
         MatType X_new = X;
         VecType y_new = y;
-        // define a matirx to store gradient history and a valiable of average gradient
+        // define a matirx to store gradient history and a available of average gradient
         MatType grad_history(num_features, num_batch);
         grad_history.setZero();
         VecType avg_grad = math::mean<MatType, VecType>(grad_history, 1);
