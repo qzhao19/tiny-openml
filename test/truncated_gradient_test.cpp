@@ -1,5 +1,5 @@
 #include "../src/core/loss/log_loss.hpp"
-#include "../src/core/optimizer/sgd/truncated_gradient.hpp"
+#include "../src/core/optimizer/sgd/tg.hpp"
 using namespace openml;
 
 int main() {

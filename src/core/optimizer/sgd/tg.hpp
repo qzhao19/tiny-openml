@@ -26,12 +26,13 @@ private:
     /**
      * truncated gradient implementation
     */
-    void truncate(VecType& weight, 
+    const VecType truncate(const VecType& w, 
         VecType& cum_l1,
-        DataType max_cum_l1) {
+        DataType max_cum_l1) const {
         
-        std::size_t num_features = weight.rows();
-        
+        std::size_t num_features = w.rows();
+        VecType weight = w; 
+
         for (std::size_t j = 0; j < num_features; ++j) {
             DataType w_j = weight(j, 0);
             if (w_j > 0.0) {
@@ -44,6 +45,7 @@ private:
             cum_l1(j, 0) += (weight(j, 0) - w_j);
         }
         cum_l1.setZero();
+        return weight;
     }
 
 public:
@@ -117,7 +119,7 @@ public:
 
                 max_cum_l1 += static_cast<DataType>(l1_ratio_) * 
                     static_cast<DataType>(lr) * static_cast<DataType>(alpha_);
-                truncate(this->x0_, cum_l1, max_cum_l1);
+                this->x0_ = truncate(this->x0_, cum_l1, max_cum_l1);
 
                 double loss = this->loss_func_.evaluate(X_batch, y_batch, this->x0_);
 
