@@ -437,6 +437,34 @@ bool contains(const std::vector<DataType>& v1, const std::vector<DataType>& v2){
     return true;
 };
 
+/**
+ * merge two vector of different size
+*/
+template<typename DataType>
+std::vector<DataType> merge(const std::vector<DataType>& v1,
+    const std::vector<DataType>& v2)
+{
+    std::vector<DataType> result;
+    result.reserve(v1.size() + v2.size());
+    auto ait = v1.begin(), bit = v2.begin();
+    
+    // copy while both have more elements:
+    for(; ait != v1.end() && bit != v2.end(); ++ait, ++bit) {
+        result.push_back(*ait);
+        result.push_back(*bit);
+    }
+
+    // copy the rest
+    if(ait != v1.end()) {
+        result.insert(result.end(), ait, v1.end());
+    } 
+    else if(bit != v2.end()) {
+        result.insert(result.end(), bit, v2.end());
+    }
+
+    return result;
+};
+
 
 }
 }
