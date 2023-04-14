@@ -421,7 +421,8 @@ std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, 
  * @param v1 the source vector we want to compare
 */
 template <typename DataType>
-bool contains(const std::vector<DataType>& v1, const std::vector<DataType>& v2){
+bool contains(const std::vector<DataType>& v1, 
+    const std::vector<DataType>& v2){
     for (typename std::vector<DataType>::const_iterator i = v1.begin(); i != v1.end(); i++){
         bool found = false;
         for (typename std::vector<DataType>::const_iterator j = v2.begin(); j != v2.end(); j++){
@@ -439,11 +440,13 @@ bool contains(const std::vector<DataType>& v1, const std::vector<DataType>& v2){
 
 /**
  * merge two vector of different size
+ * @param v1 the target vector 1 
+ * @param v2 the target vector 2
+ * @return a vector of the two vectors
 */
 template<typename DataType>
 std::vector<DataType> merge(const std::vector<DataType>& v1,
-    const std::vector<DataType>& v2)
-{
+    const std::vector<DataType>& v2){
     std::vector<DataType> result;
     result.reserve(v1.size() + v2.size());
     auto ait = v1.begin(), bit = v2.begin();

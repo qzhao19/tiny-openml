@@ -15,8 +15,33 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
+    using FreqItemsetsType = std::map<std::size_t, 
+        std::pair<std::vector<std::vector<DataType>>, std::vector<DataType>>>;
     double min_support_;
     double min_confidence_;
+
+
+protected:
+    const std::vector<std::vector<DataType>> generate_candidates(
+        const FreqItemsetsType& all_frequent, 
+        std::size_t k) {
+        
+         
+        std::vector<std::vector<DataType>> candidates;
+        if (k == 1) {
+            candidates = common::combinations<DataType>(all_frequent[0], k + 1);
+        }
+        elif (k == 2) {
+            
+        }
+
+
+
+
+
+    }
+
+
 
 
 public:
