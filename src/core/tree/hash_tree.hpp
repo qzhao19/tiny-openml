@@ -123,19 +123,20 @@ public:
     }
 
     
-    void add_support(std::shared_ptr<NodeType> node, 
-        std::vector<DataType> pick_itemset, 
+    void add_support(std::vector<DataType> pick_itemset, 
         std::vector<DataType> rest_itemset, 
         std::size_t k) {
         
-        if (node->is_leaf) {
+        if (root_->is_leaf) {
             std::vector<DataType> superset = pick_itemset;
             superset.insert(superset.end(), rest_itemset.begin(), rest_itemset.end());
 
-            for (auto& itemset : node->bucket) {
+            for (auto& itemset : root_->bucket) {
                 if (added_.find(itemset.first) != added_.end()) {
                     continue;
                 }
+                // if last element is different or smallest element of itemset is smaller than
+                // first element in tmp, itemset must not be subset of the superset
                 std::vector<DataType> tmp;
                 for (auto item : superset) {
                     if (item >= itemset.first[0] && item <= itemset.first.back().c) {
@@ -145,7 +146,7 @@ public:
 
                 for (auto item : itemset) {
                     if (std::find(tmp.begin(), tmp.end(), item) != tmp.end()) {
-                        node->bucket[itemset]++;
+                        root_->bucket[itemset]++;
                         added_.insert(itemset);
                     }
                 }
@@ -164,9 +165,9 @@ public:
             for (std::size_t i = 0; i < num_iters; ++i) {
                 std::vector<DataType> cur_pick = pick_itemset.emplace_back(rest_itemset[i]);
                 std::vector<DataType> cur_rest = {rest_itemset.begin() + i, rest_itemset.end()};
-                std::size_t key = hash(cur_pick[node->index]);
-                if (node->children.find(key) != node->children.end()) {
-                    add_support(node->children[key], cur_pick, cur_rest, k);
+                std::size_t key = hash(cur_pick[root_->index]);
+                if (root_->children.find(key) != root_->children.end()) {
+                    add_support(cur_pick, cur_rest, k);
                 }
             }
         }
