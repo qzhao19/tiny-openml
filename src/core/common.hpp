@@ -236,7 +236,7 @@ IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
     else {
         std::ostringstream err_msg;
         err_msg << "Invalid given sort order " << order.c_str() << std::endl;
-        throw std::out_of_range(err_msg.str());
+        throw std::invalid_argument(err_msg.str());
     }
 
     return index;
@@ -465,6 +465,111 @@ std::vector<DataType> merge(const std::vector<DataType>& v1,
         result.insert(result.end(), bit, v2.end());
     }
 
+    return result;
+};
+
+
+/**
+ * sorts the rows of a matrix in ascending or desc order based on the elements in the first column. 
+ * When the first column contains repeated elements, sortrows sorts according to the values in the 
+ * next column and repeats this behavior for succeeding equal values.
+ * 
+ * @param X, 2d vector to sort
+ * @param order string, default 'asc'
+ *     this argument specifies which fields to compare first
+*/
+template <typename DataType>
+void sortrows(std::vector<std::vector<DataType>>& X, std::string order = "asc") {
+
+    if (X.empty() || X[0].empty()) {
+        throw std::invalid_argument("Input 2d vector is empty!");
+    }
+
+    auto X_copy = X;
+    for (size_t i = 0; i < X[0].size(); i++){
+        // Sort column i
+
+        if (order == "asc") {
+            std::sort(X.begin(), X.end(), 
+                [&](const std::vector<DataType>& x, const std::vector<DataType>& y) {
+                    return (x[i] < y[i]); 
+                }
+            );
+        }
+        else if (order == "desc") {
+            std::sort(X.begin(), X.end(), 
+                [&](const std::vector<DataType>& x, const std::vector<DataType>& y) {
+                    return (x[i] > y[i]); 
+                }
+            );
+        }
+        else {
+            std::ostringstream err_msg;
+            err_msg << "Invalid given sort order " << order.c_str() << std::endl;
+            throw std::invalid_argument(err_msg.str());
+        }
+
+        // Save the results of the sort of column i in the auxiliary vector  
+        for (std::size_t j = 0; j < X.size(); ++j) {
+            X_copy[j][i] = X[j][i];
+        }
+            
+    }
+    X = X_copy;
+};
+
+/**
+ * Go through a vector<vector<T> > and find the unique rows
+ * have a value ind for each row that is 1/0 indicating if 
+ * a value has been previously searched.
+ * 
+*/
+template<typename DataType>
+std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::vector<DataType>>& X) {
+    if (X.empty() || X[0].empty()) {
+        throw std::invalid_argument("Input 2d vector is empty!");
+    }
+
+    std::size_t num_rows = X.size();
+    std::size_t num_searches = 1, cur_idx = 0, it = 1;
+    std::vector<std::size_t> indices(num_rows, 0);
+    // create a deque to store the unique inds
+    std::deque<std::size_t> unique_inds;  
+
+    indices[cur_idx] = 1;
+    unique_inds.emplace_back(0);
+    while(num_searches < num_rows) {
+        if (it >= num_rows) {
+            // find next non-duplicate value, push back
+            ++cur_idx;
+            while (indices[cur_idx]) {
+                ++cur_idx;
+            }
+            unique_inds.emplace_back(cur_idx);
+            ++num_searches;
+            
+            // start search for duplicates at the next row
+            it = cur_idx + 1; 
+            if (it >= num_rows && num_rows == num_searches) {
+                break;
+            }
+        }
+        
+        if (!indices[it] && X[cur_idx]==X[it]) {
+            indices[it] = 1;
+            ++num_searches;
+        }
+        ++it;
+    } 
+
+    std::vector<std::vector<DataType>> result;
+    // loop over the deque and push the unique vectors    
+    std::deque<std::size_t>::iterator iter;
+    const std::deque<size_t>::iterator end = unique_inds.end();
+    result.reserve(unique_inds.size());
+    for(iter = unique_inds.begin(); iter != end; ++iter) {
+        result.push_back(X[*iter]);
+    }
     return result;
 };
 
