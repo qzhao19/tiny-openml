@@ -27,6 +27,8 @@
 #include "../src/core/optimizer/lbfgs/lbfgs.hpp"
 #include "../src/core/optimizer/lbfgs/params.hpp"
 
+#include "../src/core/preprocessing/transaction_encoder.hpp"
+
 #include "../src/core/metric.hpp"
 
 #endif /*CORE_HPP*/
