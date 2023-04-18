@@ -11,7 +11,7 @@ template<typename DataType>
 class TransactionEncoder {
 private:
     using TripletType = Eigen::Triplet<DataType>;
-    using SpMatType = Eigen::SparseMatrix<DataType>;
+    using SpMatType = Eigen::SparseMatrix<DataType, Eigen::RowMajor>;
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
 
 public:
@@ -71,5 +71,4 @@ public:
 
 }
 }
-
 #endif /*CORE_PREPPROCESSING_TRANSACTION_ENCODER_HPP*/
