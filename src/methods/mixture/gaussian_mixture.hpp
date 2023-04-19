@@ -404,8 +404,8 @@ private:
         VecType log_prob_norm;
         std::tie(log_resp, log_prob_norm) = estimate_log_prob_resp(X);
 
-        VecType mean_log_prob;
-        mean_log_prob = math::mean<MatType, VecType>(log_prob_norm, 0);
+        // VecType mean_log_prob;
+        auto mean_log_prob = math::mean<MatType>(log_prob_norm, 0);
 
         return std::make_tuple(mean_log_prob.value(), log_resp);
     }
