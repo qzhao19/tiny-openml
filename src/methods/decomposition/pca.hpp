@@ -57,7 +57,7 @@ protected:
 
         if (this->num_components_ < std::min(num_samples, num_features)) {
             std::size_t num_noise_var = std::min(num_samples, num_features) - this->num_components_;
-            VecType noise_var = math::mean<MatType, VecType>(explained_var.bottomRows(num_noise_var));
+            auto noise_var = math::mean<MatType>(explained_var.bottomRows(num_noise_var));
             noise_var_ = static_cast<double>(noise_var.value());
         }
         else {
@@ -152,7 +152,7 @@ public:
         VecType log_like(num_samples);
         log_like = compute_score_samples(centered_X);
 
-        auto average_log_like = math::mean<MatType, VecType>(log_like, -1);
+        auto average_log_like = math::mean<MatType>(log_like, -1);
 
         return average_log_like.value();
     }
