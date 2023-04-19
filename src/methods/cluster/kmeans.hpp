@@ -148,13 +148,10 @@ protected:
             }
             // move the centers 
             double eps = 0.0; 
-            for (auto& c : clusters) {
+            for (auto c : clusters) {
                 MatType cluster = X(c.second, Eigen::all);
-                MatType mean_c;
-                mean_c = math::mean<MatType, VecType>(cluster, 0);
-
-                MatType diff;
-                diff = mean_c.array() - centroids_.row(c.first).array();
+                auto mean_c = math::mean<MatType>(cluster, 0);
+                auto diff = mean_c - centroids_.row(c.first);
                 
                 eps += static_cast<double>(diff.norm());
                 centroids_.row(c.first) = mean_c.transpose();
