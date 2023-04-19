@@ -59,7 +59,7 @@ public:
         // define a matirx to store gradient history and a available of average gradient
         MatType grad_history(num_features, num_batch);
         grad_history.setZero();
-        VecType avg_grad = math::mean<MatType, VecType>(grad_history, 1);
+        VecType avg_grad = math::mean<MatType>(grad_history, 1);
         VecType grad(num_features);
         
         for (std::size_t iter = 0; iter < this->max_iter_; iter++) {
