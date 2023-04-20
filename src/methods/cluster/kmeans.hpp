@@ -48,7 +48,7 @@ private:
 
         // compute the sume of distance, this param allows map a random value of 
         // domaine interval [0, 1] to a random intervall [0, current_pot]
-        auto tmp = math::sum<MatType, VecType>(closest_dist, -1);
+        auto tmp = math::sum<MatType>(closest_dist, -1);
         DataType current_pot = tmp.value();
         for (std::size_t c = 1; c < num_clusters_; ++c) {
             // Choose center candidates by sampling

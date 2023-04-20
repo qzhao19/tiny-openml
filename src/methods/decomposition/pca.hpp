@@ -52,8 +52,8 @@ protected:
             components = Vt;
         };
 
-        VecType total_var = math::sum<MatType, VecType>(explained_var);
-        explained_var_ratio = explained_var / total_var(0, 0);
+        VecType total_var = math::sum<MatType>(explained_var);
+        explained_var_ratio = explained_var / total_var.value();
 
         if (this->num_components_ < std::min(num_samples, num_features)) {
             std::size_t num_noise_var = std::min(num_samples, num_features) - this->num_components_;
@@ -114,7 +114,7 @@ protected:
         log_like_ = X.array() * (X * this->precision_).array();
 
         VecType log_like(num_samples);
-        log_like = math::sum<MatType, VecType>(log_like_, 1);
+        log_like = math::sum<MatType>(log_like_, 1);
         log_like = log_like * (-0.5);
 
         log_like.array() -= 0.5 * (static_cast<DataType>(num_features) * \

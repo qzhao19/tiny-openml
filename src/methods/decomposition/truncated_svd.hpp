@@ -45,11 +45,11 @@ protected:
 
         // compute variance of each faeture along axis = 0
         double full_var;
-        full_var = math::var<MatType, VecType>(X, 0).sum();
+        full_var = math::var<MatType>(X, 0).sum();
 
         this->components_ = Vt;
         this->singular_values_ = s;
-        this->explained_var_ = math::var<MatType, VecType>(X_transformed, 0);
+        this->explained_var_ = math::var<MatType>(X_transformed, 0).transpose();
         this->explained_var_ratio_ = this->explained_var_.array() / full_var;
     }
 
