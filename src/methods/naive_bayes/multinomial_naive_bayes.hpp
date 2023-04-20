@@ -47,8 +47,8 @@ protected:
             IdxType keep_cols = IdxType::LinSpaced(X_y.cols(), 0, X_y.cols());
 
             partial_X_y = X_y(keep_rows, keep_cols); 
-            feature_count.col(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features_), 0);
-            class_count.row(new_i) = math::sum<MatType, VecType>(partial_X_y.leftCols(num_features_));
+            feature_count.col(new_i) = math::sum<MatType>(partial_X_y.leftCols(num_features_), 0);
+            class_count.row(new_i) = math::sum<MatType>(partial_X_y.leftCols(num_features_));
 
             new_i++;
         }

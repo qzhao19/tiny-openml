@@ -99,7 +99,7 @@ private:
         VecType log_det_chol(num_chol);
         for (std::size_t i = 0; i < num_chol; ++i) {
             VecType diag = matrix_chol[i].diagonal();
-            auto tmp = math::sum<MatType, VecType>(diag.array().log(), 0);
+            auto tmp = math::sum<MatType>(diag.array().log(), 0);
             log_det_chol(i) = tmp.value();
         }
 
@@ -196,7 +196,7 @@ private:
 
         MatType nk_tmp(num_components, num_features);
         nk_tmp = common::repeat<MatType>(nk, num_features, 1);
-        auto sum_nk = math::sum<MatType, VecType>(nk, 0);
+        auto sum_nk = math::sum<MatType>(nk, 0);
 
         MatType avg_means = (nk_tmp.array() * means.array()).matrix().transpose() * means;
 
@@ -230,7 +230,7 @@ private:
         eps.fill(10.0 * ConstType<DataType>::epsilon());
 
         VecType nk(num_components_);
-        nk = math::sum<MatType, VecType>(resp, 0);
+        nk = resp.colwise().sum().transpose();
         nk = nk.array() + eps.array(); 
 
         MatType nk_tmp;
@@ -292,7 +292,7 @@ private:
             MatType y = tmp1.array() - tmp3.array();
             MatType y_square = y.array().square();
 
-            log_prob.col(i) = math::sum<MatType, VecType>(y_square, 1);
+            log_prob.col(i) = math::sum<MatType>(y_square, 1);
         }
 
         DataType v = static_cast<DataType>(num_features) * 
@@ -368,7 +368,7 @@ private:
         if (init_params_ == "random") {
             resp = random::rand<MatType>(num_samples, num_components_);
 
-            VecType sum_resp = math::sum<MatType, VecType>(resp, 1);
+            VecType sum_resp = math::sum<MatType>(resp, 1);
             MatType sum_resp_tmp = common::repeat<MatType>(sum_resp, num_components_, 1);
             resp = resp.array() / sum_resp_tmp.array();
         }

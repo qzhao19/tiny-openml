@@ -69,7 +69,7 @@ protected:
         MatType X_y(num_samples, num_features + 1);
         X_y = common::hstack<MatType>(X, y);
         
-        std::size_t new_i = 0;
+        std::size_t idx = 0;
         for (auto& label : this->label_map_) {
             MatType partial_X_y(label.second, num_features + 1);
             
@@ -82,10 +82,10 @@ protected:
             IdxType keep_cols = IdxType::LinSpaced(X_y.cols(), 0, X_y.cols());
 
             partial_X_y = X_y(keep_rows, keep_cols); 
-            mean.col(new_i) = math::mean<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
-            var.col(new_i) = math::var<MatType, VecType>(partial_X_y.leftCols(num_features), 0);
+            mean.col(idx) = math::mean<MatType>(partial_X_y.leftCols(num_features), 0).transpose();
+            var.col(idx) = math::var<MatType>(partial_X_y.leftCols(num_features), 0).transpose();
 
-            new_i++;
+            idx++;
         }
         mean_ = mean.transpose();
         var_ = var.transpose();
