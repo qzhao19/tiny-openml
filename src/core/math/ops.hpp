@@ -35,41 +35,29 @@ AnyType cov(const AnyType& x) {
  * @param axis int. default -1 The axis along which to calculate variance. 
  * @return scalar or 2darray
 */
-template<typename MatType, typename VecType>
-VecType var(const MatType& x, int axis = -1) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
+template<typename MatType>
+MatType var(const MatType& x, int axis = -1) {
+    MatType copy_x = x;
     // Var(X)=E[X^2]-(E[X])^2
     if (axis == 0) {
-        // compute means and element-wise square along to axis 1
-        VecType col_mean(num_cols);
-        col_mean = x.colwise().mean();
-        VecType x_mean_squared(num_cols);
-        x_mean_squared = x.array().square().colwise().mean().transpose();
-        VecType col_var(num_cols);
-        col_var = x_mean_squared.array() - col_mean.array().square();
+        auto colmean = copy_x.colwise().mean();                                      
+        auto x_squared_mean = copy_x.array().square().colwise().mean();
+        auto colvar = x_squared_mean.array() - colmean.array().square();
 
-        return col_var;
+        return colvar; 
     }
     else if (axis == 1) {
-        VecType row_mean(num_rows);
-        row_mean = x.rowwise().mean();
-        VecType x_mean_squared(num_rows);
-        x_mean_squared = x.array().square().rowwise().mean();
-        VecType row_var(num_rows);
-        row_var = x_mean_squared.array() - row_mean.array().square();
+        auto rowmean = copy_x.rowwise().mean();
+        auto x_squared_mean = copy_x.array().square().rowwise().mean();
+        auto rowvar = x_squared_mean.array() - rowmean.array().square();
 
-        return row_var;
+        return rowvar;
     }
     else if (axis == -1) {
-        MatType trans_x = x.transpose();
-        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
-        VecType mean(1);
-        mean = flatten_x.colwise().mean();
-        VecType x_mean_squared(1);
-        x_mean_squared = flatten_x.array().square().colwise().mean();
-        VecType var(1);
-        var = x_mean_squared.array() - mean.array().square();
-
+        auto mean = copy_x.mean();
+        auto x_squared_mean = copy_x.array().square().mean();
+        MatType var(1, 1);
+        var(0, 0) = x_squared_mean - std::pow(mean, 2);
         return var;
     }
     else {
@@ -83,26 +71,18 @@ VecType var(const MatType& x, int axis = -1) {
  * @param axis int. Axis or axes along which a sum is performed. 
  *      The default is -1, 
 */
-template<typename MatType, 
-    typename VecType>
-VecType sum(const MatType& x, int axis = -1) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
+template<typename MatType>
+MatType sum(const MatType& x, int axis = -1) {
+    MatType copy_x = x;
     if (axis == 0) {
-        // compute means and element-wise square along to axis 1
-        VecType col_sum(num_cols);
-        col_sum = x.colwise().sum();
-        return col_sum;
+        return copy_x.colwise().sum();
     }
     else if (axis == 1) {
-        VecType row_sum(num_rows);
-        row_sum = x.rowwise().sum();
-        return row_sum;
+        return copy_x.rowwise().sum();
     }
     else if (axis == -1) {
-        MatType trans_x = x.transpose();
-        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
-        VecType sum(1);
-        sum = flatten_x.colwise().sum();
+        MatType sum(1, 1);
+        sum(0, 0) = copy_x.sum();
         return sum;
     }
     else {
@@ -116,26 +96,18 @@ VecType sum(const MatType& x, int axis = -1) {
  * @param axis int. Axis or axes along which a mean is performed. 
  *      The default is -1, 
 */
-template<typename MatType, 
-    typename VecType>
-VecType mean(const MatType& x, int axis = -1) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
+template<typename MatType>
+MatType mean(const MatType& x, int axis = -1) {
+    MatType copy_x = x;
     if (axis == 0) {
-        // compute means and element-wise square along to axis 1
-        VecType col_mean(num_cols);
-        col_mean = x.colwise().mean();
-        return col_mean;
+        return copy_x.colwise().mean();
     }
     else if (axis == 1) {
-        VecType row_mean(num_rows);
-        row_mean = x.rowwise().mean();
-        return row_mean;
+        return copy_x.rowwise().mean();;
     }
     else if (axis == -1) {
-        MatType trans_x = x.transpose();
-        VecType flatten_x(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
-        VecType mean(1);
-        mean = flatten_x.colwise().mean();
+        MatType mean(1, 1);
+        mean(0, 0) = copy_x.mean();
         return mean;
     }
     else {
@@ -260,7 +232,6 @@ AnyType sign(const AnyType& x) {
     return x.array().sign();
 };
 
-
 /**
  * Matrix norm
 */
@@ -274,7 +245,6 @@ VecType norm2(const MatType& x, int axis = 0) {
     }
 };
 
-
 /**
  * Return the cumulative sum of the elements along a given axis.
  * @param x ndarray of input data
@@ -287,18 +257,18 @@ MatType cumsum(const MatType& x, int axis = 0) {
     MatType cum_sum(num_rows, num_cols);
     if (axis == 0) {
         for(std::size_t j = 0; j < num_cols; ++j) {
-            VecType col_sum(num_rows);
+            VecType colsum(num_rows);
             VecType col = x.col(j);
-            std::partial_sum(col.begin(), col.end(), col_sum.begin());
-            cum_sum.col(j) = col_sum;
+            std::partial_sum(col.begin(), col.end(), colsum.begin());
+            cum_sum.col(j) = colsum;
         }
     }
     else if (axis == 1) {
         for(std::size_t i = 0; i < num_rows; ++i) {
-            VecType row_sum(num_cols);
+            VecType rowsum(num_cols);
             VecType row = x.row(i);
-            std::partial_sum(row.begin(), row.end(), row_sum.begin());
-            cum_sum.row(i) = row_sum;
+            std::partial_sum(row.begin(), row.end(), rowsum.begin());
+            cum_sum.row(i) = rowsum;
         }
     }
     else if (axis == -1) {
