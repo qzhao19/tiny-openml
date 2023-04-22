@@ -13,8 +13,7 @@ auto max_element(Container const &x)
     -> typename Container::value_type {
     
     using value_t = typename Container::value_type;
-    const auto compare = [](value_t const &p1, value_t const &p2)
-    {
+    const auto compare = [](value_t const &p1, value_t const &p2) {
         return p1.second < p2.second;
     };
     return *std::max_element(x.begin(), x.end(), compare);
@@ -208,10 +207,10 @@ IdxType argmin(const MatType& x, int axis = 0) {
  * @return index array
  *      Array of indices that sort a along the specified axis
 */
-template<typename AnyType, typename IdxType>
-IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
+template<typename VecType, typename IdxType>
+IdxType argsort(const VecType& x, int axis = 1, std::string order = "asc") {
     std::size_t num_rows = x.rows(), num_cols = x.cols();
-    IdxType index ;
+    IdxType index;
     if (axis == 1) {
         index = IdxType::LinSpaced(num_rows, 0, num_rows);
     }
@@ -219,19 +218,18 @@ IdxType argsort(const AnyType& x, int axis = 1, std::string order = "asc") {
         index = IdxType::LinSpaced(num_cols, 0, num_cols);
     }
 
+    const auto asc = [&x](std::size_t i, std::size_t j) -> bool {
+        return x(i, 0) < x(j, 0);
+    };
+    const auto des = [&x](std::size_t i, std::size_t j) -> bool {
+        return x(i, 0) > x(j, 0);
+    };
+
     if (order == "asc") {
-        std::stable_sort(index.data(), index.data() + index.size(), 
-            [&x](std::size_t i, std::size_t j) -> bool {
-                return x(i, 0) < x(j, 0);
-            }
-        );
+        std::sort(index.data(), index.data() + index.size(), asc);
     }
     else if (order == "desc") {
-        std::stable_sort(index.data(), index.data() + index.size(), 
-            [&x](std::size_t i, std::size_t j) -> bool {
-                return x(i, 0) > x(j, 0);
-            }
-        );
+        std::sort(index.data(), index.data() + index.size(), des);
     }
     else {
         std::ostringstream err_msg;
@@ -368,7 +366,7 @@ MatType clip(const MatType& x, DataType max, DataType min) {
 };
 
 /**
- * convert a string to size_t
+ * convert a string to integer
  * @param s string, input string to convert
 */
 template <class DataType>  
