@@ -125,20 +125,20 @@ template <typename MatType,
     typename VecType, 
     typename DataType = typename VecType::value_type>
 VecType median(const MatType& x, int axis = 0) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    std::size_t nrows = x.rows(), ncols = x.cols();
 
     MatType X = x;
     std::size_t index;
     DataType value;
     if (axis == 0) {
-        VecType col_med(num_cols);
-        index = num_rows / 2;
-        for (std::size_t j = 0; j < num_cols; ++j) {
+        VecType col_med(ncols);
+        index = nrows / 2;
+        for (std::size_t j = 0; j < ncols; ++j) {
             VecType col = X.col(j);
-            std::nth_element(col.data(), col.data() + index, col.data() + num_rows);
+            std::nth_element(col.data(), col.data() + index, col.data() + nrows);
             value = col(index);
-            if (num_rows%2 == 0) {
-                std::nth_element(col.data(), col.data() + index - 1, col.data() + num_rows);
+            if (nrows%2 == 0) {
+                std::nth_element(col.data(), col.data() + index - 1, col.data() + nrows);
                 col_med(j) = (value + col(index - 1)) / 2;
             }
             else {
@@ -148,14 +148,14 @@ VecType median(const MatType& x, int axis = 0) {
         return col_med;
     }
     else if (axis == 1) {
-        VecType row_med(num_rows);
-        index = num_cols / 2;
-        for (std::size_t i = 0; i < num_rows; ++i) {
+        VecType row_med(nrows);
+        index = ncols / 2;
+        for (std::size_t i = 0; i < nrows; ++i) {
             VecType row = X.row(i).transpose();
-            std::nth_element(row.data(), row.data() + index, row.data() + num_cols);
+            std::nth_element(row.data(), row.data() + index, row.data() + ncols);
             value = row(index);
-            if (num_cols%2 == 0) {
-                std::nth_element(row.data(), row.data() + index - 1, row.data() + num_cols);
+            if (ncols%2 == 0) {
+                std::nth_element(row.data(), row.data() + index - 1, row.data() + ncols);
                 row_med(i) = (value + row(index - 1)) / 2;
             }
             else {
@@ -166,7 +166,7 @@ VecType median(const MatType& x, int axis = 0) {
     }
     else if (axis == -1) {
         MatType trans_X = X.transpose();
-        std::size_t num_elems = num_rows * num_cols;
+        std::size_t num_elems = nrows * ncols;
         VecType flatten_X(Eigen::Map<VecType>(trans_X.data(), num_elems));
         VecType med(1);
         index = num_elems / 2;
@@ -253,19 +253,19 @@ VecType norm2(const MatType& x, int axis = 0) {
 */
 template<typename MatType, typename VecType>
 MatType cumsum(const MatType& x, int axis = 0) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
-    MatType cum_sum(num_rows, num_cols);
+    std::size_t nrows = x.rows(), ncols = x.cols();
+    MatType cum_sum(nrows, ncols);
     if (axis == 0) {
-        for(std::size_t j = 0; j < num_cols; ++j) {
-            VecType colsum(num_rows);
+        for(std::size_t j = 0; j < ncols; ++j) {
+            VecType colsum(nrows);
             VecType col = x.col(j);
             std::partial_sum(col.begin(), col.end(), colsum.begin());
             cum_sum.col(j) = colsum;
         }
     }
     else if (axis == 1) {
-        for(std::size_t i = 0; i < num_rows; ++i) {
-            VecType rowsum(num_cols);
+        for(std::size_t i = 0; i < nrows; ++i) {
+            VecType rowsum(ncols);
             VecType row = x.row(i);
             std::partial_sum(row.begin(), row.end(), rowsum.begin());
             cum_sum.row(i) = rowsum;
@@ -273,8 +273,8 @@ MatType cumsum(const MatType& x, int axis = 0) {
     }
     else if (axis == -1) {
         MatType trans_x = x.transpose();
-        VecType flatten_vec(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
-        VecType sum(num_rows * num_cols);
+        VecType flatten_vec(Eigen::Map<VecType>(trans_x.data(), nrows * ncols));
+        VecType sum(nrows * ncols);
         std::partial_sum(flatten_vec.begin(), flatten_vec.end(), sum.begin());
         return sum;
     }
