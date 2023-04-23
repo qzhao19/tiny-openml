@@ -56,7 +56,7 @@ public:
 
         bool is_converged = false;
         double best_loss = ConstType<double>::infinity();
-
+        std::cout << "--------------------------------" << this->verbose_;
         MatType X_new = X;
         VecType y_new = y;
         MatType grad;
@@ -111,7 +111,7 @@ public:
                 this->opt_x_ = this->x0_;
                 break;
             }
-
+            
             if (this->verbose_) {
                 if ((iter % 2) == 0) {
                     std::cout << "-- Epoch = " << iter << ", average loss value = " 

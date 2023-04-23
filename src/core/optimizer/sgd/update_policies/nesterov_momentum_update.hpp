@@ -22,11 +22,11 @@ public:
      * SGD with Nesterov Momentum optimization method
     */
     const MatType update(const MatType& W, const MatType& grad, const double lr) const {
-        std::size_t num_rows = W.rows();
-        MatType V(num_rows);
+        std::size_t nrows = W.rows();
+        MatType V(nrows);
         V.setZero();
         
-        MatType prev_V(num_rows);
+        MatType prev_V(nrows);
         prev_V = V;
 
         V = mu * V + static_cast<DataType>(lr) * grad;
