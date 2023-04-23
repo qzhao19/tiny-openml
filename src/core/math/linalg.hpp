@@ -8,7 +8,7 @@ namespace math {
 
 /**
  * Compute LU decomposition of a matrix.
- * @param x ndarray of shape (num_rows, num_cols)
+ * @param x ndarray of shape (nrows, ncols)
  *      Matrix to decomposition
  * @param permute_l bool
  *      Perform the multiplication P*L
@@ -23,8 +23,8 @@ template<typename MatType>
 std::tuple<MatType, MatType, MatType> lu(const MatType& x, 
     bool permute_l = false) {
 
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
-    std::size_t min_size = std::min(num_rows, num_cols);
+    std::size_t nrows = x.rows(), ncols = x.cols();
+    std::size_t min_size = std::min(nrows, ncols);
     Eigen::FullPivLU<MatType> lu_decomposition(x);
 
     MatType lu_m = lu_decomposition.matrixLU();
@@ -53,7 +53,7 @@ std::tuple<MatType, MatType, MatType> lu(const MatType& x,
  * Calculate the decomposition X = QR where 
  * Q is unitary/orthogonal and R upper triangular
  * 
- * @param x ndarray of shape (num_rows, num_cols)
+ * @param x ndarray of shape (nrows, ncols)
  *      Matrix to decomposition
  * @param full_matrix bool, default true
  *      If full_matrices_ is true then Q is m x m and R is m x n
@@ -62,8 +62,8 @@ std::tuple<MatType, MatType, MatType> lu(const MatType& x,
 template<typename MatType>
 std::tuple<MatType, MatType> qr(const MatType& x, 
     bool full_matrix = false) {
-    const std::size_t num_rows = x.rows(), num_cols = x.cols();
-    const int min_size = std::min(num_rows, num_cols);
+    const std::size_t nrows = x.rows(), ncols = x.cols();
+    const int min_size = std::min(nrows, ncols);
     Eigen::HouseholderQR<MatType> qr_decomposition(x);
 
     MatType Q, R;
@@ -72,11 +72,11 @@ std::tuple<MatType, MatType> qr(const MatType& x,
         R = qr_decomposition.matrixQR().template triangularView<Eigen::Upper>();
     }
     else {
-        MatType tmp(num_rows, min_size);
+        MatType tmp(nrows, min_size);
         tmp.setIdentity();
 
         Q = qr_decomposition.householderQ() * tmp;
-        auto qr_top = qr_decomposition.matrixQR().block(0, 0, min_size, num_cols);
+        auto qr_top = qr_decomposition.matrixQR().block(0, 0, min_size, ncols);
         R = qr_top.template triangularView<Eigen::Upper>();
     }
 
@@ -85,7 +85,7 @@ std::tuple<MatType, MatType> qr(const MatType& x,
 
 /**
  * Singular Value Decomposition
- * @param X ndarray of shape (num_rows, num_cols),
+ * @param X ndarray of shape (nrows, ncols),
  *          A real or complex array
  * @param full_matrices, bool, default = false
  *        If True (default), u and vh have the shapes (M, M) and (N, N). 
@@ -124,7 +124,7 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
 
 /**
  * Compute randomized svd
- * @param X ndarray of shape (num_rows, num_cols),
+ * @param X ndarray of shape (nrows, ncols),
  *      Matrix to compute decomposition
  * @param num_components std::size_t
  *      Number of singular values and vectors to extract.
@@ -135,7 +135,7 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
  *      it has 3 value: 'QR', 'LU', 'None'
  * @return a tuple contains U matrix, s vector and Vt matrix.
 */
-template<typename MatType, typename VecType, typename IdxType>
+template<typename MatType, typename VecType, typename IdxVecType>
 std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X, 
     std::size_t num_components = 3, 
     std::size_t num_oversamples = 10,
@@ -200,7 +200,7 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
     MatType U = Q * Uhat;
 
     if (flip_sign) {
-        std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxType>(U, Vt);
+        std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxVecType>(U, Vt);
     }
 
     return std::make_tuple(
@@ -231,8 +231,8 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
     MatType Vt;
     std::tie(U, s, Vt) = exact_svd<MatType, VecType>(x, true);
 
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
-    MatType s_inv(num_cols, num_rows);
+    std::size_t nrows = x.rows(), ncols = x.cols();
+    MatType s_inv(ncols, nrows);
     s_inv.setZero();
 
     for(std::size_t i = 0; i < s.size(); i++) {
@@ -251,7 +251,7 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
 /**
  * Compute log(det(A)) for A symmetric.
  * 
- * @param x ndarray of shape (num_rows, num_cols)
+ * @param x ndarray of shape (nrows, ncols)
  *      input array, has to be a SQUARE 2d array
  * @return -Inf if det(A) is non positive or is not defined.
 */
@@ -287,16 +287,16 @@ DataType logdet(const MatType& x) {
 */
 template<typename MatType, typename VecType>
 VecType logsumexp(const MatType& x, int axis){
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    std::size_t nrows = x.rows(), ncols = x.cols();
     if (axis == 1) {
         VecType c = x.rowwise().maxCoeff();
-        MatType tmp = c.rowwise().replicate(num_cols);
+        MatType tmp = c.rowwise().replicate(ncols);
         VecType log_sum_exp = (x - tmp).array().exp().rowwise().sum().log();
         return log_sum_exp + c;
     }
     else if (axis == 0) {
         VecType c = x.colwise().maxCoeff();
-        MatType tmp = c.transpose().colwise().replicate(num_rows);
+        MatType tmp = c.transpose().colwise().replicate(nrows);
         VecType log_sum_exp = (x - tmp).array().exp().colwise().sum().log();
         return log_sum_exp + c;
     }

@@ -11,7 +11,7 @@ namespace random {
 */
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
-MatType rand(std::size_t num_rows, std::size_t num_cols, 
+MatType rand(std::size_t nrows, std::size_t ncols, 
     DataType low = 0.0, 
     DataType high = 1.0) {
     
@@ -20,7 +20,7 @@ MatType rand(std::size_t num_rows, std::size_t num_cols,
     std::uniform_real_distribution<DataType> dist{low, high};
 
     MatType rand_mat = MatType::NullaryExpr(
-        num_rows, num_cols, [&](){
+        nrows, ncols, [&](){
             return dist(generator);
         }
     );
@@ -34,7 +34,7 @@ MatType rand(std::size_t num_rows, std::size_t num_cols,
 */
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
-MatType randn(std::size_t num_rows, std::size_t num_cols, 
+MatType randn(std::size_t nrows, std::size_t ncols, 
     DataType low = 0.0, 
     DataType high = 1.0) {
     
@@ -43,7 +43,7 @@ MatType randn(std::size_t num_rows, std::size_t num_cols,
     std::normal_distribution<DataType> dist{low, high};
 
     MatType rand_mat = MatType::NullaryExpr(
-        num_rows, num_cols, [&](){
+        nrows, ncols, [&](){
             return dist(generator);
         }
     );
@@ -55,8 +55,8 @@ MatType randn(std::size_t num_rows, std::size_t num_cols,
  * @param size int  
  *    number of sequence to generate randomly permutation 
 */
-template<typename IdxType>
-IdxType permutation(const std::size_t size) {
+template<typename IdxVecType>
+IdxVecType permutation(const std::size_t size) {
     std::random_device rand;
     std::seed_seq seed{rand()};
 
@@ -72,7 +72,7 @@ IdxType permutation(const std::size_t size) {
             permutation.indices().size(), 
         generator);
 
-    IdxType index;
+    IdxVecType index;
     index = permutation.indices().template cast<Eigen::Index>();
     return index;
 };
@@ -83,8 +83,8 @@ IdxType permutation(const std::size_t size) {
 */
 template<typename DataType, 
     typename MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>>
-MatType randint(std::size_t num_rows, 
-    std::size_t num_cols, 
+MatType randint(std::size_t nrows, 
+    std::size_t ncols, 
     DataType low = 0, 
     DataType high = 1e+2) {
     
@@ -95,7 +95,7 @@ MatType randint(std::size_t num_rows,
     std::uniform_int_distribution<DataType> dist(low, high);
 
     MatType rand_mat = MatType::NullaryExpr(
-        num_rows, num_cols, [&](){
+        nrows, ncols, [&](){
             return dist(generator);
         }
     );

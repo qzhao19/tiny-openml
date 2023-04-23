@@ -64,11 +64,11 @@ std::tuple<std::vector<std::size_t>,
         DataType threshold) {
     
     MatType keep_X, drop_X;
-    std::size_t num_rows = X.rows(), num_cols = X.cols();
+    std::size_t nrows = X.rows(), ncols = X.cols();
     std::vector<std::size_t> keep_rows;
     std::vector<std::size_t> drop_rows;
 
-    for (std::size_t i = 0; i < num_rows; ++i) {
+    for (std::size_t i = 0; i < nrows; ++i) {
         if (X(i, feature_index) <= threshold) {
             keep_rows.push_back(i);
         } 
@@ -76,7 +76,7 @@ std::tuple<std::vector<std::size_t>,
             drop_rows.push_back(i);
         }
     }
-    // IdxType cols = IdxType::LinSpaced(num_cols, 0, num_cols);
+    // IdxVecType cols = IdxVecType::LinSpaced(ncols, 0, ncols);
     // keep_X = X(keep_rows, cols);
     // drop_X = X(drop_rows, cols);
 
