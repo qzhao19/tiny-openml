@@ -15,7 +15,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
 protected:
     VecType classes_;
@@ -102,7 +102,7 @@ public:
         MatType jll;
         jll = this->joint_log_likelihood(X);
 
-        IdxType argmax_jll = common::argmax<MatType, VecType, IdxType>(jll, 1);
+        IdxVecType argmax_jll = common::argmax<MatType, VecType, IdxVecType>(jll, 1);
         VecType y_pred = argmax_jll.template cast<DataType>();
         return y_pred;
     }

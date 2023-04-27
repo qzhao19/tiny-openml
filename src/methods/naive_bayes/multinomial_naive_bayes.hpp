@@ -14,7 +14,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     double alpha_;
 
 protected:
@@ -44,7 +44,7 @@ protected:
                     keep_rows.push_back(i);
                 }
             }
-            IdxType keep_cols = IdxType::LinSpaced(X_y.cols(), 0, X_y.cols());
+            IdxVecType keep_cols = IdxVecType::LinSpaced(X_y.cols(), 0, X_y.cols());
 
             partial_X_y = X_y(keep_rows, keep_cols); 
             feature_count.col(new_i) = math::sum<MatType>(partial_X_y.leftCols(num_features_), 0);
