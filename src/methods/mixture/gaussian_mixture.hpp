@@ -33,7 +33,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::size_t max_iter_;
     std::size_t num_init_;
@@ -559,7 +559,7 @@ public:
         MatType weighted_log_prob(num_samples, num_components_);
         weighted_log_prob = estimate_weighted_log_prob(X);
 
-        auto argmax_index = common::argmax<MatType, VecType, IdxType>(weighted_log_prob, 1);
+        auto argmax_index = common::argmax<MatType, VecType, IdxVecType>(weighted_log_prob, 1);
 
         VecType y_pred = argmax_index.template cast<DataType>();
         return y_pred;

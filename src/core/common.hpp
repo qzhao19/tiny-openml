@@ -22,7 +22,7 @@ auto max_element(Container const &x)
 /**
  * Stack arrays in sequence horizontally (column wise).
  * 
- * @param x1_x2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
+ * @param x1_x2 ndarray of shape (nrows, ncols) The arrays must have the same shape along all 
  * @return stacke dndarray
 */
 template<typename MatType>
@@ -30,8 +30,8 @@ MatType hstack(const MatType& x1, const MatType& x2) {
     if (x1.rows() != x2.rows()) {
         throw std::invalid_argument("hstack with mismatching number of rows");
     }
-    std::size_t num_rows = x1.rows(), num_cols1 = x1.cols(), num_cols2 = x2.cols();
-    MatType retval(num_rows, (num_cols1 + num_cols2));
+    std::size_t nrows = x1.rows(), ncols1 = x1.cols(), ncols2 = x2.cols();
+    MatType retval(nrows, (ncols1 + ncols2));
     retval << x1, x2;
     return retval;
 };
@@ -40,7 +40,7 @@ MatType hstack(const MatType& x1, const MatType& x2) {
  * Stack arrays in sequence vertically (row wise). This is equivalent to concatenation 
  * along the first axis after 1-D arrays of shape (N,) have been reshaped to (1,N).
  * 
- * @param x1_x2 ndarray of shape (num_rows, num_cols) The arrays must have the same shape along all 
+ * @param x1_x2 ndarray of shape (nrows, ncols) The arrays must have the same shape along all 
  * @return stacke dndarray
 */
 template<typename MatType>
@@ -48,8 +48,8 @@ MatType vstack(const MatType& x1, const MatType& x2) {
     if (x1.cols() != x2.cols()) {
         throw std::invalid_argument("vstack with mismatching number of columns");
     }
-    std::size_t num_cols = x1.cols(), num_rows1 = x1.rows(), num_rows2 = x2.rows();
-    MatType retval((num_rows1 + num_rows2), num_cols);
+    std::size_t ncols = x1.cols(), nrows1 = x1.rows(), nrows2 = x2.rows();
+    MatType retval((nrows1 + nrows2), ncols);
     retval << x1, 
               x2;
     return retval;
@@ -74,9 +74,9 @@ DataType flatten(const std::vector<DataType>& v) {
 */
 template<typename MatType, typename VecType>
 VecType flatten(const MatType& x) {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    std::size_t nrows = x.rows(), ncols = x.cols();
     MatType trans_x = x.transpose();
-    VecType flatten_vec(Eigen::Map<VecType>(trans_x.data(), num_rows * num_cols));
+    VecType flatten_vec(Eigen::Map<VecType>(trans_x.data(), nrows * ncols));
     return flatten_vec;
 };
 
@@ -114,20 +114,20 @@ MatType repeat(const MatType& x,
  *      if axis = 1, retunn index vector of max element along vertical
  *      if axis = -1, return the max index scalar element of 2d 
 */
-template<typename MatType, typename VecType, typename IdxType>
-IdxType argmax(const MatType& x, int axis = 0) {
+template<typename MatType, typename VecType, typename IdxVecType>
+IdxVecType argmax(const MatType& x, int axis = 0) {
     if (axis == 1) {
-        std::size_t num_rows = x.rows();
-        IdxType max_index{num_rows};
-        for (std::size_t i = 0; i < num_rows; i++) {
+        std::size_t nrows = x.rows();
+        IdxVecType max_index{nrows};
+        for (std::size_t i = 0; i < nrows; i++) {
             x.row(i).maxCoeff(&max_index[i]);
         }
         return max_index;
     }
     else if (axis == 0) {
-        std::size_t num_cols = x.cols();
-        IdxType max_index{num_cols};
-        for (std::size_t j = 0; j < num_cols; j++) {
+        std::size_t ncols = x.cols();
+        IdxVecType max_index{ncols};
+        for (std::size_t j = 0; j < ncols; j++) {
             x.col(j).maxCoeff(&max_index[j]);
         }
         return max_index;
@@ -138,7 +138,7 @@ IdxType argmax(const MatType& x, int axis = 0) {
         flatten_vec = flatten<MatType, VecType>(x);
         
         // get the max index of flattened vector
-        IdxType max_index{1};
+        IdxVecType max_index{1};
         flatten_vec.maxCoeff(&max_index[0]);
 
         return max_index;
@@ -158,21 +158,21 @@ IdxType argmax(const MatType& x, int axis = 0) {
  *      if axis = 1, retunn index vector of min element along vertical
  *      if axis = -1, return the min index scalar element of 2d 
 */
-template<typename MatType, typename VecType, typename IdxType>
-IdxType argmin(const MatType& x, int axis = 0) {
+template<typename MatType, typename VecType, typename IdxVecType>
+IdxVecType argmin(const MatType& x, int axis = 0) {
 
     if (axis == 1) {
-        std::size_t num_rows = x.rows();
-        IdxType min_index{num_rows};
-        for (std::size_t i = 0; i < num_rows; i++) {
+        std::size_t nrows = x.rows();
+        IdxVecType min_index{nrows};
+        for (std::size_t i = 0; i < nrows; i++) {
             x.row(i).minCoeff(&min_index[i]);
         }
         return min_index;
     }
     else if (axis == 0) {
-        std::size_t num_cols = x.cols();
-        IdxType min_index{num_cols};
-        for (std::size_t j = 0; j < num_cols; j++) {
+        std::size_t ncols = x.cols();
+        IdxVecType min_index{ncols};
+        for (std::size_t j = 0; j < ncols; j++) {
             x.col(j).minCoeff(&min_index[j]);
         }
         return min_index;
@@ -182,7 +182,7 @@ IdxType argmin(const MatType& x, int axis = 0) {
         flatten_vec = flatten<MatType, VecType>(x);
         
         // get the max index of flattened vector
-        IdxType min_index{1};
+        IdxVecType min_index{1};
         flatten_vec.minCoeff(&min_index[0]);
 
         return min_index;
@@ -207,37 +207,140 @@ IdxType argmin(const MatType& x, int axis = 0) {
  * @return index array
  *      Array of indices that sort a along the specified axis
 */
-template<typename VecType, typename IdxType>
-IdxType argsort(const VecType& x, int axis = 1, std::string order = "asc") {
-    std::size_t num_rows = x.rows(), num_cols = x.cols();
-    IdxType index;
+template<typename MatType, typename IdxMatType, typename IdxVecType>
+IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
+    // std::size_t nrows = x.rows(), ncols = x.cols();
+    MatType copy_x = x;
+    std::size_t nrows = x.rows(), ncols = x.cols();
+    
+    IdxMatType idxvec;
+    IdxMatType idxmat(nrows, ncols);
+
     if (axis == 1) {
-        index = IdxType::LinSpaced(num_rows, 0, num_rows);
+        idxvec.resize(1, ncols);
+        idxvec = IdxVecType::LinSpaced(ncols, 0, ncols).transpose();
     }
     else if (axis == 0) {
-        index = IdxType::LinSpaced(num_cols, 0, num_cols);
-    }
-
-    const auto asc = [&x](std::size_t i, std::size_t j) -> bool {
-        return x(i, 0) < x(j, 0);
-    };
-    const auto des = [&x](std::size_t i, std::size_t j) -> bool {
-        return x(i, 0) > x(j, 0);
-    };
-
-    if (order == "asc") {
-        std::sort(index.data(), index.data() + index.size(), asc);
-    }
-    else if (order == "desc") {
-        std::sort(index.data(), index.data() + index.size(), des);
+        idxvec.resize(nrows, 1);
+        idxvec = IdxVecType::LinSpaced(nrows, 0, nrows);
     }
     else {
         std::ostringstream err_msg;
-        err_msg << "Invalid given sort order " << order.c_str() << std::endl;
+        err_msg << "The axis " << axis << " is out of bounds "
+                << "for array of dimension 2." << std::endl;
         throw std::invalid_argument(err_msg.str());
     }
 
-    return index;
+    std::size_t idx = 0;
+    
+    if (!reverse) {
+        if (axis == 1) {
+            for (auto row : copy_x.rowwise()) {
+                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                    [&row](std::size_t i, std::size_t j) -> bool {
+                        return row(i) < row(j);
+                    }
+                );
+                idxmat.row(idx) = idxvec;
+                idx++;
+            }
+        }
+        else if (axis == 0) {
+            for (auto col : copy_x.colwise()) {
+                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                    [&col](std::size_t i, std::size_t j) -> bool {
+                        return col(i) < col(j);
+                    }
+                );
+                idxmat.col(idx) = idxvec;
+                idx++;
+            }
+        }
+    }
+    else {
+        if (axis == 1) {
+            for (auto row : copy_x.rowwise()) {
+                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                    [&row](std::size_t i, std::size_t j) -> bool {
+                        return row(i) > row(j);
+                    }
+                );
+                idxmat.row(idx) = idxvec;
+                idx++;
+            }
+        }
+        else if (axis == 0) {
+            for (auto col : copy_x.colwise()) {
+                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                    [&col](std::size_t i, std::size_t j) -> bool {
+                        return col(i) > col(j);
+                    }
+                );
+                idxmat.col(idx) = idxvec;
+                idx++;
+            }
+        }
+    }
+    
+    return idxmat;
+};
+
+
+/**
+ * Return a sorted copy of an array.
+ * @param x ndarray
+ *      Array to be sorted
+ * @param axis int, default is 0
+ *      Axis along which to sort. if axis = 0, along the row aixs
+ *      if axis = 1, along the column
+ * @param reverse bool, default is false
+ *      if reverse is true, the sort is descending order, otherwise 
+ *      sorts the list in the ascending order.
+*/
+template<typename MatType, typename DataType = typename MatType::value_type>
+MatType sort(const MatType& x, int axis = 0, bool reverse = false) {
+    // copy const matrix
+    MatType copy_x = x;
+    const auto asc = [](const DataType a, const DataType b) -> bool { 
+        return a < b; 
+    };
+
+    const auto desc = [](const DataType a, const DataType b) -> bool { 
+        return a > b; 
+    };
+
+    if (axis == 1) {
+        if (!reverse) {
+            for (auto row : copy_x.rowwise()) {
+                std::sort(row.begin(), row.end(), asc);
+            }
+        }
+        else {
+            for (auto row : copy_x.rowwise()) {
+                std::sort(row.begin(), row.end(), desc);
+            }
+        }
+    }
+    else if (axis == 0) {
+        if (!reverse) {
+            for (auto col : copy_x.colwise()) {
+                std::sort(col.begin(), col.end(), asc);
+            }
+        }
+        else {
+            for (auto col : copy_x.colwise()) {
+                std::sort(col.begin(), col.end(), desc);
+            }
+        }
+    }
+    else {
+        std::ostringstream err_msg;
+        err_msg << "The axis " << axis << " is out of bounds "
+                << "for array of dimension 2." << std::endl;
+        throw std::invalid_argument(err_msg.str());
+    }
+
+    return copy_x;
 };
 
 /**
@@ -260,23 +363,23 @@ MatType fmin(const MatType& x, const DataType y) {
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
 MatType vec2mat(std::vector<std::vector<DataType>> vec) {
-    std::size_t num_rows = vec.size();
-    std::size_t num_cols = vec.at(0).size();
+    std::size_t nrows = vec.size();
+    std::size_t ncols = vec.at(0).size();
 
     using RowType = Eigen::Vector<DataType, Eigen::Dynamic>;
 
-    MatType retmat(num_rows, num_cols);
-    retmat.row(0) = RowType::Map(&vec[0][0], num_cols);
+    MatType retmat(nrows, ncols);
+    retmat.row(0) = RowType::Map(&vec[0][0], ncols);
 
-    for (std::size_t i = 1; i < num_rows; i++) {
-        if (num_cols != vec.at(i).size()) {
+    for (std::size_t i = 1; i < nrows; i++) {
+        if (ncols != vec.at(i).size()) {
             std::ostringstream err_msg;
             err_msg << "vector[" << i << "] size = " << vec.at(i).size() 
-                    << "does not match vector[0] size " << num_cols << std::endl; 
+                    << "does not match vector[0] size " << ncols << std::endl; 
             throw std::invalid_argument(err_msg.str());
 
         }
-        retmat.row(i) = RowType::Map(&vec[i][0], num_cols);
+        retmat.row(i) = RowType::Map(&vec[i][0], ncols);
     }
 
     return retmat;
@@ -295,7 +398,7 @@ VecType vec2mat(std::vector<DataType> vec) {
 
 /**
  * Find the unique elements of an 1d array.
- * @param x vector of shape (num_rows, 1)
+ * @param x vector of shape (nrows, 1)
  *      input vector
  * @return a tuple of (VecType, VecType)
  *    returns the unsorted unique elements of an array and 
@@ -343,15 +446,15 @@ std::tuple<VecType, VecType> unique(const VecType& x){
  * @param x condition array_like, bool
  * @return An array with index of elements 
 */
-template<typename VecType, typename IdxType>
-IdxType where(const VecType& x) {
+template<typename VecType, typename IdxVecType>
+IdxVecType where(const VecType& x) {
     std::vector<Eigen::Index> index_vec;
     for (std::size_t i = 0; i < x.size(); ++i) {
         if (x(i)) {
             index_vec.push_back(i);
         }
     }
-    Eigen::Map<IdxType> index(index_vec.data(), index_vec.size());
+    Eigen::Map<IdxVecType> index(index_vec.data(), index_vec.size());
     return index;
 };
 
@@ -528,16 +631,16 @@ std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::
         throw std::invalid_argument("Input 2d vector is empty!");
     }
 
-    std::size_t num_rows = X.size();
+    std::size_t nrows = X.size();
     std::size_t num_searches = 1, cur_idx = 0, it = 1;
-    std::vector<std::size_t> indices(num_rows, 0);
+    std::vector<std::size_t> indices(nrows, 0);
     // create a deque to store the unique inds
     std::deque<std::size_t> unique_inds;  
 
     indices[cur_idx] = 1;
     unique_inds.emplace_back(0);
-    while(num_searches < num_rows) {
-        if (it >= num_rows) {
+    while(num_searches < nrows) {
+        if (it >= nrows) {
             // find next non-duplicate value, push back
             ++cur_idx;
             while (indices[cur_idx]) {
@@ -548,7 +651,7 @@ std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::
             
             // start search for duplicates at the next row
             it = cur_idx + 1; 
-            if (it >= num_rows && num_rows == num_searches) {
+            if (it >= nrows && nrows == num_searches) {
                 break;
             }
         }
