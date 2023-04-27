@@ -21,7 +21,7 @@ int main() {
     MatType opt_w(num_features, 3);
 
     // loss::LogLoss<double> log_loss;
-    loss::SoftmaxLoss<double> softmax_loss;
+    loss::SoftmaxLoss<double> softmax_loss(0.0);
     optimizer::VanillaUpdate<double> weight_update;
     // optimizer::MomentumUpdate<double> weight_update(0.6);
     optimizer::StepDecay<double> step_decay(0.01);

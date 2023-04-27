@@ -12,7 +12,9 @@ int main() {
     data::loadtxt<MatType, VecType>("../dataset/iris.txt", X, y);
 
     std::cout << "Softmax regression using sgd optimizer" <<std::endl;
-    linear_model::SoftmaxRegression<double> regressor;
+    linear_model::SoftmaxRegression<double> regressor(
+        0.01, 0.0, 0.0001, 16, 2000, 5, "sgd", "None", true, false
+    );
     regressor.fit(X, y);
 
     VecType y_pred;
