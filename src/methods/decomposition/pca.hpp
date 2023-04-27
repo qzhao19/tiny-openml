@@ -24,7 +24,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::string solver_;
     double noise_var_;
@@ -46,7 +46,7 @@ protected:
             std::tie(U, s, Vt) = math::exact_svd<MatType, VecType>(centered_X, false);
             // flip eigenvectors' sign to enforce deterministic output
             Vt = Vt.transpose().eval();
-            std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxType>(U, Vt);
+            std::tie(U, Vt) = math::svd_flip<MatType, VecType, IdxVecType>(U, Vt);
 
             explained_var = math::power<VecType>(s, 2.0) / (static_cast<DataType>(num_samples) - 1.);
             components = Vt;

@@ -22,7 +22,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::size_t num_iters_;
     std::size_t num_oversamples_;
@@ -34,7 +34,7 @@ protected:
         VecType s;
         MatType U, Vt, X_transformed ; 
         if (solver_ == "randomized") {
-            std::tie(U, s, Vt) = math::randomized_svd<MatType, VecType, IdxType>(X, 
+            std::tie(U, s, Vt) = math::randomized_svd<MatType, VecType, IdxVecType>(X, 
                 this->num_components_, 
                 num_oversamples_, 
                 num_iters_, 

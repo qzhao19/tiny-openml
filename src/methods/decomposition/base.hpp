@@ -13,7 +13,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
 protected:
     MatType precision_;
