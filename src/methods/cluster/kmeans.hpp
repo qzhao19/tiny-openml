@@ -16,7 +16,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
     std::string init_;
     std::size_t num_init_;
@@ -111,8 +111,8 @@ protected:
         centroids_.resize(num_clusters_, num_features);
 
         if (init_ == "random") {
-            IdxType index = random::permutation<IdxType>(num_samples);
-            IdxType selected_index = index.topRows(num_clusters_);
+            IdxVecType index = random::permutation<IdxVecType>(num_samples);
+            IdxVecType selected_index = index.topRows(num_clusters_);
             centroids_ = X(selected_index, Eigen::all);
         } 
         else if (init_ == "kmeans++") {
