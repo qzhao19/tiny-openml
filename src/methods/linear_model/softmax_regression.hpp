@@ -14,26 +14,18 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     bool shuffle_;
     bool verbose_;
     double alpha_;
     double lambda_;
     double tol_;
-    double ftol_;
-    double wolfe_;
-    double delta_;
     std::size_t num_iters_no_change_;
-    std::size_t max_linesearch_; 
     std::size_t batch_size_;
     std::size_t max_iter_;
-    std::size_t mem_size_;
-    std::size_t past_;
     std::string solver_;
     std::string penalty_;
-    std::string linesearch_policy_;
-    std::string linesearch_condition_;
 
     // MatType boundary_;
 
@@ -62,7 +54,7 @@ protected:
         num_features = X_new.cols();
 
         MatType w(num_features, num_classes);
-        w.setRandom();
+        w.setOnes();
 
         loss::SoftmaxLoss<DataType> softmax_loss(lambda_);
         optimizer::VanillaUpdate<DataType> w_update;
@@ -133,8 +125,7 @@ public:
         const std::string solver,
         const std::string penalty, 
         bool shuffle = true, 
-        bool verbose = true, 
-        bool intercept = true): BaseLinearModel<DataType>(intercept), 
+        bool verbose = true): BaseLinearModel<DataType>(true), 
             alpha_(alpha), 
             lambda_(lambda), 
             tol_(tol), 
@@ -143,8 +134,8 @@ public:
             num_iters_no_change_(num_iters_no_change),
             solver_(solver),
             penalty_(penalty), 
-            shuffle_(true), 
-            verbose_(true) {};
+            shuffle_(shuffle), 
+            verbose_(verbose) {};
 
     /**deconstructor*/
     ~SoftmaxRegression() {};
@@ -160,7 +151,7 @@ public:
         VecType y_pred;
         auto boundary = compute_decision_boundary(X);
         auto prob = math::softmax<MatType>(boundary, 1);
-        auto tmp = common::argmax<MatType, VecType, IdxType>(prob, 1);
+        auto tmp = common::argmax<MatType, VecType, IdxVecType>(prob, 1);
         y_pred = tmp.template cast<DataType>();
         return y_pred;
     };
