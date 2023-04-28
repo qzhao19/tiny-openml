@@ -15,7 +15,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
     struct Node {
         bool is_leaf;
@@ -132,7 +132,7 @@ protected:
         }
 
         value_eigvec = common::vec2mat<VecType>(value_stdvec);
-        auto value = common::argmax<MatType, VecType, IdxType>(value_eigvec, -1);
+        auto value = common::argmax<MatType, VecType, IdxVecType>(value_eigvec, -1);
         return std::make_tuple(value_eigvec, value.value());
     }
 
@@ -186,11 +186,11 @@ protected:
         VecType selected_x = X.col(best_feature_index);
         auto tmp1 = (selected_x.array() <= best_feature_value);
         VecType left_selected = tmp1.template cast<DataType>();
-        IdxType left_selected_index = common::where<VecType, IdxType>(left_selected);
+        IdxVecType left_selected_index = common::where<VecType, IdxVecType>(left_selected);
 
         auto tmp2 = (selected_x.array() > best_feature_value);
         VecType right_selected = tmp2.template cast<DataType>();
-        IdxType right_selected_index = common::where<VecType, IdxType>(right_selected);
+        IdxVecType right_selected_index = common::where<VecType, IdxVecType>(right_selected);
 
         MatType left_X = X(left_selected_index, Eigen::all);
         VecType left_y = y(left_selected_index);
@@ -297,7 +297,7 @@ public:
     const VecType predict(const MatType& X) const { 
         std::size_t num_samples = X.rows();
         MatType log_prob = predict_prob(X);
-        auto y_pred_index = common::argmax<MatType, VecType, IdxType>(log_prob, 1);
+        auto y_pred_index = common::argmax<MatType, VecType, IdxVecType>(log_prob, 1);
         VecType y_pred_value(num_samples);
         
         std::size_t i = 0;

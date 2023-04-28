@@ -15,7 +15,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
     struct Node {
         bool is_leaf;
@@ -82,9 +82,9 @@ protected:
 
         double impurity = 0.0;
         if (criterion_ == "squared_error") {
-            auto total_var = math::var<MatType, VecType>(y, -1);
-            auto left_var = math::var<MatType, VecType>(left_y, -1);
-            auto right_var = math::var<MatType, VecType>(right_y, -1);
+            auto total_var = math::var<MatType>(y, -1);
+            auto left_var = math::var<MatType>(left_y, -1);
+            auto right_var = math::var<MatType>(right_y, -1);
 
             double mse = static_cast<double>(total_var.value()) - 
                 static_cast<double>(left_num_samples) * static_cast<double>(left_var.value()) -
@@ -102,9 +102,9 @@ protected:
             VecType left_y_bar = left_y.array() - left_median.array();
             VecType right_y_bar = right_y.array() - right_median.array();
 
-            auto y_bar_sum = math::sum<MatType, VecType>(y_bar, -1);
-            auto left_y_bar_sum = math::sum<MatType, VecType>(left_y_bar, -1);
-            auto right_y_bar_sum = math::sum<MatType, VecType>(right_y_bar, -1);
+            auto y_bar_sum = math::sum<MatType>(y_bar, -1);
+            auto left_y_bar_sum = math::sum<MatType>(left_y_bar, -1);
+            auto right_y_bar_sum = math::sum<MatType>(right_y_bar, -1);
 
             double mae = static_cast<double>(y_bar_sum.value()) - 
                 static_cast<double>(left_num_samples) * static_cast<double>(left_y_bar_sum.value()) -
@@ -126,7 +126,7 @@ protected:
         
         std::size_t num_samples = y.rows();
 
-        auto y_bar = math::mean<MatType, VecType>(y, -1);
+        auto y_bar = math::mean<MatType>(y, -1);
         VecType y_centered = y.array() - y_bar.value();
 
         double stdev_error = std::sqrt(
@@ -190,11 +190,11 @@ protected:
         VecType selected_x = X.col(best_feature_index);
         auto tmp1 = (selected_x.array() <= best_feature_value);
         VecType left_selected = tmp1.template cast<DataType>();
-        IdxType left_selected_index = common::where<VecType, IdxType>(left_selected);
+        IdxVecType left_selected_index = common::where<VecType, IdxVecType>(left_selected);
 
         auto tmp2 = (selected_x.array() > best_feature_value);
         VecType right_selected = tmp2.template cast<DataType>();
-        IdxType right_selected_index = common::where<VecType, IdxType>(right_selected);
+        IdxVecType right_selected_index = common::where<VecType, IdxVecType>(right_selected);
 
 
         MatType left_X = X(left_selected_index, Eigen::all);

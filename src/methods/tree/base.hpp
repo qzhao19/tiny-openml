@@ -13,7 +13,8 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxMatType = Eigen::Matrix<Eigen::Index, Eigen::Dynamic, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     
 protected:
      /**
@@ -22,7 +23,7 @@ protected:
     */
     const VecType choose_feature_threshold(const VecType& x) const {
         std::size_t num_samples = x.rows();
-        IdxType sorted_index = common::argsort<VecType, IdxType>(x);
+        IdxVecType sorted_index = common::argsort<MatType, IdxMatType, IdxVecType>(x, 0);
         VecType sorted_x = x(sorted_index);
         
         std::vector<DataType> stdvec_x;
