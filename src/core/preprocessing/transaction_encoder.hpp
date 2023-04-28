@@ -53,11 +53,11 @@ public:
             ++idx;
         }
 
-        std::size_t num_rows = X.size();
-        std::size_t num_cols = cols_set.size();
+        std::size_t nrows = X.size();
+        std::size_t ncols = cols_set.size();
         std::size_t num_non_sparse_values = non_sparse_values.size();
         
-        SpMatType sp_mat(num_rows, num_cols);
+        SpMatType sp_mat(nrows, ncols);
         std::vector<TripletType> triplets;
         for (std::size_t i = 0; i < num_non_sparse_values; i++) {
             triplets.emplace_back(row_idx[i], col_idx[i], non_sparse_values[i]);
