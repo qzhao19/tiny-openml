@@ -14,7 +14,7 @@ private:
     using SpMatType = Eigen::SparseMatrix<DataType, Eigen::RowMajor>;
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     double min_support_;
     double min_confidence_;
@@ -26,6 +26,7 @@ private:
         ItemsetFrequency(std::vector<std::vector<DataType>> itemsets_list_, 
             std::vector<std::size_t> count_list_): itemsets_list(itemsets_list_), 
                 count_list(count_list_) {};
+        
         ~ItemsetFrequency() {};
     };
 
@@ -104,6 +105,21 @@ public:
             }
         }
 
+        // read itemsets and their count numbers
+        std::vector<std::vector<DataType>> itemsets_list;
+        std::vector<std::size_t> count_list;
+        std::vector<DataType> itemsets;
+        for (auto record : all_records) {
+            itemsets.emplace_back(record->first);
+            count_list.emplace_back(record->second);
+        }
+        itemsets_list.emplace_back(itemsets);
+
+        // put them into a map with key = id, value = itemset_frequency
+        ItemsetFrequency itemset_frequency(itemsets_list, count_list);
+        all_frequency_[1] = itemset_frequency;
+
+        
 
     }
 
