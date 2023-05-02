@@ -14,7 +14,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::size_t p_;
     std::size_t num_neighbors_;
@@ -22,19 +22,19 @@ private:
 
     struct Node {
         bool is_leaf;
-        IdxType data_indices_per_node;
+        IdxVecType data_indices_per_node;
         std::weak_ptr<Node> parent;
         std::shared_ptr<Node> left_child;
         std::shared_ptr<Node> right_child;
 
         Node():is_leaf(true),
-            data_indices_per_node(IdxType()),
+            data_indices_per_node(IdxVecType()),
             parent(std::weak_ptr<Node>()),
             left_child(std::shared_ptr<Node>()), 
             right_child(std::shared_ptr<Node>()) {};
 
         Node(bool is_leaf_,
-            IdxType data_indices_per_node_): 
+            IdxVecType data_indices_per_node_): 
             is_leaf(is_leaf_),
             data_indices_per_node(data_indices_per_node_),
                 parent(std::weak_ptr<Node>()),

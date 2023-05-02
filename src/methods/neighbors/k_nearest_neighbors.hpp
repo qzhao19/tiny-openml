@@ -14,7 +14,7 @@ private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
 
     std::size_t p_;
     std::size_t num_neighbors_;
