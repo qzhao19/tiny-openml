@@ -50,7 +50,7 @@ using ConstType = std::numeric_limits<DataType>;
 #include <eigen3/Eigen/SVD>
 
 // add Eigen sparse module 
-#include <Eigen/SparseCore>
+#include <eigen3/Eigen/SparseCore>
 
 
 #ifndef EIGEN_MAX_CPP_VER
