@@ -580,43 +580,36 @@ std::vector<DataType> merge(const std::vector<DataType>& v1,
  *     this argument specifies which fields to compare first
 */
 template <typename DataType>
-void sortrows(std::vector<std::vector<DataType>>& X, std::string order = "asc") {
-
-    if (X.empty() || X[0].empty()) {
-        throw std::invalid_argument("Input 2d vector is empty!");
+std::vector<std::vector<DataType>> sortrows(const std::vector<std::vector<DataType>> x, int axis = 0, bool reverse = false) {
+    if (x.empty() || x[0].empty()) {
+        throw std::invalid_argument("Input 2d array is empty!");
     }
 
-    auto X_copy = X;
-    for (size_t i = 0; i < X[0].size(); i++){
-        // Sort column i
-
-        if (order == "asc") {
-            std::sort(X.begin(), X.end(), 
-                [&](const std::vector<DataType>& x, const std::vector<DataType>& y) {
-                    return (x[i] < y[i]); 
-                }
-            );
-        }
-        else if (order == "desc") {
-            std::sort(X.begin(), X.end(), 
-                [&](const std::vector<DataType>& x, const std::vector<DataType>& y) {
-                    return (x[i] > y[i]); 
-                }
-            );
+    auto copy_x = x;
+    auto result = copy_x;
+    if (axis = 1){
+        if (!reverse){
+            for (size_t i = 0; i < copy_x[0].size(); i++) {
+                // Sort column i
+                std::sort(copy_x.begin(), copy_x.end(), [&](std::vector<DataType>& v1, std::vector<DataType>& v2) {
+                    return (v1[i] < v2[i]); 
+                });
+                // Save the results of the sort of column i in the auxiliary vector  
+                for (size_t j = 0; j < x.size(); ++j)
+                    result[j][i] = copy_x[j][i];
+            }
         }
         else {
-            std::ostringstream err_msg;
-            err_msg << "Invalid given sort order " << order.c_str() << std::endl;
-            throw std::invalid_argument(err_msg.str());
+            for (size_t i = 0; i < copy_x[0].size(); i++) {
+                std::sort(copy_x.begin(), copy_x.end(), [&](std::vector<DataType>& v1, std::vector<DataType>& v2) {
+                    return (v1[i] > v2[i]); 
+                });
+                for (size_t j = 0; j < copy_x.size(); ++j)
+                    result[j][i] = copy_x[j][i];
+            }
         }
-
-        // Save the results of the sort of column i in the auxiliary vector  
-        for (std::size_t j = 0; j < X.size(); ++j) {
-            X_copy[j][i] = X[j][i];
-        }
-            
     }
-    X = X_copy;
+    return result;
 };
 
 /**
