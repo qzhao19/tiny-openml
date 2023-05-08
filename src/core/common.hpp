@@ -571,7 +571,7 @@ std::vector<DataType> merge(const std::vector<DataType>& v1,
 
 
 /**
- * sorts the rows of a matrix in ascending or desc order based on the elements in the first column. 
+ * sorts the rows of a 2d vector in ascending or desc order based on the elements in the first column. 
  * When the first column contains repeated elements, sortrows sorts according to the values in the 
  * next column and repeats this behavior for succeeding equal values.
  * 
@@ -580,14 +580,14 @@ std::vector<DataType> merge(const std::vector<DataType>& v1,
  *     this argument specifies which fields to compare first
 */
 template <typename DataType>
-std::vector<std::vector<DataType>> sortrows(const std::vector<std::vector<DataType>> x, int axis = 0, bool reverse = false) {
+std::vector<std::vector<DataType>> sort(const std::vector<std::vector<DataType>> x, int axis = 0, bool reverse = false) {
     if (x.empty() || x[0].empty()) {
         throw std::invalid_argument("Input 2d array is empty!");
     }
 
-    auto copy_x = x;
-    auto result = copy_x;
-    if (axis = 1){
+    std::vector<std::vector<DataType>> copy_x = x;
+    std::vector<std::vector<DataType>> result = x;    
+    if (axis == 0){
         if (!reverse){
             for (size_t i = 0; i < copy_x[0].size(); i++) {
                 // Sort column i
@@ -608,6 +608,33 @@ std::vector<std::vector<DataType>> sortrows(const std::vector<std::vector<DataTy
                     result[j][i] = copy_x[j][i];
             }
         }
+    }
+    else if (axis == 1) {
+        const auto asc = [](const DataType a, const DataType b) -> bool { 
+            return a < b; 
+        };
+
+        const auto desc = [](const DataType a, const DataType b) -> bool { 
+            return a > b; 
+        };
+        if (!reverse){
+            for (auto& r : copy_x) {
+                std::sort(r.begin(), r.end(), asc);
+            }
+            result = copy_x;
+        }
+        else {
+            for (auto& r : copy_x) {
+                std::sort(r.begin(), r.end(), desc);
+            }
+            result = copy_x;
+        }
+    }
+    else {
+        std::ostringstream err_msg;
+        err_msg << "The axis " << axis << " is out of bounds "
+                << "for array of dimension 2." << std::endl;
+        throw std::invalid_argument(err_msg.str());
     }
     return result;
 };
@@ -667,6 +694,16 @@ std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::
     return result;
 };
 
+/**
+ * Determine array equality
+ * @param 1d vector
+ * @return logical true if A and B are equivalent; otherwise, it returns logical false
+*/
+template<typename DataType>
+bool is_equal(const std::vector<DataType>& x, const std::vector<DataType>& y) {
+    auto pair = std::mismatch(x.begin(), x.end(), y.begin());
+    return (pair.first == x.end() && pair.second == y.end());
+};
 
 }
 }
