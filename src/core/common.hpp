@@ -494,10 +494,6 @@ std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, 
     }
 
     std::vector<DataType> copy_x = x;
-    if (!std::is_sorted(copy_x.begin(), copy_x.end())) {
-        std::sort(copy_x.begin(), copy_x.end());
-    }
-
     std::vector<bool> bitset(k, 1);
     bitset.resize(copy_x.size(), 0);
 
