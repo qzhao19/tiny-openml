@@ -68,8 +68,7 @@ IdxVecType permutation(const std::size_t size) {
     permutation.setIdentity();
 
     std::shuffle(permutation.indices().data(), 
-        permutation.indices().data() + 
-            permutation.indices().size(), 
+        permutation.indices().data() + permutation.indices().size(), 
         generator);
 
     IdxVecType index;
