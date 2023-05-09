@@ -514,8 +514,8 @@ std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, 
 
 /**
  * check whether a vector is a subvector of another
- * @param v2 the target vector to check if it is a subset
  * @param v1 the source vector we want to compare
+ * @param v2 the target vector to check if it is a subset
 */
 template <typename DataType>
 bool contains(const std::vector<DataType>& v1, 
@@ -692,7 +692,8 @@ std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::
 
 /**
  * Determine array equality
- * @param 1d vector
+ * @param x 1d vector
+ * @param y 1d vector
  * @return logical true if A and B are equivalent; otherwise, it returns logical false
 */
 template<typename DataType>
