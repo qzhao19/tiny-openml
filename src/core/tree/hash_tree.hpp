@@ -131,7 +131,7 @@ public:
             std::vector<DataType> superset = pick_itemset;
             superset.insert(superset.end(), rest_itemset.begin(), rest_itemset.end());
 
-            for (auto& itemset : root_->bucket) {
+            for (auto itemset : root_->bucket) {
                 if (added_.find(itemset.first) != added_.end()) {
                     continue;
                 }
@@ -139,16 +139,22 @@ public:
                 // first element in tmp, itemset must not be subset of the superset
                 std::vector<DataType> tmp;
                 for (auto item : superset) {
-                    if (item >= itemset.first[0] && item <= itemset.first.back().c) {
+                    if (item >= itemset.first[0] && item <= itemset.first.back()) {
                         tmp.emplace_back(item);
                     }
                 }
 
-                for (auto item : itemset) {
-                    if (std::find(tmp.begin(), tmp.end(), item) != tmp.end()) {
-                        root_->bucket[itemset]++;
-                        added_.insert(itemset);
-                    }
+                // for (auto item : itemset.first) {
+                //     if (std::find(tmp.begin(), tmp.end(), item) != tmp.end()) {
+                //         root_->bucket[itemset]++;
+                //         added_.insert(itemset);
+                //     }
+                // }
+
+                // if all elements of itemset are within tmp 
+                if (common::contains<DataType>(itemset.first, tmp)) {
+                    root_->bucket[itemset.first]++;
+                    added_.insert(itemset.first);
                 }
             }
         }
@@ -163,7 +169,10 @@ public:
             std::size_t num_iters = num_rest_items - min_num_rest_items;
 
             for (std::size_t i = 0; i < num_iters; ++i) {
-                std::vector<DataType> cur_pick = pick_itemset.emplace_back(rest_itemset[i]);
+                // std::vector<DataType> cur_pick = pick_itemset.emplace_back(rest_itemset[i]);
+
+                std::vector<DataType> cur_pick = {pick_itemset.begin(), pick_itemset.end()};
+                cur_pick.emplace_back(rest_itemset[i]);
                 std::vector<DataType> cur_rest = {rest_itemset.begin() + i, rest_itemset.end()};
                 std::size_t key = hash(cur_pick[root_->index]);
                 if (root_->children.find(key) != root_->children.end()) {
