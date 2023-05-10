@@ -22,12 +22,6 @@ private:
     struct ItemsetFrequency {
         std::vector<std::vector<DataType>> itemsets_list;
         std::vector<std::size_t> count_list;
-
-        // ItemsetFrequency(const std::vector<std::vector<DataType>>& itemsets_list_, 
-        //     const std::vector<std::size_t>& count_list_): itemsets_list(itemsets_list_), 
-        //         count_list(count_list_) {};
-        
-        // ~ItemsetFrequency() {};
     };
 
     std::map<std::size_t, ItemsetFrequency> all_frequency_;
@@ -91,7 +85,7 @@ protected:
                         tmp.emplace_back(frequency_k[i].back());
                         tmp.emplace_back(frequency_k[j].back());
 
-                        std::vector<std::vector<DataType>> comb = combinations<DataType>(tmp, k);
+                        std::vector<std::vector<DataType>> comb = common::combinations<DataType>(tmp, k);
                         for (const auto& c : comb) {
                             if (frequency_k_reference.find(c) == frequency_k_reference.end()) {
                                 found = false;
@@ -107,12 +101,26 @@ protected:
                 }
             }
         }
-
         return candidates;
-
     }
 
 
+    void sort_itemsets_counts(std::vector<std::vector<DataType>>& itemsets_list, 
+        std::vector<std::size_t>& count_list) {
+        
+        std::vector<std::pair<std::vector<DataType>, std::size_t>> combine;
+        for (int i = 0; i < itemsets_list.size(); ++i)
+            combine.push_back(std::make_pair(itemsets_list[i], count_list[i]));
+
+        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+            return left.first < right.first;
+        });
+
+        for (int i = 0; i < itemsets_list.size(); ++i) {
+            itemsets_list[i] = combine[i].first;
+            count_list[i] = combine[i].second;
+        }
+    }
     
 
 
@@ -183,12 +191,12 @@ public:
         ItemsetFrequency itemset_frequency = {itemsets_list, count_list};
         all_frequency_[1] = itemset_frequency;
 
+        
         // std::vector<std::vector<DataType>> candidates;
         // candidates = generate_candidates(1);
-
         // for (std::size_t i = 0; i < candidates.size(); ++i) {
         //     for (std::size_t j = 0; j < candidates[i].size(); ++j) {
-        //         std::cout << "candidates = " << candidates[i][j] << " ";
+        //         std::cout << candidates[i][j] << " ";
         //     }
         //     std::cout << std::endl;
         // }
@@ -202,10 +210,10 @@ public:
             ++k;
 
             // init hash tree
-            tree::HashTree<HashTreeNode<DataType>, DataType> hash_tree;
+            tree::HashTree<HashTreeNode, DataType> hash_tree(num_candidates, num_candidates);
             hash_tree.build_tree(candidates);
 
-            for (std::size_t i = 0; i < X; ++i) {
+            for (std::size_t i = 0; i < X.size(); ++i) {
                 if (X[i].size() < k) {
                     break;
                 }
@@ -213,10 +221,23 @@ public:
                 hash_tree.add_support(pick_itemset, X[i], k);
             }
 
-            hash_tree.compute_frequency_itemsets(0, count_list, itemsets_list);
+            hash_tree.compute_frequency_itemsets(support, count_list, itemsets_list);
 
+            if ((!count_list.empty()) && (!itemsets_list.empty())) {
+                sort_itemsets_counts(itemsets_list, count_list);
+                itemset_frequency = {itemsets_list, count_list};
+
+                // for (std::size_t i = 0; i != itemsets_list.size(); ++i) {
+                //     for (std::size_t j = 0; j != itemsets_list[i].size(); ++j) {
+                //         std::cout << itemsets_list[i][j] << " ";
+                //     }
+                //     std::cout << std::endl;
+                // }
+
+
+                all_frequency_[k] = itemset_frequency;
+            }
         }
-
     }
 
 
