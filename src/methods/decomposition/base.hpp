@@ -64,7 +64,7 @@ public:
     /**
      * The right singular vectors of the input data.
     */
-    const VecType get_components() const {
+    const MatType get_components() const {
         return components_;
     };
 
