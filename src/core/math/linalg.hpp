@@ -258,19 +258,17 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
 template <typename MatType, 
     typename DataType = typename MatType::value_type>
 DataType logdet(const MatType& x) {
-    DataType ld = static_cast<DataType>(0);
+    DataType log_abs_det = 0;
+    DataType sign = 1;
     Eigen::PartialPivLU<MatType> lu_decomposition(x);
-    auto& LU = lu_decomposition.matrixLU();
-    DataType c = lu_decomposition.permutationP().determinant(); // -1 or 1
-    for (std::size_t i = 0; i < LU.rows(); ++i) {
-        const auto& lii = LU(i,i);
-        if (lii < static_cast<DataType>(0)) {
-            c *= -1;
-        }
-        ld += std::log(std::abs(lii));
-    }
-    ld += std::log(c);
-    return std::isnan(ld) ? (-ConstType<DataType>::infinity()) : ld;
+    MatType LU = lu_decomposition.matrixLU();
+    sign = lu_decomposition.permutationP().determinant(); 
+    auto diag = LU.diagonal().array().eval();
+    auto abs_diag = diag.cwiseAbs().eval();
+    log_abs_det += abs_diag.log().sum();
+    sign *= (diag / abs_diag).prod();
+
+    return sign < 0 ? (-ConstType<DataType>::infinity()) : log_abs_det;
 }
 
 /**
