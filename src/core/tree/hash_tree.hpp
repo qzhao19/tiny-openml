@@ -47,7 +47,7 @@ protected:
             if (node->children.find(key) == node->children.end()) {
                 node->children[key] = std::make_shared<NodeType>();
             }
-            insert(node->children[key], itemset, count);
+            insert(node->children[key], itemset, index + 1, count);
         }
         else {
             if (node->bucket.find(itemset) == node->bucket.end()) {
@@ -68,7 +68,7 @@ protected:
                     }
                     insert(node->children[key], bucket.first, index + 1, bucket.second);
                 }
-                node->bucket = std::map<std::vector<DataType>, std::size_t>();
+                node->bucket.clear();
                 node->is_leaf = false;
 
             }   
@@ -108,10 +108,8 @@ public:
 
     ~HashTree() {};
 
-    void build_tree(const std::vector<std::vector<DataType>>& itemsets) {
-        for (std::size_t i = 0; i < itemsets.size(); ++i) {
-            insert(root_, itemsets[i], 0);
-        }
+    void build_tree(const std::vector<DataType>& itemset) {
+        insert(root_, itemset, 0, 0)
     }
 
     void compute_frequency_itemsets(std::size_t support, 
@@ -124,11 +122,25 @@ public:
     }
 
     
-    void add_support(std::vector<DataType> pick_itemset, 
-        std::vector<DataType> rest_itemset, 
-        std::size_t k) {
-        
-        
+    void add_support(const std::vector<DataType>& itemset) {
+        std::size_t index = 0;
+        while (true) {
+            if (root_->is_leaf) {
+                if (node->bucket.find(itemset) != node->bucket.end()) {
+                    ++(root_->bucket[itemset]);
+                }
+                break;
+            }
+
+            std::size_t key = hash(itemset[index]);
+            if (node->children.find(key) != node->children.end()) {
+                root_ = root_->children[key];
+            }
+            else {
+                break;
+            }
+            ++index;
+        }
     }
     
 
