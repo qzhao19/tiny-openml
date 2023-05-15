@@ -4,14 +4,11 @@ using namespace openml;
 template<typename DataType>
 struct HashTreeNode {
     bool is_leaf;
-    std::size_t index;
     std::map<std::vector<DataType>, std::size_t> bucket;
     std::map<std::size_t, std::shared_ptr<HashTreeNode>> children;
     
-    HashTreeNode(): is_leaf(true), index(0) {};
-    HashTreeNode(bool is_leaf_, 
-        std::size_t index_ = 0): is_leaf(is_leaf_), 
-            index(index_) {};
+    HashTreeNode(): is_leaf(true) {};
+    HashTreeNode(bool is_leaf_): is_leaf(is_leaf_) {};
 
     ~HashTreeNode() {};
 };
@@ -24,11 +21,14 @@ int main() {
             {6,8,9},{3,6,7},{3,6,8}};
 
     HashTreeNode<std::size_t> node;
-    tree::HashTree<HashTreeNode<std::size_t>, std::size_t> tree;
+    tree::HashTree<HashTreeNode<std::size_t>, std::size_t> tree(3, 3);
     std::vector<std::size_t> count_list;
     std::vector<std::vector<std::size_t>> itemset_list;
     // tree.print(node);
-    tree.build_tree(itemsets);
+
+    for (auto itemset : itemsets) {
+        tree.build_tree(itemset);
+    }
     tree.compute_frequency_itemsets(0, count_list, itemset_list);
 
     for (std::size_t i = 0; i != count_list.size(); ++i) {
