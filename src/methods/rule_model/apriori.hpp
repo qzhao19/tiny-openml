@@ -19,12 +19,16 @@ private:
     double min_support_;
     double min_confidence_;
 
-    struct ItemsetFrequency {
-        std::vector<std::vector<DataType>> itemsets_list;
-        std::vector<std::size_t> count_list;
-    };
+    // struct ItemsetFrequency {
+    //     std::vector<std::vector<DataType>> itemsets_list;
+    //     std::vector<std::size_t> count_list;
+    // };
+    // std::map<std::size_t, ItemsetFrequency> all_frequency_;
 
-    std::map<std::size_t, ItemsetFrequency> all_frequency_;
+
+    using FrequencyType = std::vector<std::pair<std::vector<DataType>, std::size_t>>;
+
+    // FrequencyType all_frequency_;
 
     struct HashTreeNode {
         bool is_leaf;
@@ -43,9 +47,22 @@ private:
 
 
 protected:
-    const std::vector<std::vector<DataType>> generate_candidates(std::size_t k) {
+    const std::vector<std::vector<DataType>> generate_k_candidates(
+        const std::vector<std::vector<DataType>>& X, 
+        std::size_t k) {
         
         std::vector<std::vector<DataType>> candidates;
+        std::map<std::size_t, std::vector<std::vector<DataType>>> candidates_map;
+        
+        for (std::size_t i = 0; i < X.size(); ++i) {
+            candidates_map[i] = common::combinations<DataType>(X[i], k);
+        }
+
+        for (auto candidate : candidates_map) {
+            for (auto item : candidate.second) {
+                candidates.emplace_back(item);
+            }
+        }
         
         return candidates;
     }
@@ -83,42 +100,81 @@ public:
     void fit(const std::vector<std::vector<DataType>>& X) {
         
         std::size_t support = static_cast<std::size_t>(X.size() * min_support_);
+        std::cout << "support = " << support << std::endl;
 
-        std::cout << support << std::endl;
+        // std::cout << sp_mat << std::endl;
+        std::vector<DataType> records_order;
+        for (std::size_t i = 0; i < X.size(); ++i) {
+            for (std::size_t j = 0; j < X[i].size(); ++j) {
+                auto it = std::find(begin(records_order), end(records_order), X[i][j]);
+                if (it == std::end(records_order)) {
+                    records_order.emplace_back(X[i][j]);
+                }
+            }
+        }
 
         preprocessing::TransactionEncoder<std::size_t> transaction_encoder;
         SpMatType sp_mat = transaction_encoder.fit_transform(X);
+        std::unordered_map<DataType, std::size_t> all_records;
+        for (int i = 0; i < sp_mat.nonZeros(); ++i) {
+            auto record = *(sp_mat.valuePtr() + i);
+            all_records[record]++;
+        }
 
-        // std::cout << sp_mat << std::endl;
-        // std::vector<DataType> all_records;
-
-        // std::unordered_map<DataType, std::size_t> all_records;
-        // for (int i = 0; i < sp_mat.nonZeros(); ++i) {
-        //     auto record = *(sp_mat.valuePtr() + i);
-        //     all_records[record]++;
-        // }
-        
-        // for(auto record : all_records) {
-        //     std::cout << "item = " << record.first << ", count = " << record.second <<std::endl;
-        // }
-
-        std::vector<std::pair<DataType, std::size_t>> all_records;
-        for (std::size_t i = 0; i < X.size(); ++i) {
-            for (std::size_t j = 0; j < X[i].size(); ++j) {
-                // if (std::find(all_records.begin(), all_records.end(), vvd[i][j])) {
-
-                // }
-                // int count = std::count_if(all_records.begin(), all_records.end(), [&vvd[i][j]](double &i) {
-                //     return i == vvd[i][j];
-                // });
-
-                auto result1 = std::find(begin(all_records), end(all_records), X[i][j]);
-
-                if (result1 == std::end(all_records)) {
-                    all_records.emplace_back(vvd[i][j]);
-                }
+        for(auto it = all_records.begin(); it != all_records.end(); ) {
+            if(it->second < support) {
+                all_records.erase(it++);
             }
-        }   
+            else {
+                ++it;
+            }
+        }
+        
+        // for(auto record : records_order) {
+        //     std::cout << "item = " << record <<std::endl;
+        // }
+
+
+        FrequencyType all_frequency;
+        std::vector<std::vector<DataType>> prev_frequency;
+
+        for (auto record : records_order) {
+            if (all_records.find(record) != all_records.end()) {
+                auto count = all_records[record];
+
+                std::vector<DataType> frequency;
+                frequency.emplace_back(record);
+
+                auto tmp = std::make_pair(frequency, count);
+                all_frequency.emplace_back(tmp);
+            }
+        }
+
+        prev_frequency.emplace_back(records_order);
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // for (auto frequency : all_frequency) {
+        //     for (auto item : frequency.first) {
+        //         std::cout << "item = " << item;
+        //     }
+        //     std::cout << ", count = " << frequency.second << std::endl;
+        // }
+
 
 
         // for(auto it = all_records.begin(); it != all_records.end(); ) {
@@ -131,14 +187,14 @@ public:
         // }
 
         // read itemsets and their count numbers
-        std::vector<std::vector<DataType>> itemsets_list;
-        std::vector<std::size_t> count_list;
-        std::vector<DataType> itemsets;
-        for (auto record : all_records) {
-            itemsets.emplace_back(record.first);
-            count_list.emplace_back(record.second);
-        }
-        itemsets_list.emplace_back(itemsets);
+        // 
+        // std::vector<std::size_t> count_list;
+        // std::vector<DataType> itemsets;
+        // for (auto record : all_records) {
+        //     itemsets.emplace_back(record.first);
+        //     count_list.emplace_back(record.second);
+        // }
+        // itemsets_list.emplace_back(itemsets);
 
 
         // for(auto c : count_list) {
@@ -147,7 +203,7 @@ public:
 
         // for (std::size_t i = 0; i < itemsets_list.size(); ++i) {
         //     for (std::size_t j = 0; j < itemsets_list[i].size(); ++j) {
-        //         std::cout << "item = " << itemsets_list[i][j] << ", item number = "<< count_list[j] << std::endl;
+        //         std::cout << "item = " << itemsets_list[i][j] << std::endl;
         //     }
         // }
 
@@ -158,7 +214,7 @@ public:
 
         
         // std::vector<std::vector<DataType>> candidates;
-        // candidates = generate_candidates(1);
+        // candidates = generate_k_candidates(X, 2);
         // for (std::size_t i = 0; i < candidates.size(); ++i) {
         //     for (std::size_t j = 0; j < candidates[i].size(); ++j) {
         //         std::cout << candidates[i][j] << " ";
