@@ -85,7 +85,14 @@ protected:
         }
     }
     
-
+    bool is_prefix(const std::vector<DataType>& l1, const std::vector<DataType>& l2) {
+        for (std::size_t i = 0; i < (l1.size() - 1); ++i) {
+            if (l1[i] != l2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 public:
 
@@ -153,20 +160,29 @@ public:
         prev_frequency.emplace_back(records_order);
 
 
-        
+        while (prev_frequency.size() > 1) {
+            std::vector<std::vector<DataType>> candidates;
+            for (std::size_t i = 0; i < prev_frequency.size(); ++i) {
+                std::size_t j = i + 1;
+                while ((j < prev_frequency.size()) && is_prefix(prev_frequency[i], prev_frequency[j])) {
+                    ++j;
+                }
+            }
+
+            std::size_t num_candidates = candidates.size();
+            // init hash tree
+            tree::HashTree<HashTreeNode, DataType> hash_tree(num_candidates, num_candidates);
+            for (auto candidate : candidates) {
+                // add this itemset to hashtree
+                hash_tree.build_tree(candidate);
+            }
+            
+            
+            
 
 
 
-
-
-
-
-
-
-
-
-
-
+        }
 
         // for (auto frequency : all_frequency) {
         //     for (auto item : frequency.first) {
