@@ -490,7 +490,8 @@ DataType string_to_integer(const std::string& s){
 template <typename DataType>
 std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, std::size_t k) {
     if (x.size() < k) {
-        throw std::invalid_argument("k is more that number of array.");
+        // throw std::invalid_argument("k is more that number of array.");
+        return std::vector<std::vector<DataType>>();
     }
 
     std::vector<DataType> copy_x = x;
