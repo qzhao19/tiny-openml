@@ -47,7 +47,7 @@ private:
 
 
 protected:
-    const std::vector<std::vector<DataType>> generate_k_candidates(
+    const std::vector<std::vector<DataType>> generate_k_subsets(
         const std::vector<std::vector<DataType>>& X, 
         std::size_t k) {
         
@@ -152,20 +152,28 @@ public:
                 std::vector<DataType> frequency;
                 frequency.emplace_back(record);
 
+                prev_frequency.emplace_back(frequency);
+
                 auto tmp = std::make_pair(frequency, count);
                 all_frequency.emplace_back(tmp);
             }
         }
 
-        prev_frequency.emplace_back(records_order);
 
-
+        std::size_t length = 2;
         while (prev_frequency.size() > 1) {
+            // init candidates
             std::vector<std::vector<DataType>> candidates;
             for (std::size_t i = 0; i < prev_frequency.size(); ++i) {
                 std::size_t j = i + 1;
                 while ((j < prev_frequency.size()) && is_prefix(prev_frequency[i], prev_frequency[j])) {
+                    std::vector<DataType> tmp;
+                    tmp.assign(a1[i].begin(), a1[i].end() - 1);
+                    tmp.emplace_back(a1[i].back());
+                    tmp.emplace_back(a1[j].back());
+                    candidates.emplace_back(tmp);
                     ++j;
+                    tmp.clear();
                 }
             }
 
@@ -177,7 +185,64 @@ public:
                 hash_tree.build_tree(candidate);
             }
 
+            // for each transaction, find all possible subsets of size "length"
+            std::vector<std::vector<DataType>> subsets;
+            subsets = generate_k_subsets(X, length);
+            
+
+            if (subsets.size() > 0) {
+                for (auto subset : subsets) {
+                    hash_tree.add_support(subset);
+                }
+            }
+            
+            std::vector<std::size_t> count_list;
+            std::vector<std::vector<DataType>> itemsets_list;
+
+            hash_tree.compute_frequency_itemsets(support, count_list, itemsets_list);
+            FrequencyType curr_frequency;
+
+            for (int i = 0; i < itemsets_list.size(); ++i) {
+                curr_frequency.emplace_back(std::make_pair(itemsets_list[i], count_list[i]));
+            }
+            
+            all_frequency.emplace_back(curr_frequency);
+            prev_frequency = common::sort<DataType>(itemsets_list);
+
+            ++length;
         }
+
+
+        // std::vector<std::vector<DataType>> candidates;
+        // candidates = generate_k_subsets(X, 5);
+        // for (std::size_t i = 0; i < candidates.size(); ++i) {
+        //     for (std::size_t j = 0; j < candidates[i].size(); ++j) {
+        //         std::cout << candidates[i][j] << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+
+
+
+
+
+
+
+
+        // for (auto frequency : all_frequency) {
+        //     for (auto item : frequency.first) {
+        //         std::cout << "item = " << item;
+        //     }
+        //     std::cout << ", count = " << frequency.second << std::endl;
+        // }
+
+        // for (auto f : prev_frequency) {
+        //     for (auto i : f) {
+        //         std::cout << "item = " << i << std::endl;
+        //     }
+        // }
+
+        // std::cout << "nrows = " << prev_frequency.size() << ", ncols = " << prev_frequency[0].size() << std::endl;
 
     }
 
