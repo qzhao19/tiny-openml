@@ -13,7 +13,6 @@ private:
     std::size_t max_child_size_;
 
     std::shared_ptr<NodeType> root_;
-    std::set<std::vector<DataType>> added_;
     std::vector<std::size_t> count_list_;
     std::vector<std::vector<DataType>> itemset_list_;
 
@@ -84,11 +83,10 @@ protected:
             }
             return ;
         }
-        else {
-            for (auto& child : node->children) {
-                dfs(child.second, support);
-            }
+        for (auto& child : node->children) {
+            dfs(child.second, support);
         }
+        
     }
 
 public:
