@@ -573,11 +573,16 @@ std::vector<DataType> merge(const std::vector<DataType>& v1,
  * next column and repeats this behavior for succeeding equal values.
  * 
  * @param X, 2d vector to sort
- * @param order string, default 'asc'
- *     this argument specifies which fields to compare first
+ * @param reverse bool, default is false
+ *      if reverse is true, the sort is descending order, otherwise 
+ *      sorts the list in the ascending order.
 */
 template <typename DataType>
-std::vector<std::vector<DataType>> sort(const std::vector<std::vector<DataType>> x, int axis = 0, bool reverse = false) {
+std::vector<std::vector<DataType>> sort(
+    const std::vector<std::vector<DataType>>& x, 
+    int axis = 0, 
+    bool reverse = false) {
+
     if (x.empty() || x[0].empty()) {
         throw std::invalid_argument("Input 2d array is empty!");
     }
@@ -702,6 +707,58 @@ bool is_equal(const std::vector<DataType>& x, const std::vector<DataType>& y) {
     auto pair = std::mismatch(x.begin(), x.end(), y.begin());
     return (pair.first == x.end() && pair.second == y.end());
 };
+
+/**
+ * sorts the rows of a matrix based on the elements in the first column. 
+ * When first column contains repeated elements, sortrows sorts according 
+ * to the values in the next column and repeats this behavior for succeeding equal values.
+ * 
+ * @param reverse bool, default is false
+ *      if reverse is true, the sort is descending order, otherwise 
+ *      sorts the list in the ascending order.
+*/
+template<typename DataType>
+std::vector<std::vector<DataType>> sortrows(
+    const std::vector<std::vector<DataType>>& x, 
+    bool reverse = false) {
+    
+    if (x.empty() || x[0].empty()) {
+        throw std::invalid_argument("Input 2d array is empty!");
+    }
+    std::vector<std::vector<DataType>> copy_x = x;
+
+    const auto asc = [](const std::vector<DataType>& v1, const std::vector<DataType>& v2) {
+        std::size_t index = 0;
+        while (index < v1.size()) {
+            if (v1[index] == v2[index]) {
+                ++index; 
+            } 
+            else {
+                return v1[index] < v2[index];
+            }
+        }
+    };
+    const auto desc = [](const std::vector<DataType>& v1, const std::vector<DataType>& v2) {
+        std::size_t index = 0;
+        while (index < v1.size()) {
+            if (v1[index] == v2[index]) {
+                ++index; 
+            } 
+            else {
+                return v1[index] > v2[index];
+            }
+        }
+    };
+
+    if (!reverse) {
+        std::sort(copy_x.begin(), copy_x.end(), asc);
+    }
+    else {
+        std::sort(copy_x.begin(), copy_x.end(), desc);
+    }
+    return copy_x;
+};
+
 
 }
 }
