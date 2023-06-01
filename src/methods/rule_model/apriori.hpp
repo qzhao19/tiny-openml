@@ -15,18 +15,10 @@ private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using FrequencyType = std::vector<std::pair<std::vector<DataType>, std::size_t>>;
 
     double min_support_;
     double min_confidence_;
-
-    // struct ItemsetFrequency {
-    //     std::vector<std::vector<DataType>> itemsets_list;
-    //     std::vector<std::size_t> count_list;
-    // };
-    // std::map<std::size_t, ItemsetFrequency> all_frequency_;
-
-
-    using FrequencyType = std::vector<std::pair<std::vector<DataType>, std::size_t>>;
 
     // FrequencyType all_frequency_;
 
@@ -67,24 +59,6 @@ protected:
         return candidates;
     }
 
-
-    void sort_itemsets_counts(std::vector<std::vector<DataType>>& itemsets_list, 
-        std::vector<std::size_t>& count_list) {
-        
-        std::vector<std::pair<std::vector<DataType>, std::size_t>> combine;
-        for (int i = 0; i < itemsets_list.size(); ++i)
-            combine.push_back(std::make_pair(itemsets_list[i], count_list[i]));
-
-        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
-            return left.first < right.first;
-        });
-
-        for (int i = 0; i < itemsets_list.size(); ++i) {
-            itemsets_list[i] = combine[i].first;
-            count_list[i] = combine[i].second;
-        }
-    }
-    
     bool is_prefix(const std::vector<DataType>& l1, const std::vector<DataType>& l2) {
         for (std::size_t i = 0; i < (l1.size() - 1); ++i) {
             if (l1[i] != l2[i]) {
@@ -96,7 +70,7 @@ protected:
 
 public:
 
-    Apriori(): min_support_(0.04), min_confidence_(0.6) {};
+    Apriori(): min_support_(0.15), min_confidence_(0.6) {};
 
     Apriori(double min_support, double min_confidence): 
         min_support_(min_support), 
@@ -104,11 +78,9 @@ public:
     
     ~Apriori() {};
 
-    void fit(const std::vector<std::vector<DataType>>& X) {
-        
+    void fit(const std::vector<std::vector<DataType>>& X) {    
         std::size_t support = static_cast<std::size_t>(X.size() * min_support_);
-        std::cout << "support = " << support << std::endl;
-
+    
         // std::cout << sp_mat << std::endl;
         std::vector<DataType> records_order;
         for (std::size_t i = 0; i < X.size(); ++i) {
@@ -137,11 +109,6 @@ public:
             }
         }
         
-        // for(auto record : records_order) {
-        //     std::cout << "item = " << record <<std::endl;
-        // }
-
-
         FrequencyType all_frequency;
         std::vector<std::vector<DataType>> prev_frequency;
 
@@ -161,22 +128,22 @@ public:
 
 
         std::size_t length = 2;
-        while (prev_frequency.size() > 1) {
+        while (length < 5) {
             // init candidates
             std::vector<std::vector<DataType>> candidates;
             for (std::size_t i = 0; i < prev_frequency.size(); ++i) {
                 std::size_t j = i + 1;
                 while ((j < prev_frequency.size()) && is_prefix(prev_frequency[i], prev_frequency[j])) {
                     std::vector<DataType> tmp;
-                    tmp.assign(a1[i].begin(), a1[i].end() - 1);
-                    tmp.emplace_back(a1[i].back());
-                    tmp.emplace_back(a1[j].back());
+                    tmp.assign(prev_frequency[i].begin(), prev_frequency[i].end() - 1);
+                    tmp.emplace_back(prev_frequency[i].back());
+                    tmp.emplace_back(prev_frequency[j].back());
                     candidates.emplace_back(tmp);
                     ++j;
                     tmp.clear();
                 }
             }
-
+            
             std::size_t num_candidates = candidates.size();
             // init hash tree
             tree::HashTree<HashTreeNode, DataType> hash_tree(num_candidates, num_candidates);
@@ -190,10 +157,8 @@ public:
             subsets = generate_k_subsets(X, length);
             
 
-            if (subsets.size() > 0) {
-                for (auto subset : subsets) {
-                    hash_tree.add_support(subset);
-                }
+            for (auto subset : subsets) {
+                hash_tree.add_support(subset);
             }
             
             std::vector<std::size_t> count_list;
@@ -205,44 +170,13 @@ public:
             for (int i = 0; i < itemsets_list.size(); ++i) {
                 curr_frequency.emplace_back(std::make_pair(itemsets_list[i], count_list[i]));
             }
-            
-            all_frequency.emplace_back(curr_frequency);
-            prev_frequency = common::sort<DataType>(itemsets_list);
+
+            // 
+            all_frequency.insert(all_frequency.end(), curr_frequency.begin(), curr_frequency.end());
+            prev_frequency = common::sortrows<DataType>(itemsets_list);
 
             ++length;
         }
-
-
-        // std::vector<std::vector<DataType>> candidates;
-        // candidates = generate_k_subsets(X, 5);
-        // for (std::size_t i = 0; i < candidates.size(); ++i) {
-        //     for (std::size_t j = 0; j < candidates[i].size(); ++j) {
-        //         std::cout << candidates[i][j] << " ";
-        //     }
-        //     std::cout << std::endl;
-        // }
-
-
-
-
-
-
-
-
-        // for (auto frequency : all_frequency) {
-        //     for (auto item : frequency.first) {
-        //         std::cout << "item = " << item;
-        //     }
-        //     std::cout << ", count = " << frequency.second << std::endl;
-        // }
-
-        // for (auto f : prev_frequency) {
-        //     for (auto i : f) {
-        //         std::cout << "item = " << i << std::endl;
-        //     }
-        // }
-
-        // std::cout << "nrows = " << prev_frequency.size() << ", ncols = " << prev_frequency[0].size() << std::endl;
 
     }
 
