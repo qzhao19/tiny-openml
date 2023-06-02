@@ -12,15 +12,16 @@ class Apriori {
 private:
     // define matrix and vector Eigen type
     using SpMatType = Eigen::SparseMatrix<DataType, Eigen::RowMajor>;
-    using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
-    using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     using FrequencyType = std::vector<std::pair<std::vector<DataType>, std::size_t>>;
+    using RuleType = std::tuple<std::vector<DataType>, std::vector<DataType>, double>;
+
 
     double min_support_;
     double min_confidence_;
 
-    // FrequencyType all_frequency_;
+    // create a vector to restore all frequency
+    FrequencyType all_frequency_;
+    std::vector<RuleType> association_rules_;
 
     struct HashTreeNode {
         bool is_leaf;
@@ -36,9 +37,6 @@ private:
         ~HashTreeNode() {};
     };
 
-
-
-protected:
     const std::vector<std::vector<DataType>> generate_k_subsets(
         const std::vector<std::vector<DataType>>& X, 
         std::size_t k) {
@@ -68,17 +66,9 @@ protected:
         return true;
     }
 
-public:
 
-    Apriori(): min_support_(0.15), min_confidence_(0.6) {};
-
-    Apriori(double min_support, double min_confidence): 
-        min_support_(min_support), 
-        min_confidence_(min_confidence) {};
-    
-    ~Apriori() {};
-
-    void fit(const std::vector<std::vector<DataType>>& X) {    
+protected:
+    void fit_data(const std::vector<std::vector<DataType>>& X) {    
         std::size_t support = static_cast<std::size_t>(X.size() * min_support_);
     
         // std::cout << sp_mat << std::endl;
@@ -109,9 +99,8 @@ public:
             }
         }
         
-        FrequencyType all_frequency;
+        // FrequencyType all_frequency;
         std::vector<std::vector<DataType>> prev_frequency;
-
         for (auto record : records_order) {
             if (all_records.find(record) != all_records.end()) {
                 auto count = all_records[record];
@@ -122,13 +111,12 @@ public:
                 prev_frequency.emplace_back(frequency);
 
                 auto tmp = std::make_pair(frequency, count);
-                all_frequency.emplace_back(tmp);
+                all_frequency_.emplace_back(tmp);
             }
         }
 
-
         std::size_t length = 2;
-        while (length < 5) {
+        while (prev_frequency.size() > 1) {
             // init candidates
             std::vector<std::vector<DataType>> candidates;
             for (std::size_t i = 0; i < prev_frequency.size(); ++i) {
@@ -143,7 +131,7 @@ public:
                     tmp.clear();
                 }
             }
-            
+
             std::size_t num_candidates = candidates.size();
             // init hash tree
             tree::HashTree<HashTreeNode, DataType> hash_tree(num_candidates, num_candidates);
@@ -157,13 +145,16 @@ public:
             subsets = generate_k_subsets(X, length);
             
 
-            for (auto subset : subsets) {
-                hash_tree.add_support(subset);
+            if (subsets.size() > 0) {
+                for (auto subset : subsets) {
+                    hash_tree.add_support(subset);
+                }
             }
             
             std::vector<std::size_t> count_list;
             std::vector<std::vector<DataType>> itemsets_list;
-
+            
+            // find frequent itemsets
             hash_tree.compute_frequency_itemsets(support, count_list, itemsets_list);
             FrequencyType curr_frequency;
 
@@ -171,13 +162,66 @@ public:
                 curr_frequency.emplace_back(std::make_pair(itemsets_list[i], count_list[i]));
             }
 
-            // 
-            all_frequency.insert(all_frequency.end(), curr_frequency.begin(), curr_frequency.end());
+            all_frequency_.insert(all_frequency_.end(), curr_frequency.begin(), curr_frequency.end());
             prev_frequency = common::sortrows<DataType>(itemsets_list);
 
             ++length;
         }
+    }
 
+    void transform_data() { 
+        // std::vector<std::size_t> count_list;
+        // std::vector<std::vector<DataType>> itemsets_list;
+
+        std::map<std::vector<DataType>, std::size_t> frequency_map;
+
+        for (auto frequency : all_frequency_) {
+            if (frequency.second > 0) {
+                frequency_map[frequency.first] = frequency.second;
+            }
+        }
+
+        for (const auto& frequency : frequency_map) {
+            std::size_t itemset_size = frequency.first.size();
+            if (itemset_size == 1) {
+                continue;
+            }
+
+            std::size_t itemset_count = frequency.second;
+            for (std::size_t i = 1; i < itemset_size; ++i) {
+                std::vector<std::vector<DataType>> candidate;
+                candidate = common::combinations<DataType>(frequency.first, i);
+                for (const auto& c : candidate) {
+                    if (frequency_map.find(c) != frequency_map.end()) {
+                        double confidence = itemset_count / frequency_map[c];
+                        if (confidence >= min_confidence_) {
+                            RuleType rule;
+                            rule = std::make_tuple(c, , confidence);
+                            association_rules_.emplace_back(rule);
+                        }
+                    }
+                }
+
+
+            }
+        }
+    }
+
+
+public:
+
+    Apriori(): min_support_(0.15), min_confidence_(0.6) {};
+
+    Apriori(double min_support, double min_confidence): 
+        min_support_(min_support), 
+        min_confidence_(min_confidence) {};
+    
+    ~Apriori() {};
+
+
+    void fit_transform(const std::vector<std::vector<DataType>>& X) {
+        fit_data(X);
+        transform_data();
     }
 
 
