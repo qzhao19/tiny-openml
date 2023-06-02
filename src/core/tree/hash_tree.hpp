@@ -21,7 +21,7 @@ private:
     }
 
 protected:
-    void insert(std::shared_ptr<NodeType>& node, 
+    void insert(const std::shared_ptr<NodeType>& node, 
         std::vector<DataType> itemset, 
         std::size_t count, 
         std::size_t index) {
@@ -73,7 +73,7 @@ protected:
         }
     }
 
-    void dfs(std::shared_ptr<NodeType> node, std::size_t support) {
+    void dfs(std::shared_ptr<NodeType>& node, std::size_t support) {
         if (node->is_leaf) {
             for (auto& bucket : node->bucket) {
                 if (bucket.second >= support) {
@@ -118,16 +118,17 @@ public:
 
     void add_support(const std::vector<DataType>& itemset) {
         std::size_t index = 0;
+        std::shared_ptr<NodeType> node = root_;
         while (true) {
-            if (root_->is_leaf) {
-                if (root_->bucket.find(itemset) != root_->bucket.end()) {
-                    ++(root_->bucket[itemset]);
+            if (node->is_leaf) {
+                if (node->bucket.find(itemset) != node->bucket.end()) {
+                    ++(node->bucket[itemset]);
                 }
                 break;
             }
             std::size_t key = hash(itemset[index]);
-            if (root_->children.find(key) != root_->children.end()) {
-                root_ = root_->children[key];
+            if (node->children.find(key) != node->children.end()) {
+                node = node->children[key];
             }
             else {
                 break;
