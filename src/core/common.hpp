@@ -285,7 +285,6 @@ IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
     return idxmat;
 };
 
-
 /**
  * Return a sorted copy of an array.
  * @param x ndarray
@@ -713,6 +712,7 @@ bool is_equal(const std::vector<DataType>& x, const std::vector<DataType>& y) {
  * When first column contains repeated elements, sortrows sorts according 
  * to the values in the next column and repeats this behavior for succeeding equal values.
  * 
+ * @param x input data 2d vector
  * @param reverse bool, default is false
  *      if reverse is true, the sort is descending order, otherwise 
  *      sorts the list in the ascending order.
@@ -757,6 +757,33 @@ std::vector<std::vector<DataType>> sortrows(
         std::sort(copy_x.begin(), copy_x.end(), desc);
     }
     return copy_x;
+};
+
+/**
+ * Get the difference between two vectors, given 2 sorted vectors v1 and v2, 
+ * returns a vector with the elements of v1 that are not on v2.
+*/
+template<typename DataType>
+std::vector<DataType> difference(const std::vector<DataType>& v1, 
+    const std::vector<DataType>& v2, 
+    bool sorted = false) {
+
+    std::vector<DataType> copy_v1 = v1, copy_v2 = v2;
+    static const auto is_nan = [] (DataType v) { 
+        return std::isnan(v); 
+    } ;
+    assert(std::none_of(copy_v1.begin(), copy_v1.end(), is_nan) &&
+           std::none_of(copy_v2.begin(), copy_v2.end(), is_nan));
+
+    if (sorted) {
+        std::sort(copy_v1.begin(), copy_v1.end());
+        std::sort(copy_v2.begin(), copy_v2.end());
+    }
+    
+	std::vector<DataType> result ;
+	std::set_difference(copy_v1.begin(), std::unique(copy_v1.begin(), copy_v1.end()),
+                        copy_v2.begin(), copy_v2.end(), std::back_inserter(result));
+	return result;
 };
 
 
