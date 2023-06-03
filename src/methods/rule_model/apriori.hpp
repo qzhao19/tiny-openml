@@ -15,7 +15,6 @@ private:
     using FrequencyType = std::vector<std::pair<std::vector<DataType>, std::size_t>>;
     using RuleType = std::tuple<std::vector<DataType>, std::vector<DataType>, double>;
 
-
     double min_support_;
     double min_confidence_;
 
@@ -71,7 +70,6 @@ protected:
     void fit_data(const std::vector<std::vector<DataType>>& X) {    
         std::size_t support = static_cast<std::size_t>(X.size() * min_support_);
     
-        // std::cout << sp_mat << std::endl;
         std::vector<DataType> records_order;
         for (std::size_t i = 0; i < X.size(); ++i) {
             for (std::size_t j = 0; j < X[i].size(); ++j) {
@@ -98,7 +96,14 @@ protected:
                 ++it;
             }
         }
-        
+
+        if (all_records.empty()) {
+            std::ostringstream err_msg;
+            err_msg << "The 'min_support_ = ', it's not available" << support 
+                    << " so try apply different parameters." << std::endl;
+            throw std::runtime_error(err_msg.str());
+        }
+
         // FrequencyType all_frequency;
         std::vector<std::vector<DataType>> prev_frequency;
         for (auto record : records_order) {
@@ -170,9 +175,6 @@ protected:
     }
 
     void transform_data() { 
-        // std::vector<std::size_t> count_list;
-        // std::vector<std::vector<DataType>> itemsets_list;
-
         std::map<std::vector<DataType>, std::size_t> frequency_map;
 
         for (auto frequency : all_frequency_) {
@@ -180,37 +182,35 @@ protected:
                 frequency_map[frequency.first] = frequency.second;
             }
         }
-
+        
+        // generates association rules with confidence greater than threshold confidence
         for (const auto& frequency : frequency_map) {
             std::size_t itemset_size = frequency.first.size();
             if (itemset_size == 1) {
                 continue;
             }
 
-            std::size_t itemset_count = frequency.second;
+            double itemset_count = static_cast<double>(frequency.second);
             for (std::size_t i = 1; i < itemset_size; ++i) {
                 std::vector<std::vector<DataType>> candidate;
                 candidate = common::combinations<DataType>(frequency.first, i);
                 for (const auto& c : candidate) {
                     if (frequency_map.find(c) != frequency_map.end()) {
-                        double confidence = itemset_count / frequency_map[c];
+                        // compute the confidence
+                        double confidence = itemset_count / static_cast<double>(frequency_map[c]);
                         if (confidence >= min_confidence_) {
-                            RuleType rule;
-                            rule = std::make_tuple(c, , confidence);
+                            std::vector<DataType> diff_c = common::difference<DataType>(frequency.first, c);                             
+                            RuleType rule = std::make_tuple(c, diff_c, confidence);
                             association_rules_.emplace_back(rule);
                         }
                     }
                 }
-
-
             }
         }
     }
 
-
 public:
-
-    Apriori(): min_support_(0.15), min_confidence_(0.6) {};
+    Apriori(): min_support_(0.03), min_confidence_(0.5) {};
 
     Apriori(double min_support, double min_confidence): 
         min_support_(min_support), 
@@ -218,10 +218,30 @@ public:
     
     ~Apriori() {};
 
-
     void fit_transform(const std::vector<std::vector<DataType>>& X) {
         fit_data(X);
-        transform_data();
+        transform_data();        
+    }
+
+    void print_rules() {
+        for (auto rule : association_rules_) {
+            std::vector<DataType> item1 = std::get<0>(rule);
+            std::vector<DataType> item2 = std::get<1>(rule);
+            double confidence = std::get<2>(rule);
+            
+            for (auto it1 : item1) {
+                std::cout << it1 << ", ";
+            }
+            std::cout << " ==> ";
+            for (auto it2 : item2) {
+                std::cout << it2 << ", ";
+            }
+            std::cout << " confidence = " << confidence << std::endl;
+        }
+    }
+
+    const std::vector<RuleType> get_rules() {
+        return association_rules_;
     }
 
 
