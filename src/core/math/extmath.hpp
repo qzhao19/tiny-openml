@@ -7,9 +7,9 @@ namespace openml {
 namespace math {
 
 /**
- * compute the matrix sigmoid value
+ * @brief the matrix sigmoid value
  *      s(z) = 1 / (1 + exp(-z))
- * exp(fmin(X, 0)) / (1 + exp(-abs(X)))
+ *      = exp(fmin(X, 0)) / (1 + exp(-abs(X)))
  * @param x ndarray of shape [nrows, ncols]
  * @return sigmoid matrix 
 */
@@ -22,7 +22,7 @@ MatType sigmoid(const MatType& x) {
 };
 
 /**
- * transform a vector to diagonal matrix 
+ * @brief transform a vector to diagonal matrix 
  * @param x vector of shape (nrows)
  *      input data
  * @return a diagonal matrix of shape (nrows, nrows)
@@ -36,9 +36,9 @@ MatType diagmat(const VecType& x) {
 }
 
 /**
- * Sign correction to ensure deterministic output from SVD. 
- * Adjusts the columns of u and the rows of v such that the loadings in the
- * columns in u that are largest in absolute value are always positive.
+ * @brief Sign correction to ensure deterministic output from SVD. 
+ *      Adjusts the columns of u and the rows of v such that the loadings in the
+ *      columns in u that are largest in absolute value are always positive.
  * 
  * @param U ndarray u and v are the output of `svd` with matching inner
  * dimensions so one can compute `Eigen::dot(u * s, v)`
@@ -93,8 +93,8 @@ std::tuple<MatType, MatType> svd_flip(const MatType& U,
 };
 
 /**
- * compute the entropy of a vector
- * Ent(D) = -sum(P_k * log2(P_k))
+ * @brief compute the entropy of a vector
+ *      Ent(D) = -sum(P_k * log2(P_k))
  * 
  * @param x the vector of shape (nrows, 1)
  *    input data to compute the entropy
@@ -149,8 +149,8 @@ double entropy(const VecType& x,
 };
 
 /**
- * compute gini index
- * Gini(p) = 1 - sum(p_i), i = 1 : k
+ * @brief compute gini index
+ *      Gini(p) = 1 - sum(p_i), i = 1 : k
  * 
  * @param x the vector of shape (nrows, 1)
  *    input data to compute the entropy
@@ -201,8 +201,8 @@ double gini(const VecType& x,
 };
 
 /**
- * Row-wise (squared) Euclidean norm of X
- * Equivalent to np.sqrt((X * X).sum(axis=1))
+ * @brief Row-wise (squared) Euclidean norm of X
+ *      Equivalent to np.sqrt((X * X).sum(axis=1))
  * @param x ndarray of shape [rows, cols]
  *    The input array data
  * @param squared bool, default false
@@ -223,8 +223,9 @@ MatType row_norms(const MatType& x, bool squared = false) {
 };
 
 /**
- * Compute the softmax function.
- * softmax(x) = exp(x)/sum(exp(x))
+ * @brief Compute the softmax function.
+ *      softmax(x) = exp(x)/sum(exp(x))
+ * 
  * @param x ndarray of shape [rows, cols]
  *    The input array data
  * @param axis int. 

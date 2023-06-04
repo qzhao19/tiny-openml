@@ -6,7 +6,7 @@ namespace openml {
 namespace common {
 
 /**
- *find the maximum value in a std::map and return the corresponding std::pair
+ * @brief find the maximum value in a std::map and return the corresponding std::pair
 */
 template <typename Container>
 auto max_element(Container const &x)
@@ -20,7 +20,7 @@ auto max_element(Container const &x)
 };
 
 /**
- * Stack arrays in sequence horizontally (column wise).
+ * @brief Stack arrays in sequence horizontally (column wise).
  * 
  * @param x1_x2 ndarray of shape (nrows, ncols) The arrays must have the same shape along all 
  * @return stacke dndarray
@@ -37,8 +37,8 @@ MatType hstack(const MatType& x1, const MatType& x2) {
 };
 
 /**
- * Stack arrays in sequence vertically (row wise). This is equivalent to concatenation 
- * along the first axis after 1-D arrays of shape (N,) have been reshaped to (1,N).
+ * @brief Stack arrays in sequence vertically (row wise). This is equivalent to concatenation 
+ *      along the first axis after 1-D arrays of shape (N,) have been reshaped to (1,N).
  * 
  * @param x1_x2 ndarray of shape (nrows, ncols) The arrays must have the same shape along all 
  * @return stacke dndarray
@@ -56,7 +56,7 @@ MatType vstack(const MatType& x1, const MatType& x2) {
 };
 
 /**
- * flatten a 2D vector of vector to a one dimension vector
+ * @brief flatten a 2D vector of vector to a one dimension vector
 */
 template<typename DataType, typename = typename DataType::value_type>
 DataType flatten(const std::vector<DataType>& v) {
@@ -67,7 +67,7 @@ DataType flatten(const std::vector<DataType>& v) {
 };
 
 /**
- * flatten a matrix of 2d to a vector
+ * @brief flatten a matrix of 2d to a vector
  * 
  * @param x Eigen matrix type ndarray 
  * @return one dim vector of Eigrn type
@@ -81,7 +81,7 @@ VecType flatten(const MatType& x) {
 };
 
 /**
- * Repeat elements of an matrix.
+ * @brief Repeat elements of an matrix.
  * 
  * @param x Input array.
  * @param repeats int. The number of repetitions for each element. 
@@ -104,7 +104,7 @@ MatType repeat(const MatType& x,
 };
 
 /**
- * Returns the indices of the maximum values along an axis.
+ * @brief Returns the indices of the maximum values along an axis.
  *
  * @param x 2darray of input data
  * @param axis int, the given specified axis.
@@ -149,7 +149,7 @@ IdxVecType argmax(const MatType& x, int axis = 0) {
 };
 
 /**
- * Returns the indices of the minimum values along an axis.
+ * @brief Returns the indices of the minimum values along an axis.
  * @param x 2darray of input data
  * @param axis int, the given specified axis.
  * 
@@ -193,10 +193,10 @@ IdxVecType argmin(const MatType& x, int axis = 0) {
 };
 
 /**
- * Returns the indices that would sort an array.
- * Perform an indirect sort along the given axis
- * It returns an array of indices of the same shape 
- * as a that index data along the given axis in sorted order.
+ * @brief Returns the indices that would sort an array.
+ *      Perform an indirect sort along the given axis
+ *      It returns an array of indices of the same shape 
+ *      as a that index data along the given axis in sorted order.
  * 
  * @param x ndarray like data
  *      array to sort
@@ -286,7 +286,7 @@ IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
 };
 
 /**
- * Return a sorted copy of an array.
+ * @brief Return a sorted copy of an array.
  * @param x ndarray
  *      Array to be sorted
  * @param axis int, default is 0
@@ -343,7 +343,7 @@ MatType sort(const MatType& x, int axis = 0, bool reverse = false) {
 };
 
 /**
- * Element-wise minimum of array elements.
+ * @brief Element-wise minimum of array elements.
 */
 template<typename MatType, 
     typename DataType = typename MatType::value_type>
@@ -352,8 +352,8 @@ MatType fmin(const MatType& x, const DataType y) {
 }
 
 /**
- * convert a 2d-array of std vector vector into an eigen matrix
- * vector<vector<T>> --> Matrix 
+ * @briefconvert a 2d-array of std vector vector into an eigen matrix
+ *      vector<vector<T>> --> Matrix 
  * 
  * @param vec 2d-array of vector vector 
  *      input 2d vector
@@ -385,7 +385,7 @@ MatType vec2mat(std::vector<std::vector<DataType>> vec) {
 };
 
 /**
- * override vec2mat function
+ * @brief override vec2mat function
 */
 template<typename VecType, 
     typename DataType = typename VecType::value_type>
@@ -396,7 +396,7 @@ VecType vec2mat(std::vector<DataType> vec) {
 }
 
 /**
- * Find the unique elements of an 1d array.
+ * @brief Find the unique elements of an 1d array.
  * @param x vector of shape (nrows, 1)
  *      input vector
  * @return a tuple of (VecType, VecType)
@@ -441,7 +441,7 @@ std::tuple<VecType, VecType> unique(const VecType& x){
 };
 
 /**
- * Return index of elements chosen depending on condition.
+ * @brief Return index of elements chosen depending on condition.
  * @param x condition array_like, bool
  * @return An array with index of elements 
 */
@@ -458,7 +458,7 @@ IdxVecType where(const VecType& x) {
 };
 
 /**
- * limite the values in an array.
+ * @brief limite the values in an array.
  * @param x array_like, array containing elements to clip.
  * @param max_min array value type,  maximum and minimum value
 */
@@ -468,7 +468,7 @@ MatType clip(const MatType& x, DataType max, DataType min) {
 };
 
 /**
- * convert a string to integer
+ * @brief convert a string to integer
  * @param s string, input string to convert
 */
 template <class DataType>  
@@ -480,7 +480,7 @@ DataType string_to_integer(const std::string& s){
 };
 
 /**
- * Get all non-repeating combinations of numbers (permutations)
+ * @brief Get all non-repeating combinations of numbers (permutations)
  * 
  * @param x input list
  * @param k the length subsequences
@@ -513,7 +513,7 @@ std::vector<std::vector<DataType>> combinations(const std::vector<DataType>& x, 
 
 
 /**
- * check whether a vector is a subvector of another
+ * @brief check whether a vector is a subvector of another
  * @param v1 the source vector we want to compare
  * @param v2 the target vector to check if it is a subset
 */
@@ -536,7 +536,7 @@ bool contains(const std::vector<DataType>& v1,
 };
 
 /**
- * merge two vector of different size
+ * @brief merge two vector of different size
  * @param v1 the target vector 1 
  * @param v2 the target vector 2
  * @return a vector of the two vectors
@@ -567,9 +567,9 @@ std::vector<DataType> merge(const std::vector<DataType>& v1,
 
 
 /**
- * sorts the rows of a 2d vector in ascending or desc order based on the elements in the first column. 
- * When the first column contains repeated elements, sortrows sorts according to the values in the 
- * next column and repeats this behavior for succeeding equal values.
+ * @brief sorts the rows of a 2d vector in ascending or desc order based on the elements in the first column. 
+ *      When the first column contains repeated elements, sortrows sorts according to the values in the 
+ *      next column and repeats this behavior for succeeding equal values.
  * 
  * @param X, 2d vector to sort
  * @param reverse bool, default is false
@@ -641,9 +641,9 @@ std::vector<std::vector<DataType>> sort(
 };
 
 /**
- * Go through a vector<vector<T> > and find the unique rows
- * have a value ind for each row that is 1/0 indicating if 
- * a value has been previously searched.
+ * @brief Go through a vector<vector<T> > and find the unique rows
+ *      have a value ind for each row that is 1/0 indicating if 
+ *      a value has been previously searched.
  * 
 */
 template<typename DataType>
@@ -696,7 +696,7 @@ std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::
 };
 
 /**
- * Determine array equality
+ * @brief Determine array equality
  * @param x 1d vector
  * @param y 1d vector
  * @return logical true if A and B are equivalent; otherwise, it returns logical false
@@ -708,9 +708,9 @@ bool is_equal(const std::vector<DataType>& x, const std::vector<DataType>& y) {
 };
 
 /**
- * sorts the rows of a matrix based on the elements in the first column. 
- * When first column contains repeated elements, sortrows sorts according 
- * to the values in the next column and repeats this behavior for succeeding equal values.
+ * @brief sorts the rows of a matrix based on the elements in the first column. 
+ *      When first column contains repeated elements, sortrows sorts according 
+ *      to the values in the next column and repeats this behavior for succeeding equal values.
  * 
  * @param x input data 2d vector
  * @param reverse bool, default is false
@@ -760,8 +760,8 @@ std::vector<std::vector<DataType>> sortrows(
 };
 
 /**
- * Get the difference between two vectors, given 2 sorted vectors v1 and v2, 
- * returns a vector with the elements of v1 that are not on v2.
+ * @brief Get the difference between two vectors, given 2 sorted vectors v1 and v2, 
+ *      returns a vector with the elements of v1 that are not on v2.
 */
 template<typename DataType>
 std::vector<DataType> difference(const std::vector<DataType>& v1, 

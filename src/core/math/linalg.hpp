@@ -7,7 +7,7 @@ namespace openml {
 namespace math {
 
 /**
- * Compute LU decomposition of a matrix.
+ * @brief Compute LU decomposition of a matrix.
  * @param x ndarray of shape (nrows, ncols)
  *      Matrix to decomposition
  * @param permute_l bool
@@ -49,9 +49,9 @@ std::tuple<MatType, MatType, MatType> lu(const MatType& x,
 };
 
 /**
- * Compute QR decomposition of a matrix.
- * Calculate the decomposition X = QR where 
- * Q is unitary/orthogonal and R upper triangular
+ * @brief Compute QR decomposition of a matrix.
+ *      Calculate the decomposition X = QR where 
+ *      Q is unitary/orthogonal and R upper triangular
  * 
  * @param x ndarray of shape (nrows, ncols)
  *      Matrix to decomposition
@@ -84,7 +84,7 @@ std::tuple<MatType, MatType> qr(const MatType& x,
 };
 
 /**
- * Singular Value Decomposition
+ * @brief Singular Value Decomposition
  * @param X ndarray of shape (nrows, ncols),
  *          A real or complex array
  * @param full_matrices, bool, default = false
@@ -123,7 +123,7 @@ std::tuple<MatType, VecType, MatType> exact_svd(const MatType& x,
 };
 
 /**
- * Compute randomized svd
+ * @brief Compute randomized svd
  * @param X ndarray of shape (nrows, ncols),
  *      Matrix to compute decomposition
  * @param num_components std::size_t
@@ -209,13 +209,11 @@ std::tuple<MatType, VecType, MatType> randomized_svd(const MatType& X,
         Vt.topRows(num_components));
 }
 
-
-
 /**
- * Compute the (Moore-Penrose) pseudo-inverse of a matrix. 
- * Calculate the generalized inverse of a matrix using its 
- * singular-value decomposition (SVD) and including all 
- * large singular values.
+ * @brief Compute the (Moore-Penrose) pseudo-inverse of a matrix. 
+ *      Calculate the generalized inverse of a matrix using its 
+ *      singular-value decomposition (SVD) and including all 
+ *      large singular values.
  * 
  * @param x matrix to be pseudo-inverted.
  * @param tol double cutoff for small singular values.
@@ -247,9 +245,8 @@ MatType pinv(const MatType& x, double tol = 1.e-6) {
     return pv;
 }
 
-
 /**
- * Compute log(det(A)) for A symmetric.
+ * @brief Compute log(det(A)) for A symmetric.
  * 
  * @param x ndarray of shape (nrows, ncols)
  *      input array, has to be a SQUARE 2d array
@@ -272,7 +269,7 @@ DataType logdet(const MatType& x) {
 }
 
 /**
- * Compute the log of the sum of exponentials of input elements.
+ * @brief Compute the log of the sum of exponentials of input elements.
  *      logsumexp(x_1, x_2, ..., x_n) 
  *      = log(sum(exp(x_i)))
  *      = log(sum(exp(x_i - c) * exp(c)))
@@ -308,11 +305,11 @@ VecType logsumexp(const MatType& x, int axis){
 };
 
 /**
- * Cholesky decomposition
- * Return the Cholesky decomposition, L * L.H, of the square matrix a, 
- * where L is lower-triangular and .H is the conjugate transpose operator.
- * x must be Hermitian (symmetric if real-valued) and positive-definite.
- * 
+ * @brief Cholesky decomposition
+ *      Return the Cholesky decomposition, L * L.H, of the square matrix a, 
+ *      where L is lower-triangular and .H is the conjugate transpose operator.
+ *      x must be Hermitian (symmetric if real-valued) and positive-definite.
+ * @param x ndarray input data
 */
 template<typename MatType>
 MatType cholesky(const MatType& x, bool lower = true) {
