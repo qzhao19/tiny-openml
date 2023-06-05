@@ -40,18 +40,14 @@ private:
         const std::vector<std::vector<DataType>>& X, 
         std::size_t k) {
         
-        std::vector<std::vector<DataType>> candidates;
-        std::map<std::size_t, std::vector<std::vector<DataType>>> candidates_map;
-        
+        std::vector<std::vector<DataType>> candidates;        
         for (std::size_t i = 0; i < X.size(); ++i) {
-            candidates_map[i] = common::combinations<DataType>(X[i], k);
+            auto candidate = common::combinations<DataType>(X[i], k);
+            for (auto c : candidate) {
+                candidates.emplace_back(c);
+            } 
         }
 
-        for (auto candidate : candidates_map) {
-            for (auto item : candidate.second) {
-                candidates.emplace_back(item);
-            }
-        }
         
         return candidates;
     }
@@ -216,7 +212,10 @@ public:
         min_support_(min_support), 
         min_confidence_(min_confidence) {};
     
-    ~Apriori() {};
+    ~Apriori() {
+        all_frequency_.clear();
+        association_rules_.clear();
+    };
 
     void fit_transform(const std::vector<std::vector<DataType>>& X) {
         fit_data(X);
