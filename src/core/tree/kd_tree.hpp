@@ -110,6 +110,19 @@ std::size_t KDTree::FindSplitDim(const std::vector<size_t> &points) {
     return cur_best_dim;
 }
 
+std::tuple<size_t, float> KDTree::MidElement(const std::vector<size_t> &points, size_t dim) {
+    size_t len = points.size();
+    for (size_t i = 0; i < points.size(); ++i)
+        get_mid_buf_[i] = std::make_tuple(points[i], GetDimVal(points[i], dim));
+    std::nth_element(get_mid_buf_, 
+                     get_mid_buf_ + len / 2,
+                     get_mid_buf_ + len,
+                     [](const std::tuple<size_t, float> &i, const std::tuple<size_t, float> &j) {
+                        return std::get<1>(i) < std::get<1>(j);
+                     });
+    return get_mid_buf_[len / 2];
+}
+
 }
 }
 #endif /*CORE_TREE_KD_TREE_HPP*/
