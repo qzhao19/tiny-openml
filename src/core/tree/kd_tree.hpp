@@ -123,6 +123,26 @@ std::tuple<size_t, float> KDTree::MidElement(const std::vector<size_t> &points, 
     return get_mid_buf_[len / 2];
 }
 
+inline float KDTree::GetDist(size_t i, const float *coor) {
+    float dist = 0.0;
+    size_t idx = i * n_features;
+    for (int t = 0; t < n_features; ++t)
+        dist += pow(datas[idx + t] - coor[t], p);
+    return static_cast<float>(pow(dist, 1.0 / p));
+}
+
+
+inline void KDTree::InitBuffer() {
+    get_mid_buf_ = new std::tuple<size_t, float>[n_samples];
+    visited_buf_ = new bool[n_samples];
+
+#ifdef USE_INTEL_MKL
+    // 要与 C 代码交互，所以用 C 的方式申请内存
+    mkl_buf_ = Malloc(float, n_features);
+#endif
+}
+
+
 }
 }
 #endif /*CORE_TREE_KD_TREE_HPP*/
