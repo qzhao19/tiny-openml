@@ -142,7 +142,22 @@ inline void KDTree::InitBuffer() {
 #endif
 }
 
+inline void KDTree::HeapStackPush(std::stack<tree_node *> &paths, tree_node *node, const float *coor, size_t k) {
+    paths.emplace(node);
+    size_t id = node->id;
+    if (visited_buf_[id])
+        return;
+    visited_buf_[id] = true;
+    float dist = GetDist(id, coor);
+    std::tuple<size_t, float> t(id, dist);
+    if (k_neighbor_heap_.size() < k)
+        k_neighbor_heap_.push(t);
 
+    else if (std::get<1>(t) < std::get<1>(k_neighbor_heap_.top())) {
+        k_neighbor_heap_.pop();
+        k_neighbor_heap_.push(t);
+    }
+}
 }
 }
 #endif /*CORE_TREE_KD_TREE_HPP*/
