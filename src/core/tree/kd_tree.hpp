@@ -83,6 +83,47 @@ private:
     size_t FindSplitDim(const std::vector<size_t> &points);
 
 };
+void free_tree_memory(tree_node *root) {
+    std::stack<tree_node *> node_stack;
+    tree_node *p;
+    node_stack.push(root);
+    while (!node_stack.empty()) {
+        p = node_stack.top();
+        node_stack.pop();
+        if (p->left)
+            node_stack.push(p->left);
+        if (p->right)
+            node_stack.push(p->right);
+        free(p);
+    }
+}
+
+
+inline KDTree::KDTree(tree_node *root, const float *datas, size_t rows, size_t cols, float p) :
+        root(root), datas(datas), n_samples(rows),
+        n_features(cols), p(p), free_tree_(false) {
+    InitBuffer();
+    labels = nullptr;
+}
+
+inline KDTree::KDTree(const float *datas, const float *labels, size_t rows, size_t cols, float p, bool free_tree) :
+        datas(datas), labels(labels), n_samples(rows), n_features(cols), p(p), free_tree_(free_tree) {
+    std::vector<size_t> points;
+    for (size_t i = 0; i < n_samples; ++i)
+        points.emplace_back(i);
+    InitBuffer();
+    root = BuildTree(points);
+}
+
+inline KDTree::~KDTree() {
+    delete[]get_mid_buf_;
+    delete[]visited_buf_;
+#ifdef USE_INTEL_MKL
+    free(mkl_buf_);
+#endif
+    if (free_tree_)
+        free_tree_memory(root);
+}
 
 
 std::size_t KDTree::FindSplitDim(const std::vector<size_t> &points) {
@@ -158,6 +199,10 @@ inline void KDTree::HeapStackPush(std::stack<tree_node *> &paths, tree_node *nod
         k_neighbor_heap_.push(t);
     }
 }
+
+
+
+
 }
 }
 #endif /*CORE_TREE_KD_TREE_HPP*/
