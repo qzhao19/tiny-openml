@@ -200,7 +200,26 @@ inline void KDTree::HeapStackPush(std::stack<tree_node *> &paths, tree_node *nod
     }
 }
 
+tree_model *build_kdtree(const float *datas, const float *labels,
+                         size_t rows, size_t cols, float p) {
+    KDTree tree(datas, labels, rows, cols, p, false);
+    tree_model *model = Malloc(tree_model, 1);
+    model->datas = datas;
+    model->labels = labels;
+    model->n_features = cols;
+    model->n_samples = rows;
+    model->root = tree.GetRoot();
+    model->p = p;
+    return model;
+}
 
+// 求平均值，用于回归问题
+float mean(const float *arr, size_t len) {
+    float ans = 0.0;
+    for (size_t i = 0; i < len; ++i)
+        ans += arr[i];
+    return ans / len;
+}
 
 
 }
