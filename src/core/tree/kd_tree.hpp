@@ -6,6 +6,10 @@
 namespace openml {
 namespace tree {
 
+
+#define Malloc(type, n) (type *)malloc((n)*sizeof(type))
+
+
 struct tree_node
 {
     std::size_t id;
@@ -220,6 +224,27 @@ float mean(const float *arr, size_t len) {
         ans += arr[i];
     return ans / len;
 }
+
+float vote(const float *arr, size_t len) {
+    std::unordered_map<int, size_t> counter;
+    for (size_t i = 0; i < len; ++i) {
+        auto t = static_cast<int>(arr[i]);
+        if (counter.find(t) == counter.end())
+            counter.insert(std::unordered_map<int, size_t>::value_type(t, 1));
+        else
+            counter[t] += 1;
+    }
+    float cur_arg_max = 0;
+    size_t cur_max = 0;
+    for (auto &i : counter) {
+        if (i.second >= cur_max) {
+            cur_arg_max = static_cast<float>(i.first);
+            cur_max = i.second;
+        }
+    }
+    return cur_arg_max;
+}
+
 
 
 }
