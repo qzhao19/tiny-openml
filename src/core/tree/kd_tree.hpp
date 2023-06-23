@@ -245,6 +245,35 @@ float vote(const float *arr, size_t len) {
     return cur_arg_max;
 }
 
+void find_k_nearests(const tree_model *model, const float *coor,
+                     size_t k, size_t *args, float *dists) {
+    KDTree tree(model->root, model->datas, model->n_samples, model->n_features, model->p);
+    std::vector<std::tuple<size_t, float>> k_nearest = tree.FindKNearests(coor, k);
+    for (size_t i = 0; i < k; ++i) {
+        args[i] = std::get<0>(k_nearest[i]);
+        dists[i] = std::get<1>(k_nearest[i]);
+    }
+}
+
+float vote(const float *arr, size_t len) {
+    std::unordered_map<int, size_t> counter;
+    for (size_t i = 0; i < len; ++i) {
+        auto t = static_cast<int>(arr[i]);
+        if (counter.find(t) == counter.end())
+            counter.insert(std::unordered_map<int, size_t>::value_type(t, 1));
+        else
+            counter[t] += 1;
+    }
+    float cur_arg_max = 0;
+    size_t cur_max = 0;
+    for (auto &i : counter) {
+        if (i.second >= cur_max) {
+            cur_arg_max = static_cast<float>(i.first);
+            cur_max = i.second;
+        }
+    }
+    return cur_arg_max;
+}
 
 
 }
