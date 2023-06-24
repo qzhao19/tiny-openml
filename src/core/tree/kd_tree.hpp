@@ -275,6 +275,64 @@ float vote(const float *arr, size_t len) {
     return cur_arg_max;
 }
 
+float *
+k_nearests_neighbor(const tree_model *model, const float *X_test, size_t len, size_t k, bool clf) {
+	float *ans = Malloc(float, len);
+	size_t *args;
+	float *dists, *y_pred;
+	size_t arr_len;
+	int i, j;
+
+#ifdef USE_INTEL_MKL
+    int n_procs = omp_get_num_procs();
+	assert(n_procs < 100);
+	KDTree *trees[100];
+	for (size_t i = 0; i < n_procs; ++i)
+		trees[i] = new KDTree(model->root, model->datas, model->n_samples, model->n_features, model->p);
+	arr_len = k * n_procs;
+#else
+	arr_len = k;
+	KDTree tree(model->root, model->datas, model->n_samples, model->n_features, model->p);
+#endif
+
+	args = Malloc(size_t, arr_len);
+	dists = Malloc(float, arr_len);
+	y_pred = Malloc(float, arr_len);
+
+#ifdef USE_INTEL_MKL
+#pragma omp parallel for
+	for (i = 0; i < len; ++i)
+	{
+		int thread_num = omp_get_thread_num();
+		trees[thread_num]->CFindKNearests(X_test + i * model->n_features, 
+			k, args + k * thread_num, dists + k * thread_num);
+		for (j = 0; j < k; ++j)
+			y_pred[j + k * thread_num] = model->labels[args[j + k * thread_num]];
+		if (clf)
+			ans[i] = vote(y_pred + k * thread_num, k);
+		else
+			ans[i] = mean(y_pred + k * thread_num, k);
+	}
+	for (size_t i = 0; i < n_procs; ++i)
+		delete trees[i];
+	
+#else
+	for (i = 0; i < len; ++i) {
+		tree.CFindKNearests(X_test + i * model->n_features, k, args, dists);
+		for (j = 0; j < k; ++j)
+			y_pred[j] = model->labels[args[j]];
+		if (clf)
+			ans[i] = vote(y_pred, k);
+		else
+			ans[i] = mean(y_pred, k);
+	}
+#endif
+	free(args);
+	free(y_pred);
+	free(dists);
+	return ans;
+}
+
 
 }
 }
