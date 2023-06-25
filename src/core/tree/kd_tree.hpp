@@ -275,8 +275,7 @@ float vote(const float *arr, size_t len) {
     return cur_arg_max;
 }
 
-float *
-k_nearests_neighbor(const tree_model *model, const float *X_test, size_t len, size_t k, bool clf) {
+float * k_nearests_neighbor(const tree_model *model, const float *X_test, size_t len, size_t k, bool clf) {
 	float *ans = Malloc(float, len);
 	size_t *args;
 	float *dists, *y_pred;
@@ -333,6 +332,54 @@ k_nearests_neighbor(const tree_model *model, const float *X_test, size_t len, si
 	return ans;
 }
 
+
+std::vector<std::tuple<size_t, float>> KDTree::FindKNearests(const float *coor, size_t k) {
+    std::memset(visited_buf_, 0, sizeof(bool) * n_samples);
+    std::stack<tree_node *> paths;
+    tree_node *p = root;
+
+    while (p) {
+        HeapStackPush(paths, p, coor, k);
+        p = coor[p->split] <= GetDimVal(p->id, p->split) ? p->left : p->right;
+    }
+    while (!paths.empty()) {
+        p = paths.top();
+        paths.pop();
+
+        if (!p->left && !p->right)
+            continue;
+
+        if (k_neighbor_heap_.size() < k) {
+            if (p->left)
+                HeapStackPush(paths, p->left, coor, k);
+            if (p->right)
+                HeapStackPush(paths, p->right, coor, k);
+        } else {
+            float node_split_val = GetDimVal(p->id, p->split);
+            float coor_split_val = coor[p->split];
+            float heap_top_val = std::get<1>(k_neighbor_heap_.top());
+            if (coor_split_val > node_split_val) {
+                if (p->right)
+                    HeapStackPush(paths, p->right, coor, k);
+
+                if ((coor_split_val - node_split_val) < heap_top_val && p->left)
+                    HeapStackPush(paths, p->left, coor, k);
+            } else {
+                if (p->left)
+                    HeapStackPush(paths, p->left, coor, k);
+                if ((node_split_val - coor_split_val) < heap_top_val && p->right)
+                    HeapStackPush(paths, p->right, coor, k);
+            }
+        }
+    }
+    std::vector<std::tuple<size_t, float>> res;
+
+    while (!k_neighbor_heap_.empty()) {
+        res.emplace_back(k_neighbor_heap_.top());
+        k_neighbor_heap_.pop();
+    }
+    return res;
+}
 
 }
 }
