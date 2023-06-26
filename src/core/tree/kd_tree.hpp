@@ -381,6 +381,16 @@ std::vector<std::tuple<size_t, float>> KDTree::FindKNearests(const float *coor, 
     return res;
 }
 
+
+void KDTree::CFindKNearests(const float *coor, size_t k, size_t *args, float *dists) {
+    std::vector<std::tuple<size_t, float>> k_nearest = FindKNearests(coor, k);
+    for (size_t i = 0; i < k; ++i) {
+        args[i] = std::get<0>(k_nearest[i]);
+        dists[i] = std::get<1>(k_nearest[i]);
+    }
+}
+
+
 }
 }
 #endif /*CORE_TREE_KD_TREE_HPP*/
