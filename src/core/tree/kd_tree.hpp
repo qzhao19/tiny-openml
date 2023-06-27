@@ -87,6 +87,7 @@ private:
     size_t FindSplitDim(const std::vector<size_t> &points);
 
 };
+
 void free_tree_memory(tree_node *root) {
     std::stack<tree_node *> node_stack;
     tree_node *p;
@@ -122,9 +123,6 @@ inline KDTree::KDTree(const float *datas, const float *labels, size_t rows, size
 inline KDTree::~KDTree() {
     delete[]get_mid_buf_;
     delete[]visited_buf_;
-#ifdef USE_INTEL_MKL
-    free(mkl_buf_);
-#endif
     if (free_tree_)
         free_tree_memory(root);
 }
@@ -180,11 +178,6 @@ inline float KDTree::GetDist(size_t i, const float *coor) {
 inline void KDTree::InitBuffer() {
     get_mid_buf_ = new std::tuple<size_t, float>[n_samples];
     visited_buf_ = new bool[n_samples];
-
-#ifdef USE_INTEL_MKL
-    // 要与 C 代码交互，所以用 C 的方式申请内存
-    mkl_buf_ = Malloc(float, n_features);
-#endif
 }
 
 inline void KDTree::HeapStackPush(std::stack<tree_node *> &paths, tree_node *node, const float *coor, size_t k) {
@@ -282,40 +275,13 @@ float * k_nearests_neighbor(const tree_model *model, const float *X_test, size_t
 	size_t arr_len;
 	int i, j;
 
-#ifdef USE_INTEL_MKL
-    int n_procs = omp_get_num_procs();
-	assert(n_procs < 100);
-	KDTree *trees[100];
-	for (size_t i = 0; i < n_procs; ++i)
-		trees[i] = new KDTree(model->root, model->datas, model->n_samples, model->n_features, model->p);
-	arr_len = k * n_procs;
-#else
+
 	arr_len = k;
 	KDTree tree(model->root, model->datas, model->n_samples, model->n_features, model->p);
-#endif
-
 	args = Malloc(size_t, arr_len);
 	dists = Malloc(float, arr_len);
 	y_pred = Malloc(float, arr_len);
 
-#ifdef USE_INTEL_MKL
-#pragma omp parallel for
-	for (i = 0; i < len; ++i)
-	{
-		int thread_num = omp_get_thread_num();
-		trees[thread_num]->CFindKNearests(X_test + i * model->n_features, 
-			k, args + k * thread_num, dists + k * thread_num);
-		for (j = 0; j < k; ++j)
-			y_pred[j + k * thread_num] = model->labels[args[j + k * thread_num]];
-		if (clf)
-			ans[i] = vote(y_pred + k * thread_num, k);
-		else
-			ans[i] = mean(y_pred + k * thread_num, k);
-	}
-	for (size_t i = 0; i < n_procs; ++i)
-		delete trees[i];
-	
-#else
 	for (i = 0; i < len; ++i) {
 		tree.CFindKNearests(X_test + i * model->n_features, k, args, dists);
 		for (j = 0; j < k; ++j)
@@ -325,7 +291,6 @@ float * k_nearests_neighbor(const tree_model *model, const float *X_test, size_t
 		else
 			ans[i] = mean(y_pred, k);
 	}
-#endif
 	free(args);
 	free(y_pred);
 	free(dists);
