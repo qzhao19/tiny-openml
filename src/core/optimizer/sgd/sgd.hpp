@@ -56,7 +56,7 @@ public:
 
         bool is_converged = false;
         double best_loss = ConstType<double>::infinity();
-        std::cout << "--------------------------------" << this->verbose_;
+        
         MatType X_new = X;
         VecType y_new = y;
         MatType grad;
