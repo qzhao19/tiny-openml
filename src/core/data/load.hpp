@@ -65,6 +65,44 @@ void loadtxt(const std::string &fp,
     }
 };
 
+
+/**
+ * 
+*/
+template<typename DataType>
+void loadtxt(const std::string &fp, 
+    std::vector<std::vector<DataType>>& X, 
+    std::vector<DataType>& y) {
+    
+    std::ifstream fin(fp);
+    if(!fin) {
+        throw std::runtime_error("Input file could not be opened.");
+        exit(0);
+    }
+
+    std::vector<std::vector<DataType>> stdmat;
+    for (std::string line; std::getline(fin, line); ) {
+        std::stringstream str_stream(line);
+        std::vector<DataType> row;
+
+        for (DataType elem; str_stream >> elem; ) {
+            row.push_back(elem);
+        }
+        stdmat.push_back(row);
+    }
+
+    std::size_t nrows = stdmat.size(), ncols = stdmat[0].size();
+    X.resize(nrows, std::vector<DataType>(ncols - 1));
+    for (std::size_t i = 0; i < nrows; ++i) {
+        for (std::size_t j = 0; j < ncols - 1; ++j) {
+            X[i][j] = stdmat[i][j];
+        }
+        y.emplace_back(stdmat[i].back());
+    }
+};
+
+
+
 }
 }
 #endif /*CORE_DATA_LOAD_HPP*/
