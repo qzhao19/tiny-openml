@@ -2,33 +2,16 @@
 using namespace openml;
 
 
-template<typename DataType>
-struct KDTreeNode {
-    // bool is_leaf;
+int main() {
+    std::vector<std::vector<double>> X;
+    std::vector<double> y;
+    data::loadtxt<double>("../dataset/iris.txt", X, y);
 
-    DataType value;
-    std::size_t axis;
-    std::vector<size_t> indices;
-    std::shared_ptr<KDTreeNode> left_child;
-    std::shared_ptr<KDTreeNode> right_child;
-    
-    KDTreeNode(DataType value,
-        std::size_t axis,
-        std::vector<size_t> indices): 
-            value(value),
-            axis(axis),
-            indices(indices),
-            left_child(std::shared_ptr<KDTreeNode>()), 
-            right_child(std::shared_ptr<KDTreeNode>()) {};
+    tree::KDTree<double> kd_tree(X);
 
-    ~KDTreeNode() {};
+    kd_tree.test();
 
-    bool is_leaf() {
-        
-    }
-
-
-};
+}
 
 
 
