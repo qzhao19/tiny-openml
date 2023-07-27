@@ -72,6 +72,24 @@ protected:
     };
 
 
+    void argsort_data(const std::vector<DataType>& data, 
+        std::vector<std::size_t>& indices) {
+        
+        std::vector<std::pair<DataType, std::size_t>> combine;
+        for (int i = 0; i < data.size(); ++i) {
+            combine.push_back(std::make_pair(data[i], i));
+        }
+        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+            return left.first < right.first;
+        });
+
+        for (int i = 0; i < itemsets_list.size(); ++i) {
+            indices[i] = combine[i].second;
+        }
+    }
+
+
+
     void build_tree() {
 
         std::vector<std::vector<DataType>> data = data_;
@@ -95,6 +113,9 @@ protected:
 
         // create root of kd-tree
         std::size_t partition_axis = find_partition_axis(data);
+
+
+
 
     }
 
