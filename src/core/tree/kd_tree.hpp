@@ -113,6 +113,15 @@ protected:
 
         // create root of kd-tree
         std::size_t partition_axis = find_partition_axis(data);
+        std::vector<DataType> partition_data;
+
+        for (const auto& row : data) {
+            partition_data.emplace_back(row[partition_axis]);
+        }
+        std::vector<std::size_t> indices;
+        argsort_data(partition_data, indices);
+
+        
 
 
 
