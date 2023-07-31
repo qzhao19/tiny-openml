@@ -72,9 +72,9 @@ protected:
     };
 
 
-    void argsort_data(const std::vector<DataType>& data, 
-        std::vector<std::size_t>& indices) {
+    const std::vector<std::size_t> argsort_data(const std::vector<DataType>& data) {
         
+        std::vector<std::size_t> indices;
         std::vector<std::pair<DataType, std::size_t>> combine;
         for (int i = 0; i < data.size(); ++i) {
             combine.push_back(std::make_pair(data[i], i));
@@ -86,6 +86,8 @@ protected:
         for (int i = 0; i < itemsets_list.size(); ++i) {
             indices[i] = combine[i].second;
         }
+
+        return indices;
     }
 
 
@@ -118,13 +120,22 @@ protected:
         for (const auto& row : data) {
             partition_data.emplace_back(row[partition_axis]);
         }
-        std::vector<std::size_t> indices;
-        argsort_data(partition_data, indices);
+        std::vector<std::size_t> indices = argsort_data(partition_data);
+
+        for (std::size_t i = 0; i < indices.size(); ++i) {
+            data[i] = data[indices[i]];
+        }
+
+        std::size_t mid_idx = num_samples / 2;
+        DataType partition_val = data[mid_idx][partition_axis];
+
+        std::vector<std::vector<DataType>> left_hyper_rect, right_hyper_rect;
+        left_hyper_rect = hyper_rect;
+        right_hyper_rect = hyper_rect;
+        left_hyper_rect[1][0] = partition_val;
+        right_hyper_rect[0][0] = partition_val;
 
         
-
-
-
 
     }
 
