@@ -135,8 +135,13 @@ protected:
         left_hyper_rect[1][0] = partition_val;
         right_hyper_rect[0][0] = partition_val;
 
-        
+        KDTreeNode node;
+        node.left_hyper_rect = left_hyper_rect;
+        node.right_hyper_rect = right_hyper_rect;
 
+        tree_.emplace_back(node);
+
+        
     }
 
 
