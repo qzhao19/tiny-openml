@@ -21,13 +21,39 @@ private:
     std::string solver_;
     std::string metric_;
 
+    std::vector<std::vector<DataType>> X_{};  
+    std::vector<DataType> y_{};                  
+
 protected:
-    void brute_force(const MatType& X, 
-        const VecType& y) {
+    int brute_force(std::vector<DataType>& sample, int k) {
         
-
-
-        
+        std::vector<int> neighbors;
+        std::vector<std::pair<double, int>> distances;
+        for (size_t i = 0; i < this->X_.size(); ++i) {
+            auto current = this->X_.at(i);
+            auto label = this->Y_.at(i);
+            auto distance = euclidean_distance(current, sample);
+            distances.emplace_back(distance, label);
+        }
+        std::sort(distances.begin(), distances.end());
+        for (int i = 0; i < k; i++) {
+            auto label = distances.at(i).second;
+            neighbors.push_back(label);
+        }
+        std::unordered_map<int, int> frequency;
+        for (auto neighbor : neighbors) {
+            ++frequency[neighbor];
+        }
+        std::pair<int, int> predicted;
+        predicted.first = -1;
+        predicted.second = -1;
+        for (auto& kv : frequency) {
+            if (kv.second > predicted.second) {
+                predicted.second = kv.second;
+                predicted.first = kv.first;
+            }
+        }
+        return predicted.first;
     }
 
 
