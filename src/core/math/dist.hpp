@@ -25,6 +25,14 @@ namespace math {
 //     return retval;
 // };
 
+template <typename DataType>
+double euclidean_distance(const std::vector<DataType>& a, const std::vector<DataType>& b) {
+    std::vector<DataType> aux;
+    std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(aux),
+                   [](DataType x1, DataType x2) { return std::pow((x1 - x2), 2); });
+    aux.shrink_to_fit();
+    return std::sqrt(std::accumulate(aux.begin(), aux.end(), 0.0));
+}
 
 }
 }
