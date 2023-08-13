@@ -19,32 +19,31 @@ private:
     std::size_t p_;
     std::size_t num_neighbors_;
     std::string solver_;
-    std::string metric_;
-
-    std::vector<std::vector<DataType>> X_{};  
-    std::vector<DataType> y_{};                  
+    std::string metric_;          
 
 protected:
-    int brute_force(std::vector<DataType>& sample, int k) {
+    DataType brute_force(const std::vector<std::vector<DataType>>& X, 
+        const std::vector<DataType>& y, 
+        const std::vector<double>& sample) {
         
-        std::vector<int> neighbors;
-        std::vector<std::pair<double, int>> distances;
-        for (size_t i = 0; i < this->X_.size(); ++i) {
-            auto current = this->X_.at(i);
-            auto label = this->Y_.at(i);
-            auto distance = euclidean_distance(current, sample);
+        std::vector<DataType> neighbors;
+        std::vector<std::pair<DataType, DataType>> distances;
+        for (std::size_t i = 0; i < X.size(); ++i) {
+            auto current = X.at(i);
+            auto label = y.at(i);
+            auto distance = math::euclidean_distance(current, sample);
             distances.emplace_back(distance, label);
         }
         std::sort(distances.begin(), distances.end());
-        for (int i = 0; i < k; i++) {
+        for (std::size_t i = 0; i < num_neighbors_; i++) {
             auto label = distances.at(i).second;
             neighbors.push_back(label);
         }
-        std::unordered_map<int, int> frequency;
+        std::unordered_map<DataType, std::size_t> frequency;
         for (auto neighbor : neighbors) {
             ++frequency[neighbor];
         }
-        std::pair<int, int> predicted;
+        std::pair<DataType, DataType> predicted;
         predicted.first = -1;
         predicted.second = -1;
         for (auto& kv : frequency) {
