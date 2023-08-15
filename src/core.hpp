@@ -5,7 +5,7 @@
 #include "../src/core/common.hpp"
 
 #include "../src/core/math/ops.hpp"
-#include "../src/core/math/dist.hpp"
+#include "../src/core/math/proba.hpp"
 #include "../src/core/math/random.hpp"
 #include "../src/core/math/shuffle.hpp"
 #include "../src/core/math/extmath.hpp"
