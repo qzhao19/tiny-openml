@@ -24,14 +24,21 @@ private:
 protected:
     DataType brute_force(const std::vector<std::vector<DataType>>& X, 
         const std::vector<DataType>& y, 
-        const std::vector<double>& sample) {
+        const std::vector<DataType>& sample) {
         
         std::vector<DataType> neighbors;
         std::vector<std::pair<DataType, DataType>> distances;
         for (std::size_t i = 0; i < X.size(); ++i) {
             auto current = X.at(i);
             auto label = y.at(i);
-            auto distance = math::euclidean_distance(current, sample);
+            auto distance;
+            if (metric_ == "minkowski") {
+                distance = metric::euclidean_distance<DataType>(current, sample);
+            }
+            else if (metric_ == "") {
+                distance = metric::manhattan_distance<DataType>(current, sample);
+            }
+
             distances.emplace_back(distance, label);
         }
         std::sort(distances.begin(), distances.end());
