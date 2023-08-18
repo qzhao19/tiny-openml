@@ -35,7 +35,7 @@ protected:
             if (metric_ == "minkowski") {
                 distance = metric::euclidean_distance<DataType>(current, sample);
             }
-            else if (metric_ == "") {
+            else if (metric_ == "manhattan") {
                 distance = metric::manhattan_distance<DataType>(current, sample);
             }
 
