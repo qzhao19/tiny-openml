@@ -64,7 +64,7 @@ DataType manhattan_distance(const std::vector<DataType>& a, const std::vector<Da
     std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(aux),
                    [](DataType x1, DataType x2) { return std::abs(x1 - x2); });
     aux.shrink_to_fit();
-    return std::accumulate(aux.begin(), aux.end(), 0.0)
+    return std::accumulate(aux.begin(), aux.end(), 0.0);
 }
 
 

@@ -21,7 +21,7 @@ double gaussian_fn(const DataType& x,
     const DataType& v) {
     
     // retval = -(x - u) ** 2.0 / (2.0 * v) - log(sqrt(2.0 * arma::datum::pi * v));
-    return retval = -1.0 * std::pow((x - u), 2) / (2.0 * v) - std::log(std::sqrt(2.0 * M_PI * v));
+    return -1.0 * std::pow((x - u), 2) / (2.0 * v) - std::log(std::sqrt(2.0 * M_PI * v));
 };
 
 
