@@ -39,6 +39,15 @@ private:
         ~KDTreeNode() {};
     };
 
+    struct StackDataNode {
+        bool is_left;
+        std::size_t depth;
+        std::size_t parent;
+        std::vector<std::size_t> indices;
+        std::vector<std::vector<DataType>> data;
+    };
+
+
     std::size_t leaf_size_;
     std::vector<KDTreeNode> tree_;
     const std::vector<std::vector<DataType>> data_;
@@ -139,6 +148,25 @@ protected:
         node.right_hyper_rect = right_hyper_rect;
 
         tree_.emplace_back(node);
+
+        StackDataNode stack_data1, stack_data2;
+
+        stack_data1.is_left = true;
+        stack_data1.depth = 1;
+        stack_data1.parent = 0;
+        stack_data1.data = data;
+        stack_data1.indices = indices;
+
+        stack_data2.is_left = false;
+        stack_data2.depth = 1;
+        stack_data2.parent = 0;
+        stack_data2.data = data;
+        stack_data2.indices = indices;
+
+        std::stack<StackDataNode> stack;
+        stack.push(stack_data1);
+        stack.push(stack_data2);
+
         
 
     }
