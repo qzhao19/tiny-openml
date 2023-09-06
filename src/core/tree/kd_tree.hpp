@@ -167,7 +167,32 @@ protected:
         stack.push(stack_data1);
         stack.push(stack_data2);
 
-        
+        // recursively split data in halves using hyper-rectangles:
+        while (!stack.empty()) {
+            
+            // pop data off stack
+            StackDataNode tmp_stack_data = stack.top();
+            stack.pop();
+
+            num_samples = tmp_stack_data.data.size();
+            std::size_t node_ptr = tree_.size();
+
+            // update parent node
+            KDTreeNode tmp_node;
+            tmp_node = tree_[tmp_stack_data.parent];
+            
+            if (tmp_stack_data.is_left) {
+                tree_[tmp_stack_data.parent] = 
+            }
+            else {
+                tree_[tmp_stack_data.parent] = 
+            } 
+
+
+        }
+
+
+
 
     }
 
