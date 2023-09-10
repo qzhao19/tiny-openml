@@ -182,11 +182,31 @@ protected:
             tmp_node = tree_[tmp_stack_data.parent];
             
             if (tmp_stack_data.is_left) {
-                tree_[tmp_stack_data.parent] = 
+                KDTreeNode node1;
+                node1.left = node_ptr;
+                node1.right = tmp_node.right;
+                node1.indices = tmp_node.indices;
+                node1.data = tmp_node.data;
+                node1.left_hyper_rect = tmp_node.left_hyper_rect;
+                node1.right_hyper_rect = tmp_node.right_hyper_rect;
+                tree_[tmp_stack_data.parent] = node1;
             }
             else {
-                tree_[tmp_stack_data.parent] = 
-            } 
+                KDTreeNode node2;
+                node2.left = tmp_node.left;
+                node2.right = node_ptr;
+                node2.indices = tmp_node.indices;
+                node2.data = tmp_node.data;
+                node2.left_hyper_rect = tmp_node.left_hyper_rect;
+                node2.right_hyper_rect = tmp_node.right_hyper_rect;
+                tree_[tmp_stack_data.parent] = node2;
+            }
+
+            // insert node in kd-tree
+            // leaf node?
+             if (num_samples <= leaf_size_) {
+                
+             }
 
 
         }
