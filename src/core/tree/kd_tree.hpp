@@ -204,9 +204,45 @@ protected:
 
             // insert node in kd-tree
             // leaf node?
-             if (num_samples <= leaf_size_) {
+            if (num_samples <= leaf_size_) {
+                KDTreeNode leaf;
+                leaf.data = tmp_node.data;
+                leaf.indices = tmp_node.indices;
+                leaf.left_hyper_rect = nullptr;
+                leaf.right_hyper_rect = nullptr;
+                leaf.left = 0;
+                leaf.right = 0;
+                tree_.emplace_back(leaf);
+            }
+            // not a leaf, split the data in two 
+            else {
+                partition_axis = find_partition_axis(tmp_node.data);
+                partition_data.clear();
+                for (const auto& row : tmp_node.data) {
+                    partition_data.emplace_back(row[partition_axis]);
+                }
+                // indices = argsort_data(partition_data);
+
+
                 
-             }
+                node_ptr = tree_.size();
+
+                StackDataNode stack_data3, stack_data4;
+
+                stack_data3.is_left = true;
+                stack_data3.depth = tmp_node.depth + 1;
+                stack_data3.parent = node_ptr;
+                stack_data3.data = tmp_node.data;
+                stack_data3.indices = tmp_node.indices;
+
+                stack_data4.is_left = false;
+                stack_data4.depth = tmp_node.depth + 1;
+                stack_data4.parent = node_ptr;
+                stack_data4.data = tmp_node.data;
+                stack_data4.indices = tmp_node.indices;
+
+
+            }
 
 
         }
