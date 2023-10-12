@@ -787,6 +787,38 @@ std::vector<DataType> difference(const std::vector<DataType>& v1,
 };
 
 
+/**
+ * @brief Returns the indices that would sort a vector.
+ *      It returns an array of indices of the same shape 
+ *      as a that index data along the given axis in sorted order.
+ * @param x 1dvector like data
+ *      array to sort
+ * @param order string, default 'asc'
+ *      his argument specifies which fields to compare first
+ * @return index array
+ *      Array of indices that sort a along the specified axis
+*/
+template<typename DataType>
+const std::vector<std::size_t> argsort(const std::vector<DataType>& x) {
+    
+    std::vector<std::size_t> indices;
+    std::vector<std::pair<DataType, std::size_t>> combine;
+    for (int i = 0; i < x.size(); ++i) {
+        combine.push_back(std::make_pair(x[i], i));
+    }
+    std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+        return left.first < right.first;
+    });
+
+    for (int i = 0; i < itemsets_list.size(); ++i) {
+        indices[i] = combine[i].second;
+    }
+
+    return indices;
+};
+
+
+
 }
 }
 #endif /*CORE_COMMON_HPP*/
