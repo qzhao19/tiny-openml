@@ -799,17 +799,25 @@ std::vector<DataType> difference(const std::vector<DataType>& v1,
  *      Array of indices that sort a along the specified axis
 */
 template<typename DataType>
-const std::vector<std::size_t> argsort(const std::vector<DataType>& x) {
+const std::vector<std::size_t> argsort(const std::vector<DataType>& x, bool reverse = false) {
     
     std::vector<std::size_t> indices;
     std::vector<std::pair<DataType, std::size_t>> combine;
     for (int i = 0; i < x.size(); ++i) {
         combine.push_back(std::make_pair(x[i], i));
     }
-    std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
-        return left.first < right.first;
-    });
 
+    if (!reverse) {
+        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+            return left.first < right.first;
+        });
+    }
+    else {
+        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+            return left.first > right.first;
+        });
+    }
+    
     for (int i = 0; i < itemsets_list.size(); ++i) {
         indices[i] = combine[i].second;
     }
