@@ -107,7 +107,18 @@ protected:
         }
         std::vector<std::size_t> indices = common::argsort<DataType>(partition_data);
         
+        for (std::size_t i = 0; i < indices.size(); ++i) {
+            data[i] = data[indices[i]];
+        }
 
+        std::size_t mid_idx = num_samples / 2;
+        DataType partition_val = data[mid_idx][partition_axis];
+
+        std::vector<std::vector<DataType>> left_hyper_rect, right_hyper_rect;
+        left_hyper_rect = hyper_rect;
+        right_hyper_rect = hyper_rect;
+        left_hyper_rect[1][0] = partition_val;
+        right_hyper_rect[0][0] = partition_val;
 
 
     }
