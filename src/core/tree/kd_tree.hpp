@@ -39,7 +39,7 @@ private:
         ~KDTreeNode() {};
     };
 
-    struct StackDataNode {
+    struct StackData {
         bool is_left;
         std::size_t depth;
         std::size_t parent;
@@ -120,6 +120,34 @@ protected:
         left_hyper_rect[1][0] = partition_val;
         right_hyper_rect[0][0] = partition_val;
 
+        KDTreeNode node;
+        node.left_hyper_rect = left_hyper_rect;
+        node.right_hyper_rect = right_hyper_rect;
+
+        tree_.emplace_back(node);
+
+        // create a stack to restore data, indice, parent indice, depth and is_left
+        StackData s1, s2;
+        s1.is_left = true;
+        s1.depth = 1;
+        s1.parent = 0;
+        s1.data = data;
+        s1.indices = indices;
+
+        s2.is_left = false;
+        s2.depth = 1;
+        s2.parent = 0;
+        s2.data = data;
+        s2.indices = indices;
+
+        std::stack<StackData> stack;
+        stack.push(s1);
+        stack.push(s2);
+
+        // recursively split data in halves using hyper-rectangles:
+        while (!stack.empty()) {
+            
+        }
 
     }
     
