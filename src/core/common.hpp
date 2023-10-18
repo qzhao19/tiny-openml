@@ -826,6 +826,58 @@ const std::vector<std::size_t> argsort(const std::vector<DataType>& x, bool reve
 };
 
 
+/**
+ * @brief slice 2d vectorto make a subvector from a given vector
+ * 
+ * @param x 2dvector like data
+ *      2darray to slice
+ * @param start_row
+ * @param end_row
+ * @param start_col
+ * @param end_col
+ */
+template<typename DataType>
+std::vector<std::vector<DataType>> slice(const std::vector<std::vector<DataType>>& x, 
+    std::size_t start_row, 
+    std::size_t end_row, 
+    std::size_t start_col, 
+    std::size_t end_col) {
+    
+    std::size_t num_rows = end_row - start_row;
+    std::vector<std::vector<DataType>> sub_vec;
+    sub_vec.reserve(num_rows);
+
+    for (std::size_t i = start_row; i < end_row + 1; ++i) {
+        sub_vec.emplace_back(x[i].begin() + start_col, x[i].begin() + end_col + 1);
+    }
+
+    return sub_vec;
+};
+
+
+/**
+ * @brief slice 2d vectorto make a subvector from a given vector
+ * 
+ * @param x 2dvector like data
+ *      2darray to slice
+ * @param start_index
+ * @param end_index
+ */
+template<typename DataType>
+std::vector<DataType> slice(const std::vector<DataType>& x, 
+    std::size_t start_index, 
+    std::size_t end_index) {
+    
+    std::size_t num_rows = end_index - start_index;
+    std::vector<DataType> sub_vec;
+    sub_vec.reserve(num_rows);
+    sub_vec = std::vector<int>(v1.begin() + start_index, v1.end() + end_index + 1);
+
+    return sub_vec;
+};
+
+
+
 
 }
 }
