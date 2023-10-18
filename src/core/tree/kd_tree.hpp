@@ -131,8 +131,8 @@ protected:
         s1.is_left = true;
         s1.depth = 1;
         s1.parent = 0;
-        s1.data = data;
-        s1.indices = indices;
+        s1.data = common::slice<std::vector<std::vector<DataType>>>(data, 0, mid_idx, 0, num_features);
+        s1.indices = common::slice<std::vector<DataType>>(indices, 0, mid_idx);
 
         s2.is_left = false;
         s2.depth = 1;
@@ -146,7 +146,42 @@ protected:
 
         // recursively split data in halves using hyper-rectangles:
         while (!stack.empty()) {
-            
+            // pop data off stack
+            auto s = stack.top();
+            stack.pop();
+
+            num_samples = s.data.size();
+            std::size_t node_ptr = tree_.size();
+
+            // update parent node
+            KDTreeNode tmp_node;
+            tmp_node = tree_[s.parent];
+
+            if (s.is_left) {
+                KDTreeNode node1;
+                node1.left = node_ptr;
+                node1.right = tmp_node.right;
+                node1.indices = tmp_node.indices;
+                node1.data = tmp_node.data;
+                node1.left_hyper_rect = tmp_node.left_hyper_rect;
+                node1.right_hyper_rect = tmp_node.right_hyper_rect;
+                tree_[s.parent] = node1;
+            }
+            else {
+                KDTreeNode node2;
+                node2.left = tmp_node.left;
+                node2.right = node_ptr;
+                node2.indices = tmp_node.indices;
+                node2.data = tmp_node.data;
+                node2.left_hyper_rect = tmp_node.left_hyper_rect;
+                node2.right_hyper_rect = tmp_node.right_hyper_rect;
+                tree_[s.parent] = node2;
+            }
+
+
+
+
+
         }
 
     }
