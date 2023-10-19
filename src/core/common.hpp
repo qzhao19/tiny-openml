@@ -843,11 +843,19 @@ std::vector<std::vector<DataType>> slice(const std::vector<std::vector<DataType>
     std::size_t start_col, 
     std::size_t end_col) {
     
-    std::size_t num_rows = end_row - start_row;
+    if (end_row < start_row || end_row - start_row > x.size() - 1) {
+        throw std::invalid_argument("end_row must be greater than start_row.");
+    }
+
+    if (end_col - start_col < 0 || end_col - start_col > x.size() - 1) {
+        throw std::invalid_argument("end_col must be greater than start_col.");
+    }
+    
+    std::size_t num_rows = end_row - start_row + 1;
     std::vector<std::vector<DataType>> sub_vec;
     sub_vec.reserve(num_rows);
 
-    for (std::size_t i = start_row; i < end_row + 1; ++i) {
+    for (std::size_t i = start_row; i <= end_row; ++i) {
         sub_vec.emplace_back(x[i].begin() + start_col, x[i].begin() + end_col + 1);
     }
 
@@ -856,10 +864,10 @@ std::vector<std::vector<DataType>> slice(const std::vector<std::vector<DataType>
 
 
 /**
- * @brief slice 2d vectorto make a subvector from a given vector
+ * @brief slice 1d vector to make a subvector from a given vector
  * 
- * @param x 2dvector like data
- *      2darray to slice
+ * @param x 1dvector like data
+ *      1darray to slice
  * @param start_index
  * @param end_index
  */
@@ -867,8 +875,12 @@ template<typename DataType>
 std::vector<DataType> slice(const std::vector<DataType>& x, 
     std::size_t start_index, 
     std::size_t end_index) {
+
+    if (end_index - start_index < 0 || end_index - start_index > x.size() - 1) {
+        throw std::invalid_argument("end_index must be greater than start_index.");
+    }
     
-    std::size_t num_rows = end_index - start_index;
+    std::size_t num_rows = end_index - start_index + 1;
     std::vector<DataType> sub_vec;
     sub_vec.reserve(num_rows);
     sub_vec = std::vector<int>(v1.begin() + start_index, v1.end() + end_index + 1);
