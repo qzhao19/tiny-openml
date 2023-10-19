@@ -131,14 +131,14 @@ protected:
         s1.is_left = true;
         s1.depth = 1;
         s1.parent = 0;
-        s1.data = common::slice<std::vector<std::vector<DataType>>>(data, 0, mid_idx, 0, num_features);
-        s1.indices = common::slice<std::vector<DataType>>(indices, 0, mid_idx);
+        s1.data = common::slice<DataType>(data, 0, mid_idx, 0, num_features - 1);
+        s1.indices = common::slice<DataType>(indices, 0, mid_idx);
 
         s2.is_left = false;
         s2.depth = 1;
         s2.parent = 0;
-        s2.data = data;
-        s2.indices = indices;
+        s2.data = common::slice<DataType>(data, mid_idx, num_samples - 1, 0, num_features - 1);
+        s2.indices = common::slice<DataType>(indices, mid_idx, num_samples - 1);
 
         std::stack<StackData> stack;
         stack.push(s1);
