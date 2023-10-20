@@ -120,7 +120,7 @@ protected:
         left_hyper_rect[1][0] = partition_val;
         right_hyper_rect[0][0] = partition_val;
 
-        KDTreeNode node;
+        KDTreeNode node; //std::make_shared<NodeType>();
         node.left_hyper_rect = left_hyper_rect;
         node.right_hyper_rect = right_hyper_rect;
 
@@ -147,37 +147,44 @@ protected:
         // recursively split data in halves using hyper-rectangles:
         while (!stack.empty()) {
             // pop data off stack
-            auto s = stack.top();
+            auto tmp_stack = stack.top();
             stack.pop();
 
-            num_samples = s.data.size();
+            num_samples = tmp_stack.data.size();
             std::size_t node_ptr = tree_.size();
 
             // update parent node
             KDTreeNode tmp_node;
-            tmp_node = tree_[s.parent];
+            tmp_node = tree_[tmp_stack.parent];
 
             if (s.is_left) {
-                KDTreeNode node1;
-                node1.left = node_ptr;
-                node1.right = tmp_node.right;
-                node1.indices = tmp_node.indices;
-                node1.data = tmp_node.data;
-                node1.left_hyper_rect = tmp_node.left_hyper_rect;
-                node1.right_hyper_rect = tmp_node.right_hyper_rect;
-                tree_[s.parent] = node1;
+                KDTreeNode left_node;
+                left_node.left = node_ptr;
+                left_node.right = tmp_node.right;
+                left_node.indices = tmp_node.indices;
+                left_node.data = tmp_node.data;
+                left_node.left_hyper_rect = tmp_node.left_hyper_rect;
+                left_node.right_hyper_rect = tmp_node.right_hyper_rect;
+                tree_[tmp_stack.parent] = left_node;
             }
             else {
-                KDTreeNode node2;
-                node2.left = tmp_node.left;
-                node2.right = node_ptr;
-                node2.indices = tmp_node.indices;
-                node2.data = tmp_node.data;
-                node2.left_hyper_rect = tmp_node.left_hyper_rect;
-                node2.right_hyper_rect = tmp_node.right_hyper_rect;
-                tree_[s.parent] = node2;
+                KDTreeNode right_node;
+                right_node.left = tmp_node.left;
+                right_node.right = node_ptr;
+                right_node.indices = tmp_node.indices;
+                right_node.data = tmp_node.data;
+                right_node.left_hyper_rect = tmp_node.left_hyper_rect;
+                right_node.right_hyper_rect = tmp_node.right_hyper_rect;
+                tree_[tmp_stack.parent] = right_node;
             }
 
+            // check leaf node, if yes, insert node in kd-tree
+            if (num_samples < leaf_size_) {
+                KDTreeNode leaf;
+                leaf.data = tmp_stack.data;
+
+
+            }
 
 
 
