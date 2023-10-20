@@ -786,7 +786,6 @@ std::vector<DataType> difference(const std::vector<DataType>& v1,
 	return result;
 };
 
-
 /**
  * @brief Returns the indices that would sort a vector.
  *      It returns an array of indices of the same shape 
@@ -825,7 +824,6 @@ const std::vector<std::size_t> argsort(const std::vector<DataType>& x, bool reve
     return indices;
 };
 
-
 /**
  * @brief slice 2d vectorto make a subvector from a given vector
  * 
@@ -844,11 +842,17 @@ std::vector<std::vector<DataType>> slice(const std::vector<std::vector<DataType>
     std::size_t end_col) {
     
     if (end_row < start_row || end_row - start_row > x.size() - 1) {
-        throw std::invalid_argument("end_row must be greater than start_row.");
+        std::ostringstream err_msg;
+        err_msg << "Row number error, start_row = " << start_row
+                << ", end_row = " << end_row << std::endl; 
+        throw std::invalid_argument(err_msg.str());
     }
 
     if (end_col - start_col < 0 || end_col - start_col > x.size() - 1) {
-        throw std::invalid_argument("end_col must be greater than start_col.");
+        std::ostringstream err_msg;
+        err_msg << "Column number error, start_col = " << start_col
+                << ", end_col = " << end_col << std::endl; 
+        throw std::invalid_argument(err_msg.str());
     }
     
     std::size_t num_rows = end_row - start_row + 1;
@@ -861,7 +865,6 @@ std::vector<std::vector<DataType>> slice(const std::vector<std::vector<DataType>
 
     return sub_vec;
 };
-
 
 /**
  * @brief slice 1d vector to make a subvector from a given vector
@@ -877,7 +880,10 @@ std::vector<DataType> slice(const std::vector<DataType>& x,
     std::size_t end_index) {
 
     if (end_index - start_index < 0 || end_index - start_index > x.size() - 1) {
-        throw std::invalid_argument("end_index must be greater than start_index.");
+        std::ostringstream err_msg;
+        err_msg << "Index number error, start_index = " << start_index
+                << ", end_index = " << end_index << std::endl; 
+        throw std::invalid_argument(err_msg.str());
     }
     
     std::size_t num_rows = end_index - start_index + 1;
