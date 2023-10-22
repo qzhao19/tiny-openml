@@ -9,6 +9,9 @@ namespace tree {
 template<typename DataType>
 class KDTree {
 private:
+    using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
+    using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+
     struct KDTreeNode {
         int left;
         int right;
@@ -131,14 +134,18 @@ protected:
         s1.is_left = true;
         s1.depth = 1;
         s1.parent = 0;
-        s1.data = common::slice<DataType>(data, 0, mid_idx, 0, num_features - 1);
-        s1.indices = common::slice<DataType>(indices, 0, mid_idx);
+        std::vector<std::vector<DataType>> split_data1 = common::slice<DataType>(data, 0, mid_idx, 0, num_features - 1);
+        s1.data = std::make_shared<std::vector<std::vector<DataType>>>(split_data1);
+        std::vector<std::size_t> split_indices1 = common::slice<DataType>(indices, 0, mid_idx);
+        s1.indices = std::make_shared<std::vector<<std::size_t>>(split_indices1);
 
         s2.is_left = false;
         s2.depth = 1;
         s2.parent = 0;
-        s2.data = common::slice<DataType>(data, mid_idx, num_samples - 1, 0, num_features - 1);
-        s2.indices = common::slice<DataType>(indices, mid_idx, num_samples - 1);
+        std::vector<std::vector<DataType>> split_data2 = common::slice<DataType>(data, mid_idx, num_samples - 1, 0, num_features - 1);
+        s2.data = std::make_shared<std::vector<std::vector<DataType>>>(split_data2);
+        std::vector<std::size_t> split_indices2 = common::slice<DataType>(indices, mid_idx, num_samples - 1);
+        s2.indices = std::make_shared<std::vector<<std::size_t>>(split_indices2);
 
         std::stack<StackData> stack;
         stack.push(s1);
@@ -150,7 +157,7 @@ protected:
             auto tmp_stack = stack.top();
             stack.pop();
 
-            num_samples = tmp_stack.data.size();
+            num_samples =  .data.size();
             std::size_t node_ptr = tree_.size();
 
             // update parent node
