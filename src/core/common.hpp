@@ -817,7 +817,7 @@ const std::vector<std::size_t> argsort(const std::vector<DataType>& x, bool reve
         });
     }
     
-    for (int i = 0; i < itemsets_list.size(); ++i) {
+    for (int i = 0; i < combine.size(); ++i) {
         indices[i] = combine[i].second;
     }
 
@@ -889,7 +889,7 @@ std::vector<DataType> slice(const std::vector<DataType>& x,
     std::size_t num_rows = end_index - start_index + 1;
     std::vector<DataType> sub_vec;
     sub_vec.reserve(num_rows);
-    sub_vec = std::vector<int>(v1.begin() + start_index, v1.end() + end_index + 1);
+    sub_vec = std::vector<int>(x.begin() + start_index, x.end() + end_index + 1);
 
     return sub_vec;
 };
