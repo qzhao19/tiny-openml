@@ -10,32 +10,36 @@ template<typename DataType>
 class KDTree {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
-    using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+    using RowVecType = Eigen::Matrix<DataType, 1, Eigen::Dynamic>;
+    using ColVecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+    using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+
 
     struct KDTreeNode {
         int left;
         int right;
-        std::shared_ptr<std::vector<std::size_t>> indices;
-        std::shared_ptr<std::vector<std::vector<DataType>>> data;
-        std::shared_ptr<std::vector<std::vector<DataType>>> left_hyper_rect;
-        std::shared_ptr<std::vector<std::vector<DataType>>> right_hyper_rect;
+        std::shared_ptr<MatType> data;
+        std::shared_ptr<IdxVecType> indices;
+        std::shared_ptr<MatType> left_hyper_rect;
+        std::shared_ptr<MatType> right_hyper_rect;
 
         KDTreeNode(): left(-1), 
             right(-1), 
+            data(nullptr),
             indices(nullptr), 
-            data(nullptr), 
             left_hyper_rect(nullptr), 
             right_hyper_rect(nullptr) {};
 
         KDTreeNode(int left_, 
             int right_, 
-            std::shared_ptr<std::vector<std::size_t>> indices_, 
-            std::shared_ptr<std::vector<std::vector<DataType>>> data_, 
-            std::shared_ptr<std::vector<std::vector<DataType>>> left_hyper_rect_, 
-            std::shared_ptr<std::vector<std::vector<DataType>>> right_hyper_rect_): 
+            std::shared_ptr<MatType> data_, 
+            std::shared_ptr<IdxVecType> indices_,
+            std::shared_ptr<MatType> left_hyper_rect_, 
+            std::shared_ptr<MatType> right_hyper_rect_): 
                 left(left_), 
                 right(right_), 
                 data(data_), 
+                indices(indices_), 
                 left_hyper_rect(left_hyper_rect_), 
                 right_hyper_rect(right_hyper_rect_) {};
         
@@ -46,26 +50,25 @@ private:
         bool is_left;
         std::size_t depth;
         std::size_t parent;
-        std::vector<std::size_t> indices;
-        std::vector<std::vector<DataType>> data;
+        IdxVecType indices;
+        MatType data;
     };
 
     std::size_t leaf_size_;
     std::vector<KDTreeNode> tree_;
-    const std::vector<std::vector<DataType>> data_;
+    MatType data_;
     
 protected:
-    std::size_t find_partition_axis(const std::vector<std::vector<DataType>>& data) {
-        std::size_t num_samples = data.size();
-        std::size_t num_features = data[0].size();
+    std::size_t find_partition_axis(const MatType& data) {
+        std::size_t num_samples = data.rows(), num_features = data.cols();
         std::vector<DataType> range_bounds(num_features);
         std::vector<DataType> lower_bounds(num_features, ConstType<DataType>::infinity());
         std::vector<DataType> upper_bounds(num_features, -ConstType<DataType>::infinity());
 
         for (std::size_t i = 0; i < num_samples; ++i) {
             for (std::size_t j = 0; j < num_features; ++j) {
-                lower_bounds[j] = std::min(lower_bounds[j], data[i][j]);
-                upper_bounds[j] = std::max(upper_bounds[j], data[i][j]);
+                lower_bounds[j] = std::min(lower_bounds[j], data(i, j));
+                upper_bounds[j] = std::max(upper_bounds[j], data(i, j));
             }
         }
 
@@ -80,53 +83,35 @@ protected:
         return partition_axis;
     };
 
+
     void build_tree() {
+        MatType data = data_;
+        std::size_t num_samples = data.rows(), num_features = data.cols();
 
-        std::vector<std::vector<DataType>> data = data_;
-        std::size_t num_samples = data.size();
-        std::size_t num_features = data[0].size();
-        
         // find bounding hyper-rectangle
-        std::vector<DataType> lower_bounds(num_features, ConstType<DataType>::infinity());
-        std::vector<DataType> upper_bounds(num_features, -ConstType<DataType>::infinity());
-
-        for (std::size_t i = 0; i < num_samples; ++i) {
-            for (std::size_t j = 0; j < num_features; ++j) {
-                lower_bounds[j] = std::min(lower_bounds[j], data[i][j]);
-                upper_bounds[j] = std::max(upper_bounds[j], data[i][j]);
-            }
-        }
-
-        std::vector<std::vector<DataType>> hyper_rect(2, std::vector<DataType>(num_features));
-        hyper_rect[0].emplace_back(lower_bounds);
-        hyper_rect[1].emplace_back(upper_bounds);
+        MatType hyper_rect(2, num_features);
+        hyper_rect.row(0) = data.colwise().min();
+        hyper_rect.row(1) = data.colwise().max();
 
         // create root of kd-tree
+        // find the partition axis via function find_partition_axis
+        // the sort data along the partition axis 
         std::size_t partition_axis = find_partition_axis(data);
-        std::vector<DataType> partition_data;
-
-        for (const auto& row : data) {
-            partition_data.emplace_back(row[partition_axis]);
-        }
-        std::vector<std::size_t> indices = common::argsort<DataType>(partition_data);
-        
-        for (std::size_t i = 0; i < indices.size(); ++i) {
-            data[i] = data[indices[i]];
-        }
+        IdxVecType indices = common::argsort(data.col(partition_axis), 1);
+        data = data(indices, Eigen::all);
 
         std::size_t mid_idx = num_samples / 2;
-        DataType partition_val = data[mid_idx][partition_axis];
+        DataType partition_val = data(mid_idx, partition_axis);
 
-        std::vector<std::vector<DataType>> left_hyper_rect, right_hyper_rect;
-        left_hyper_rect = hyper_rect;
-        right_hyper_rect = hyper_rect;
-        left_hyper_rect[1][0] = partition_val;
-        right_hyper_rect[0][0] = partition_val;
+        // define left_hyper_rect and right_hyper_rect
+        MatType left_hyper_rect = hyper_rect;
+        MatType right_hyper_rect = hyper_rect;
+        left_hyper_rect(1, 0) = partition_val;
+        right_hyper_rect(0, 0) = partition_val;
 
         KDTreeNode node; //std::make_shared<NodeType>();
-        node.left_hyper_rect = left_hyper_rect;
-        node.right_hyper_rect = right_hyper_rect;
-
+        node.left_hyper_rect = std::make_shared<MatType>(left_hyper_rect);
+        node.right_hyper_rect = std::make_shared<MatType>(right_hyper_rect);
         tree_.emplace_back(node);
 
         // create a stack to restore data, indice, parent indice, depth and is_left
@@ -134,18 +119,14 @@ protected:
         s1.is_left = true;
         s1.depth = 1;
         s1.parent = 0;
-        std::vector<std::vector<DataType>> split_data1 = common::slice<DataType>(data, 0, mid_idx, 0, num_features - 1);
-        s1.data = std::make_shared<std::vector<std::vector<DataType>>>(split_data1);
-        std::vector<std::size_t> split_indices1 = common::slice<DataType>(indices, 0, mid_idx);
-        s1.indices = std::make_shared<std::vector<<std::size_t>>(split_indices1);
+        s1.data = data.block(0, 0, mid_idx, num_features);
+        s1.indices = indices.block(0, 0, mid_idx, 1)
 
         s2.is_left = false;
         s2.depth = 1;
         s2.parent = 0;
-        std::vector<std::vector<DataType>> split_data2 = common::slice<DataType>(data, mid_idx, num_samples - 1, 0, num_features - 1);
-        s2.data = std::make_shared<std::vector<std::vector<DataType>>>(split_data2);
-        std::vector<std::size_t> split_indices2 = common::slice<DataType>(indices, mid_idx, num_samples - 1);
-        s2.indices = std::make_shared<std::vector<<std::size_t>>(split_indices2);
+        s1.data = data.block(mid_idx + 1, 0, num_samples, num_features);
+        s1.indices = indices.block(mid_idx + 1, 0, num_samples, 1);
 
         std::stack<StackData> stack;
         stack.push(s1);
@@ -154,63 +135,20 @@ protected:
         // recursively split data in halves using hyper-rectangles:
         while (!stack.empty()) {
             // pop data off stack
-            auto tmp_stack = stack.top();
-            stack.pop();
-
-            num_samples =  .data.size();
-            std::size_t node_ptr = tree_.size();
-
-            // update parent node
-            KDTreeNode tmp_node;
-            tmp_node = tree_[tmp_stack.parent];
-
-            if (s.is_left) {
-                KDTreeNode left_node;
-                left_node.left = node_ptr;
-                left_node.right = tmp_node.right;
-                left_node.indices = tmp_node.indices;
-                left_node.data = tmp_node.data;
-                left_node.left_hyper_rect = tmp_node.left_hyper_rect;
-                left_node.right_hyper_rect = tmp_node.right_hyper_rect;
-                tree_[tmp_stack.parent] = left_node;
-            }
-            else {
-                KDTreeNode right_node;
-                right_node.left = tmp_node.left;
-                right_node.right = node_ptr;
-                right_node.indices = tmp_node.indices;
-                right_node.data = tmp_node.data;
-                right_node.left_hyper_rect = tmp_node.left_hyper_rect;
-                right_node.right_hyper_rect = tmp_node.right_hyper_rect;
-                tree_[tmp_stack.parent] = right_node;
-            }
-
-            // check leaf node, if yes, insert node in kd-tree
-            if (num_samples < leaf_size_) {
-                KDTreeNode leaf;
-                leaf.data = tmp_stack.data;
-
-
-            }
-
-
-
-
+            
         }
-
     }
-    
 
 
 public:
-    KDTree(const std::vector<std::vector<DataType>>& data, 
+    KDTree(const MatType& data, 
         std::size_t leaf_size): data_(data), leaf_size_(leaf_size) {};
 
-    KDTree(const std::vector<std::vector<DataType>>& data): 
+    KDTree(const MatType& data): 
         data_(data), leaf_size_(10) {};
 
     ~KDTree() {
-        data_.clear();
+        tree_.clear();
     };
 
 
@@ -220,7 +158,7 @@ public:
 
         std::cout << axis << std::endl;
 
-        build_tree();
+        // build_tree();
 
     };
 
