@@ -13,6 +13,7 @@ private:
     using RowVecType = Eigen::Matrix<DataType, 1, Eigen::Dynamic>;
     using ColVecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxMatType = Eigen::Matrix<Eigen::Index, Eigen::Dynamic, Eigen::Dynamic>;
 
 
     struct KDTreeNode {
@@ -90,20 +91,28 @@ protected:
 
         // find bounding hyper-rectangle
         MatType hyper_rect(2, num_features);
-        hyper_rect.row(0) = data.colwise().min();
-        hyper_rect.row(1) = data.colwise().max();
+        hyper_rect.row(0) = data.colwise().minCoeff();
+        hyper_rect.row(1) = data.colwise().maxCoeff();
 
         // create root of kd-tree
         // find the partition axis via function find_partition_axis
         // the sort data along the partition axis 
         std::size_t partition_axis = find_partition_axis(data);
-        IdxVecType indices = common::argsort(data.col(partition_axis), 1);
+        IdxVecType indices = common::argsort<MatType, IdxMatType, IdxVecType>(data.col(partition_axis), 0);
         data = data(indices, Eigen::all);
 
         std::size_t mid_idx = num_samples / 2;
         std::size_t left_num_samples = mid_idx;
         std::size_t right_num_samples = num_samples - mid_idx;
         DataType partition_val = data(mid_idx, partition_axis);
+
+        // std::cout << indices << std::endl;
+        // std::cout << "indices" << std::endl;
+        // std::cout << mid_idx << std::endl;
+        // std::cout << partition_axis << std::endl;
+        // std::cout << partition_val << std::endl;
+
+
 
         // define left_hyper_rect and right_hyper_rect
         MatType left_hyper_rect = hyper_rect;
@@ -145,6 +154,10 @@ protected:
 
             // update parent node index
             KDTreeNode curr_node = tree_[curr_stk_data.index];
+            if (curr_node.left_hyper_rect) {
+                std::cout << "current left_hyper_rect = " << *curr_node.left_hyper_rect << std::endl;
+            }
+
             if (curr_stk_data.is_left) {
                 tree_[curr_stk_data.index].left = node_ptr;
             }
@@ -154,7 +167,7 @@ protected:
 
             // insert node in kd-tree
             // leaf node ? create leaf node
-            if (curr_num_samples < leaf_size_) {
+            if (curr_num_samples <= leaf_size_) {
                 KDTreeNode leaf_node;
                 leaf_node.data = std::make_shared<MatType>(curr_stk_data.data);
                 leaf_node.indices = std::make_shared<IdxVecType>(curr_stk_data.indices);
@@ -173,7 +186,7 @@ protected:
 
                 // find the partition axis 
                 partition_axis = find_partition_axis(curr_stk_data.data);
-                indices = common::argsort(curr_stk_data.data.col(partition_axis), 1);
+                indices = common::argsort<MatType, IdxMatType, IdxVecType>(curr_stk_data.data.col(partition_axis), 0);
                 data = curr_stk_data.data(indices, Eigen::all);
                 node_ptr = tree_.size();
 
@@ -197,12 +210,12 @@ protected:
                 partition_val = data(curr_mid_idx, partition_axis);
 
                 if (curr_stk_data.is_left) {
-                    left_hyper_rect = curr_node.left_hyper_rect;
-                    right_hyper_rect = curr_node.left_hyper_rect;
+                    left_hyper_rect = *curr_node.left_hyper_rect;
+                    right_hyper_rect = *curr_node.left_hyper_rect;
                 }
                 else {
-                    left_hyper_rect = curr_node.right_hyper_rect;
-                    right_hyper_rect = curr_node.right_hyper_rect;
+                    left_hyper_rect = *curr_node.right_hyper_rect;
+                    right_hyper_rect = *curr_node.right_hyper_rect;
                 }
 
                 left_hyper_rect(1, partition_axis) = partition_val;
@@ -232,11 +245,38 @@ public:
 
     void test() {
 
-        std::size_t axis = find_partition_axis(data_);
+        // std::size_t axis = find_partition_axis(data_);
 
-        std::cout << axis << std::endl;
+        // std::cout << axis << std::endl;
 
-        // build_tree();
+        build_tree();
+
+
+        // for (auto node : tree_) {
+        //     if (node.left_hyper_rect) {
+        //         std::cout << "left_hyper_rect" << std::endl;
+        //         std::cout << *node.left_hyper_rect << std::endl;
+        //     }
+
+        //     if (node.right_hyper_rect) {
+        //         std::cout << "right_hyper_rect" << std::endl;
+        //         std::cout << *node.right_hyper_rect << std::endl;
+        //     }
+
+        //     if (node.data) {
+        //         std::cout << "data" << std::endl;
+        //         std::cout << *node.data << std::endl;
+        //     }
+
+        //     if (node.indices) {
+        //         std::cout << "indices" << std::endl;
+        //         std::cout << *node.indices << std::endl;
+        //     }
+
+        //     std::cout << "left = " << node.left << ", right = " << node.right << std::endl;
+        // }
+
+
 
     };
 
