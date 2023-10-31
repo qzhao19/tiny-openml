@@ -236,7 +236,7 @@ IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
     if (!reverse) {
         if (axis == 1) {
             for (auto row : copy_x.rowwise()) {
-                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                std::stable_sort(idxvec.data(), idxvec.data() + idxvec.size(), 
                     [&row](std::size_t i, std::size_t j) -> bool {
                         return row(i) < row(j);
                     }
@@ -247,7 +247,7 @@ IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
         }
         else if (axis == 0) {
             for (auto col : copy_x.colwise()) {
-                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                std::stable_sort(idxvec.data(), idxvec.data() + idxvec.size(), 
                     [&col](std::size_t i, std::size_t j) -> bool {
                         return col(i) < col(j);
                     }
@@ -260,7 +260,7 @@ IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
     else {
         if (axis == 1) {
             for (auto row : copy_x.rowwise()) {
-                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                std::stable_sort(idxvec.data(), idxvec.data() + idxvec.size(), 
                     [&row](std::size_t i, std::size_t j) -> bool {
                         return row(i) > row(j);
                     }
@@ -271,7 +271,7 @@ IdxMatType argsort(const MatType& x, int axis = 0, bool reverse = false) {
         }
         else if (axis == 0) {
             for (auto col : copy_x.colwise()) {
-                std::sort(idxvec.data(), idxvec.data() + idxvec.size(), 
+                std::stable_sort(idxvec.data(), idxvec.data() + idxvec.size(), 
                     [&col](std::size_t i, std::size_t j) -> bool {
                         return col(i) > col(j);
                     }
@@ -647,7 +647,8 @@ std::vector<std::vector<DataType>> sort(
  * 
 */
 template<typename DataType>
-std::vector<std::vector<DataType>> remove_duplicate_rows(const std::vector<std::vector<DataType>>& X) {
+std::vector<std::vector<DataType>> remove_duplicate_rows(
+    const std::vector<std::vector<DataType>>& X) {
     if (X.empty() || X[0].empty()) {
         throw std::invalid_argument("Input 2d vector is empty!");
     }
@@ -807,12 +808,12 @@ const std::vector<std::size_t> argsort(const std::vector<DataType>& x, bool reve
     }
 
     if (!reverse) {
-        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+        std::stable_sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
             return left.first < right.first;
         });
     }
     else {
-        std::sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
+        std::stable_sort(combine.begin(), combine.end(), [](const auto &left, const auto &right) {
             return left.first > right.first;
         });
     }
