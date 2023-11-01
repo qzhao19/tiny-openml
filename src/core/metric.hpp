@@ -47,7 +47,7 @@ double explained_variance_score(const VecType& y_true,
  * Compute the L2 euclidean distances between the vectors in X and Y.
 */
 template <typename DataType>
-DataType euclidean_distance(const std::vector<DataType>& a, const std::vector<DataType>& b) {
+double euclidean_distance(const std::vector<DataType>& a, const std::vector<DataType>& b) {
     std::vector<DataType> aux;
     std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(aux),
                    [](DataType x1, DataType x2) { return std::pow((x1 - x2), 2); });
@@ -59,7 +59,7 @@ DataType euclidean_distance(const std::vector<DataType>& a, const std::vector<Da
  * Compute the L1 manhattan distances between the vectors in X and Y.
 */
 template <typename DataType>
-DataType manhattan_distance(const std::vector<DataType>& a, const std::vector<DataType>& b) {
+double manhattan_distance(const std::vector<DataType>& a, const std::vector<DataType>& b) {
     std::vector<DataType> aux;
     std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(aux),
                    [](DataType x1, DataType x2) { return std::abs(x1 - x2); });
@@ -67,8 +67,54 @@ DataType manhattan_distance(const std::vector<DataType>& a, const std::vector<Da
     return std::accumulate(aux.begin(), aux.end(), 0.0);
 }
 
+/**
+ * Compute the minkowski metric between 2 vectors in X and Y.
+ * Minkowski metric considered as a generalization of both 
+ * the Euclidean distance and the Manhattan distance.
+ * 
+ * @param x 1darray like data
+ *      input vector 1
+ * @param y 1darray like data
+ *      input vector 2
+ * @param p int, default is 2
+ *      determinate if Euclidean, Manhattan or chebyshev  
+*/
+template <typename MatType>
+double minkowski_distance(const MatType& x, const MatType& y, std::size_t p = 2) {
+    std::ostringstream err_msg;
+    if (x.size() != y.size()) {
+        // std::ostringstream err_msg;
+        err_msg << "x number of elements " << x.size() << " != " 
+                << "y number of elements " << y.size() << std::endl; 
+        throw std::invalid_argument(err_msg.str());
+    }
 
+    if (x.rows() != y.rows() || x.cols() != y.cols()) {
+        // std::ostringstream err_msg;
+        err_msg << "x and y did not have the same shape." << std::endl;
+        throw std::invalid_argument(err_msg.str());
+    }
 
+    if (p != 2 || p != 1 || p != Eigen::Infinity) {
+        // std::ostringstream err_msg;
+        err_msg << "'p' should be 2, 1 or Eigen::Infinity." << std::endl;
+        throw std::invalid_argument(err_msg.str());
+    }
+
+    double dist;
+    // dist = std::sqrt((x - y).template lpNorm<p>());
+    if (p == 2) {
+        dist = std::sqrt((x - y).template lpNorm<2>());
+    }
+    else if (p == 1) {
+        dist = std::sqrt((x - y).template lpNorm<1>());
+    }
+    else if (p == Eigen::Infinity) {
+        dist = std::sqrt((x - y).template lpNorm<Eigen::Infinity>());
+    }
+
+    return dist;
+}
 
 
 }
