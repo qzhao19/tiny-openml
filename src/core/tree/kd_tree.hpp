@@ -7,7 +7,7 @@ namespace openml {
 namespace tree {
 
 template<typename DataType>
-class KDTree {
+class KDTree {   
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using RowVecType = Eigen::Matrix<DataType, 1, Eigen::Dynamic>;
@@ -54,10 +54,12 @@ private:
         MatType data;
     };
 
+    int p_;
+    std::string metric_;
     std::size_t leaf_size_;
     std::vector<KDTreeNode> tree_;
     MatType data_;
-    
+
 protected:
     std::size_t find_partition_axis(const MatType& data) {
         std::size_t num_samples = data.rows(), num_features = data.cols();
@@ -221,12 +223,69 @@ protected:
     }
 
 
+    bool check_intersection(const MatType& hyper_rect, 
+        const RowVecType& centroid, 
+        double radius) {
+
+        RowVecType lower_bounds = hyper_rect.row(0);
+        RowVecType upper_bounds = hyper_rect.row(1);
+        RowVecType c = centroid;
+
+        for (int i = 0; i < c.cols(); ++i) {
+            if (c(0, i) > upper_bounds(0, i)) {
+                c(0, i) = upper_bounds(0, i);
+            }
+            if (c(0, i) < lower_bounds(0, i)) {
+                c(0, i) = lower_bounds(0, i);
+            } 
+        }      
+
+        double dist = metric::minkowski_distance<RowVecType>(c, centroid, p_)
+        
+        return dist < radius ? true : false;
+    }
+
+
+    std::vector<std::pair<DataType, Eigen::Index>> compute_distance(
+        const MatType& data,
+        const MatType& leaf_data,
+        const IdxVecType& leaf_indices
+        std::size_t k) {
+
+        std::size_t num_samples = data.rows(), num_features = leaf_data.cols();
+        if (k >= num_samples) {
+            k = num_samples;
+        }
+
+        
+
+
+
+    }
+
+
+
 public:
     KDTree(const MatType& data, 
-        std::size_t leaf_size): data_(data), leaf_size_(leaf_size) {};
+        std::size_t leaf_size, 
+        std::string metric): data_(data), 
+            leaf_size_(leaf_size), 
+            metric_(metric) {
+        if (metric == "manhattan") {
+            p_ = 1;
+        }
+        else if (metric == "euclidean") {
+            p_ = 2;
+        }
+        else if (metric == "chebyshev") {
+            p_ = Eigen::Infinity;
+        }
+    };
 
     KDTree(const MatType& data): 
-        data_(data), leaf_size_(10) {};
+        data_(data), leaf_size_(10), metric_("euclidean") {
+            p_ = 2;
+        };
 
     ~KDTree() {
         tree_.clear();
@@ -240,31 +299,29 @@ public:
 
         build_tree();
 
-        
+        // for (auto node : tree_) {
+        //     if (node.left_hyper_rect) {
+        //         std::cout << "left_hyper_rect" << std::endl;
+        //         std::cout << *node.left_hyper_rect << std::endl;
+        //     }
 
-        for (auto node : tree_) {
-            if (node.left_hyper_rect) {
-                std::cout << "left_hyper_rect" << std::endl;
-                std::cout << *node.left_hyper_rect << std::endl;
-            }
+        //     if (node.right_hyper_rect) {
+        //         std::cout << "right_hyper_rect" << std::endl;
+        //         std::cout << *node.right_hyper_rect << std::endl;
+        //     }
 
-            if (node.right_hyper_rect) {
-                std::cout << "right_hyper_rect" << std::endl;
-                std::cout << *node.right_hyper_rect << std::endl;
-            }
+        //     if (node.data) {
+        //         std::cout << "data" << std::endl;
+        //         std::cout << *node.data << std::endl;
+        //     }
 
-            if (node.data) {
-                std::cout << "data" << std::endl;
-                std::cout << *node.data << std::endl;
-            }
+        //     if (node.indices) {
+        //         std::cout << "indices" << std::endl;
+        //         std::cout << *node.indices << std::endl;
+        //     }
 
-            if (node.indices) {
-                std::cout << "indices" << std::endl;
-                std::cout << *node.indices << std::endl;
-            }
-
-            std::cout << "left = " << node.left << ", right = " << node.right << std::endl;
-        }
+        //     std::cout << "left = " << node.left << ", right = " << node.right << std::endl;
+        // }
 
 
 
