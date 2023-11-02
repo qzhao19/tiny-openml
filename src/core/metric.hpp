@@ -77,40 +77,39 @@ double manhattan_distance(const std::vector<DataType>& a, const std::vector<Data
  * @param y 1darray like data
  *      input vector 2
  * @param p int, default is 2
- *      determinate if Euclidean, Manhattan or chebyshev  
+ *      determinate if Euclidean, Manhattan or chebyshev
+ * @return a scalar, the distance of the two vectors
 */
 template <typename MatType>
-double minkowski_distance(const MatType& x, const MatType& y, std::size_t p = 2) {
+double minkowski_distance(const MatType& x, const MatType& y, int p) {
     std::ostringstream err_msg;
     if (x.size() != y.size()) {
-        // std::ostringstream err_msg;
         err_msg << "x number of elements " << x.size() << " != " 
                 << "y number of elements " << y.size() << std::endl; 
         throw std::invalid_argument(err_msg.str());
     }
 
     if (x.rows() != y.rows() || x.cols() != y.cols()) {
-        // std::ostringstream err_msg;
         err_msg << "x and y did not have the same shape." << std::endl;
         throw std::invalid_argument(err_msg.str());
     }
 
-    if (p != 2 || p != 1 || p != Eigen::Infinity) {
-        // std::ostringstream err_msg;
+    std::vector<int> lookup = {1, 2, Eigen::Infinity};
+    std::vector<int>::iterator iter = std::find(lookup.begin(), lookup.end(), p);
+    if (iter == lookup.end()) {
         err_msg << "'p' should be 2, 1 or Eigen::Infinity." << std::endl;
         throw std::invalid_argument(err_msg.str());
     }
 
     double dist;
-    // dist = std::sqrt((x - y).template lpNorm<p>());
     if (p == 2) {
-        dist = std::sqrt((x - y).template lpNorm<2>());
+        dist = (x - y).template lpNorm<2>();
     }
     else if (p == 1) {
-        dist = std::sqrt((x - y).template lpNorm<1>());
+        dist = (x - y).template lpNorm<1>();
     }
     else if (p == Eigen::Infinity) {
-        dist = std::sqrt((x - y).template lpNorm<Eigen::Infinity>());
+        dist = (x - y).template lpNorm<Eigen::Infinity>();
     }
 
     return dist;
