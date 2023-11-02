@@ -895,7 +895,33 @@ std::vector<DataType> slice(const std::vector<DataType>& x,
     return sub_vec;
 };
 
-
+template<typename MatType>
+MatType norm(const MatType& x, std::size_t axis, int ord) {
+    MatType sq_norm;
+    if (axis == 0) {
+        if (ord == 2) {
+            sq_norm = x.colwise().template lpNorm<2>();
+        }
+        else if (ord == 1) {
+            sq_norm = x.colwise().template lpNorm<1>();
+        }
+        else if (ord == Eigen::Infinity) {
+            sq_norm = x.colwise().template lpNorm<Eigen::Infinity>();
+        }        
+    }
+    else if (axis == 1) {
+        if (ord == 2) {
+            sq_norm = x.rowwise().template lpNorm<2>();
+        }
+        else if (ord == 1) {
+            sq_norm = x.rowwise().template lpNorm<1>();
+        }
+        else if (ord == Eigen::Infinity) {
+            sq_norm = x.rowwise().template lpNorm<Eigen::Infinity>();
+        } 
+    }
+    return sq_norm;
+};
 
 
 }
