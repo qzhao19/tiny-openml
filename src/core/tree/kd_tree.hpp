@@ -14,6 +14,9 @@ private:
     using ColVecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     using IdxMatType = Eigen::Matrix<Eigen::Index, Eigen::Dynamic, Eigen::Dynamic>;
+    // using NNType = std::pair<ColVecType, IdxVecType>;
+    using NNType = std::vector<std::pair<DataType, std::size_t>>;
+
 
     struct KDTreeNode {
         int left;
@@ -54,14 +57,14 @@ private:
         MatType data;
     };
 
-    int p_;
+    int ord_;
     std::string metric_;
     std::size_t leaf_size_;
-    std::vector<KDTreeNode> tree_;
+    std::shared_ptr<std::vector<KDTreeNode>> tree_;
     MatType data_;
 
 protected:
-    std::size_t find_partition_axis(const MatType& data) {
+    const std::size_t find_partition_axis(const MatType& data) const {
         std::size_t num_samples = data.rows(), num_features = data.cols();
         std::vector<DataType> range_bounds(num_features);
         std::vector<DataType> lower_bounds(num_features, ConstType<DataType>::infinity());
@@ -87,6 +90,7 @@ protected:
 
 
     void build_tree() {
+        tree_ = std::make_shared<std::vector<KDTreeNode>>();
         MatType data = data_;
         std::size_t num_samples = data.rows(), num_features = data.cols();
 
@@ -118,7 +122,7 @@ protected:
         KDTreeNode node; //std::make_shared<>();
         node.left_hyper_rect = std::make_shared<MatType>(left_hyper_rect);
         node.right_hyper_rect = std::make_shared<MatType>(right_hyper_rect);
-        tree_.emplace_back(node);
+        tree_->emplace_back(node);
 
         // create a stack to restore data, indice, parent indice, depth and is_left
         StackData init_stk_data1, init_stk_data2;
@@ -145,15 +149,15 @@ protected:
             node_stk.pop();
 
             std::size_t curr_num_samples = curr_stk_data.data.rows();
-            std::size_t node_ptr = tree_.size();
+            std::size_t node_ptr = tree_->size();
 
             // update parent node index
-            KDTreeNode curr_node = tree_[curr_stk_data.index];
+            KDTreeNode curr_node = tree_->at(curr_stk_data.index);
             if (curr_stk_data.is_left) {
-                tree_[curr_stk_data.index].left = node_ptr;
+                tree_->at(curr_stk_data.index).left = node_ptr;
             }
             else {
-                tree_[curr_stk_data.index].right = node_ptr;
+                tree_->at(curr_stk_data.index).right = node_ptr;
             }
 
             // insert node in kd-tree
@@ -166,7 +170,7 @@ protected:
                 leaf_node.right_hyper_rect = nullptr;
                 leaf_node.left = 0;
                 leaf_node.right = 0;
-                tree_.emplace_back(leaf_node);
+                tree_->emplace_back(leaf_node);
             }
             // not a leaf, split the data in two
             else {
@@ -182,7 +186,7 @@ protected:
                 );
                 data = curr_stk_data.data(indices, Eigen::all).eval();
                 partition_val = data(curr_mid_idx, partition_axis);
-                node_ptr = tree_.size();
+                node_ptr = tree_->size();
 
                 // push updated data, indices, index and current depth into stack
                 StackData update_stk_data1, update_stk_data2;
@@ -217,7 +221,7 @@ protected:
                 KDTreeNode branch_node;
                 branch_node.left_hyper_rect = std::make_shared<MatType>(left_hyper_rect);
                 branch_node.right_hyper_rect = std::make_shared<MatType>(right_hyper_rect);
-                tree_.emplace_back(branch_node);
+                tree_->emplace_back(branch_node);
             }   
         }
     }
@@ -238,28 +242,53 @@ protected:
             if (c(0, i) < lower_bounds(0, i)) {
                 c(0, i) = lower_bounds(0, i);
             } 
-        }      
+        }
 
-        double dist = metric::minkowski_distance<RowVecType>(c, centroid, p_)
+        double dist = metric::minkowski_distance<RowVecType>(c, centroid, ord_);
         
-        return dist < radius ? true : false;
+        return (dist < radius) ? true : false;
     }
 
 
-    std::vector<std::pair<DataType, Eigen::Index>> compute_distance(
-        const MatType& data,
+    const NNType compute_distance(const RowVecType& data, 
         const MatType& leaf_data,
-        const IdxVecType& leaf_indices
-        std::size_t k) {
+        const IdxVecType& leaf_indices, 
+        std::size_t k) const {
 
-        std::size_t num_samples = data.rows(), num_features = leaf_data.cols();
+        std::size_t num_samples = leaf_data.rows();
         if (k >= num_samples) {
             k = num_samples;
         }
 
+        MatType tmp = leaf_data.rowwise() - data;
+        ColVecType dist = common::norm<MatType>(tmp, 1, ord_);
+        IdxVecType indices = common::argsort<MatType, IdxMatType, IdxVecType>(dist, 0);
+        indices = indices.head(k).eval();
         
+        NNType nn;
+        for (int i = 0; i < k; ++i) {
+            nn.emplace_back(std::make_pair(dist(indices(i), 0), leaf_indices(indices(i))));
+        }
+        return nn;
+    }
+
+    const NNType query_single_data(const RowVecType& data, std::size_t k) {
+
+        std::stack<KDTreeNode> node_stk;
+        node_stk.push(tree_->at(0));
+        
+        while (!node_stk.empty()) {
+            KDTreeNode node = node_stk.top();
+            node_stk.pop();
+
+            if (node.indices != nullptr) {
+                NNType knn = compute_distance(data, node.data, node.indices, k);
+                // RowVecType dist = knn.first;
+
+            }
 
 
+        }
 
     }
 
@@ -267,28 +296,28 @@ protected:
 
 public:
     KDTree(const MatType& data, 
-        std::size_t leaf_size, 
-        std::string metric): data_(data), 
-            leaf_size_(leaf_size), 
-            metric_(metric) {
+        std::size_t leaf_size, std::string metric): data_(data), 
+            leaf_size_(leaf_size), metric_(metric) {
         if (metric == "manhattan") {
-            p_ = 1;
+            ord_ = 1;
         }
         else if (metric == "euclidean") {
-            p_ = 2;
+            ord_ = 2;
         }
         else if (metric == "chebyshev") {
-            p_ = Eigen::Infinity;
+            ord_ = Eigen::Infinity;
         }
     };
 
     KDTree(const MatType& data): 
         data_(data), leaf_size_(10), metric_("euclidean") {
-            p_ = 2;
+            ord_ = 2;
         };
 
     ~KDTree() {
-        tree_.clear();
+        if (tree_ != nullptr) {
+            tree_->clear();
+        }
     };
 
 
@@ -297,9 +326,9 @@ public:
         // std::size_t axis = find_partition_axis(data_);
         // std::cout << data << std::endl;
 
-        build_tree();
+        // build_tree();
 
-        // for (auto node : tree_) {
+        // for (auto node : *tree_) {
         //     if (node.left_hyper_rect) {
         //         std::cout << "left_hyper_rect" << std::endl;
         //         std::cout << *node.left_hyper_rect << std::endl;
@@ -323,6 +352,36 @@ public:
         //     std::cout << "left = " << node.left << ", right = " << node.right << std::endl;
         // }
 
+        // MatType hyper_rect{{4.3, 2.0 , 1.0 , 0.1},{4.4, 4.4, 6.9, 2.5}};
+        // RowVecType centroid{{4.4, 3.5, 1.4, 0.2, 0.9}};
+        // RowVecType c{{5.1, 3.58, 1.7, 0.24, 1.8}};
+
+        // std::cout << metric::minkowski_distance<RowVecType>(c, centroid, 2) << std::endl;
+        // std::cout << metric::minkowski_distance<RowVecType>(c, centroid, 1) << std::endl;
+
+
+        // RowVecType data{{7.2, 3.2, 6.0, 1.8}};
+        // MatType leaf_data{{7.1, 3.0, 5.9, 2.1},
+        //                   {6.3, 3.3, 6.0, 2.5},
+        //                   {7.2, 3.6, 6.1, 2.5},
+        //                   {7.3, 2.9, 6.3, 1.8},
+        //                   {7.6, 3.0, 6.6, 2.1},
+        //                   {7.7, 3.8, 6.7, 2.2},
+        //                   {7.7, 2.8, 6.7, 2.0},
+        //                   {7.7, 2.6, 6.9, 2.3}};
+
+        // IdxVecType leaf_indices(8); leaf_indices<<102, 100, 109, 107, 105, 117, 122, 118;
+
+        // NNType nn = compute_distance(data, leaf_data, leaf_indices, 5); 
+
+        // for (auto n : nn) {
+        //     std::cout << n.first << " " << n.second << std::endl;
+        // }
+
+        // std::cout << res.first << std::endl;
+        // std::cout << res.second << std::endl;
+
+        // std::cout << leaf_indices;
 
 
     };
