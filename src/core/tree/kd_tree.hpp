@@ -14,8 +14,6 @@ private:
     using ColVecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
     using IdxMatType = Eigen::Matrix<Eigen::Index, Eigen::Dynamic, Eigen::Dynamic>;
-    // using NNType = std::pair<ColVecType, IdxVecType>;
-    // using NNType = std::vector<std::pair<DataType, std::size_t>>;
     using NNType = std::pair<DataType, std::size_t>;
 
     struct neighbor_heap_cmp {
@@ -65,11 +63,11 @@ private:
     };
 
     int ord_;
+    MatType data_;
     std::string metric_;
     std::size_t leaf_size_;
     std::shared_ptr<std::vector<KDTreeNode>> tree_;
-    MatType data_;
-
+    
 protected:
     const std::size_t find_partition_axis(const MatType& data) const {
         std::size_t num_samples = data.rows(), num_features = data.cols();
@@ -94,7 +92,6 @@ protected:
         return partition_axis;
     };
 
-
     void build_tree() {
         tree_ = std::make_shared<std::vector<KDTreeNode>>();
         MatType data = data_;
@@ -113,7 +110,6 @@ protected:
             data.col(partition_axis), 0
         );
         data = data(indices, Eigen::all).eval();
-
         std::size_t mid_idx = num_samples / 2;
         std::size_t left_num_samples = mid_idx;
         std::size_t right_num_samples = num_samples - mid_idx;
@@ -180,6 +176,7 @@ protected:
             }
             // not a leaf, split the data in two
             else {
+                IdxVecType data_indices;
                 // split the data in two left_samples and right_samples
                 std::size_t curr_mid_idx = curr_num_samples / 2;
                 std::size_t curr_left_num_samples = curr_mid_idx;
@@ -191,6 +188,7 @@ protected:
                     curr_stk_data.data.col(partition_axis), 0
                 );
                 data = curr_stk_data.data(indices, Eigen::all).eval();
+                data_indices = curr_stk_data.indices(indices);
                 partition_val = data(curr_mid_idx, partition_axis);
                 node_ptr = tree_->size();
 
@@ -200,13 +198,13 @@ protected:
                 update_stk_data1.depth++;
                 update_stk_data1.index = node_ptr;
                 update_stk_data1.data = data.topRows(curr_left_num_samples);
-                update_stk_data1.indices = indices.head(curr_left_num_samples);
+                update_stk_data1.indices = data_indices.head(curr_left_num_samples);
 
                 update_stk_data2.is_left = false;
                 update_stk_data2.depth++;
                 update_stk_data2.index = node_ptr;
                 update_stk_data2.data = data.bottomRows(curr_right_num_samples);
-                update_stk_data2.indices = indices.tail(curr_right_num_samples);
+                update_stk_data2.indices = data_indices.tail(curr_right_num_samples);
 
                 node_stk.push(update_stk_data1);
                 node_stk.push(update_stk_data2);
@@ -232,7 +230,6 @@ protected:
         }
     }
 
-
     const bool check_intersection(const MatType& hyper_rect, 
         const RowVecType& centroid, 
         double radius) const {
@@ -254,7 +251,6 @@ protected:
         return (dist < radius) ? true : false;
     }
 
-
     const std::vector<NNType> compute_distance(const RowVecType& data, 
         const MatType& leaf_data,
         const IdxVecType& leaf_indices, 
@@ -265,11 +261,12 @@ protected:
             k = num_samples;
         }
 
+        // compute difference between leaf data and single data points
         MatType tmp = leaf_data.rowwise() - data;
         ColVecType dist = common::norm<MatType>(tmp, 1, ord_);
         IdxVecType indices = common::argsort<MatType, IdxMatType, IdxVecType>(dist, 0);
         indices = indices.head(k).eval();
-        
+
         std::vector<NNType> knn;
         for (int i = 0; i < k; ++i) {
             knn.emplace_back(
@@ -286,50 +283,21 @@ protected:
         std::stack<KDTreeNode> node_stk;
         node_stk.push(tree_->at(0));
 
-        std::vector<NNType> knn(k, std::make_pair(ConstType<DataType>::infinity(), 0));
+        std::vector<NNType> knn(k);
         NNHeapType nn_heap;
-        // std::vector<NNType> knn;
-        // knn.emplace_back(std::make_pair(ConstType<DataType>::infinity(), 0));
-        // std::vector<NNType> nns(
-        //     k, std::make_pair(ConstType<DataType>::infinity(), 0)
-        // );
-        // for (std::size_t i = 0; i < k; ++i) {
-        //     nn_heap.push(std::make_pair(ConstType<DataType>::infinity(), 0));
-        // }
-        // while(!nn_heap.empty()){
-        //     std::cout << nn_heap.top().first << " " << nn_heap.top().second << std::endl;
-        //     nn_heap.pop();
-        // }
+        for (std::size_t i = 0; i < k; ++i) {
+            nn_heap.push(std::make_pair(ConstType<DataType>::infinity(), 0));
+        }
 
+        // recursively iterate over the nodes
         while (!node_stk.empty()) {
             KDTreeNode node = node_stk.top();
             node_stk.pop();
-
-            for (const auto &nn : knn) {
-                std::cout << nn.first << " " << nn.second << " ";
-            }
-            std::cout << std::endl;
-
-            // bool found = node.indices != nullptr ? true : false;
-            // std::cout << "left_hyper_rect:" << found <<std::endl;
-            // if (node.left_hyper_rect) {
-            //     std::cout << "left_hyper_rect:" << std::endl;
-            //     std::cout << *node.left_hyper_rect << std::endl;
-            // }
-
             if (node.indices != nullptr) {
-                // std::cout << "left_hyper_rect:" << std::endl;
                 std::vector<NNType> single_knn = compute_distance(
                     data, *node.data, *node.indices, k
                 );
-
-                // for (size_t i = 0; i < single_knn.size(); i++) {
-                //     nn_heap.push(single_knn[i]);
-                // }
-                // while (k > 0) {
-                //     knn.emplace_back(nn_heap.top());
-                //     k--;
-                // }
+                // push nn into min priority queue 
                 for (auto iter = single_knn.begin(); iter != single_knn.end(); iter++) {
                     nn_heap.push(*iter);
                     // if heap size > k, pop top element, keep the size = k
@@ -337,29 +305,70 @@ protected:
                         nn_heap.pop();
                     }
                 }
-                // Find the first K smaller elements
-                for (int i = k - 1; i >= 0; i--) {
-                    knn[i] = std::make_pair(nn_heap.top().first, nn_heap.top().second);
-                    nn_heap.pop();
-                }
             }
             else {
-                DataType radius = knn.back().first;
+                DataType radius = nn_heap.top().first;
+                // check left branch
                 if (check_intersection(*node.left_hyper_rect, data, radius)) {
                     node_stk.push(tree_->at(node.left));
                 }
-
+                // chech right branch
                 if (check_intersection(*node.right_hyper_rect, data, radius)) {
                     node_stk.push(tree_->at(node.right));
                 }
             }
         }
-
+        // Find the first K smaller elements
+        for (int i = k - 1; i >= 0; i--) {
+            knn[i] = std::make_pair(nn_heap.top().first, nn_heap.top().second);
+            nn_heap.pop();
+        }
         return knn;
-
     }
 
+    const std::vector<NNType> query_radius_single_data(const RowVecType& data,
+        double radius) const {
+        
+        std::stack<KDTreeNode> node_stk;
+        node_stk.push(tree_->at(0));
+        std::vector<NNType> knn;
+        // recursively iterate over the nodes
+        while (!node_stk.empty()) {
+            KDTreeNode node = node_stk.top();
+            node_stk.pop();
 
+            if (node.indices != nullptr) {
+                MatType tmp = (*node.data).rowwise() - data;
+                ColVecType dist = common::norm<MatType>(tmp, 1, ord_);
+
+                std::vector<Eigen::Index> selected_indices;
+                auto selected_dist = (dist.array() <= static_cast<DataType>(radius));
+                for (std::size_t i = 0; i < selected_dist.size(); ++i) {
+                    if (selected_dist(i, 0)) {
+                        selected_indices.push_back(i);
+                    }
+                }
+                if (!selected_indices.empty()) {
+                    for (auto idx : selected_indices) {
+                        auto index = (*node.indices)(idx);
+                        auto distance = dist(idx, 0);
+                        knn.emplace_back(std::make_pair(distance, index));
+                    }
+                }
+            }
+            else {
+                // check left branch
+                if (check_intersection(*node.left_hyper_rect, data, radius)) {
+                    node_stk.push(tree_->at(node.left));
+                }
+                // chech right branch
+                if (check_intersection(*node.right_hyper_rect, data, radius)) {
+                    node_stk.push(tree_->at(node.right));
+                }
+            }
+        }
+        return knn;
+    }
 
 public:
     KDTree(const MatType& data, 
@@ -374,11 +383,14 @@ public:
         else if (metric == "chebyshev") {
             ord_ = Eigen::Infinity;
         }
+
+        build_tree();
     };
 
     KDTree(const MatType& data): 
         data_(data), leaf_size_(10), metric_("euclidean") {
             ord_ = 2;
+            build_tree();
         };
 
     ~KDTree() {
@@ -386,7 +398,6 @@ public:
             tree_->clear();
         }
     };
-
 
     const std::pair<MatType, IdxMatType> query(
         const MatType& data, 
@@ -396,16 +407,9 @@ public:
         MatType distances(num_samples, k);
         IdxMatType indices(num_samples, k);
 
-        // std::cout << "num_samples = " << num_samples << std::endl;
-
         for(std::size_t i = 0; i < num_samples; ++i) {
             std::vector<NNType> knn;
             knn = query_single_data(data.row(i), k);
-
-            // for (const auto &nn : knn) {
-            //     std::cout << nn.first << " " << nn.second << std::endl;
-            // }
-
             RowVecType dist(k);
             IdxMatType index(1, k);
             for (std::size_t j = 0; j < knn.size(); ++j) {
@@ -418,84 +422,21 @@ public:
         return std::make_pair(distances, indices);
     }
 
-
-    void test(const MatType& data) {
-
-        // std::size_t axis = find_partition_axis(data_);
-        // std::cout << data << std::endl;
-
-        build_tree();
-        std::cout << "build_tree" << std::endl;
-
-        MatType distances;
-        IdxMatType indices;
-
-        std::tie(distances, indices) = query(data, 4);
-
-        std::cout << "distances" << std::endl;
-        std::cout << distances << std::endl;
-
-        std::cout << "indices" << std::endl;
-        std::cout << indices << std::endl;
-
-        // for (auto node : *tree_) {
-        //     if (node.left_hyper_rect) {
-        //         std::cout << "left_hyper_rect" << std::endl;
-        //         std::cout << *node.left_hyper_rect << std::endl;
-        //     }
-
-        //     if (node.right_hyper_rect) {
-        //         std::cout << "right_hyper_rect" << std::endl;
-        //         std::cout << *node.right_hyper_rect << std::endl;
-        //     }
-
-        //     if (node.data) {
-        //         std::cout << "data" << std::endl;
-        //         std::cout << *node.data << std::endl;
-        //     }
-
-        //     if (node.indices) {
-        //         std::cout << "indices" << std::endl;
-        //         std::cout << *node.indices << std::endl;
-        //     }
-
-        //     std::cout << "left = " << node.left << ", right = " << node.right << std::endl;
-        // }
-
-        // MatType hyper_rect{{4.3, 2.0 , 1.0 , 0.1},{4.4, 4.4, 6.9, 2.5}};
-        // RowVecType centroid{{4.4, 3.5, 1.4, 0.2, 0.9}};
-        // RowVecType c{{5.1, 3.58, 1.7, 0.24, 1.8}};
-
-        // std::cout << metric::minkowski_distance<RowVecType>(c, centroid, 2) << std::endl;
-        // std::cout << metric::minkowski_distance<RowVecType>(c, centroid, 1) << std::endl;
-
-
-        // RowVecType data{{7.2, 3.2, 6.0, 1.8}};
-        // MatType leaf_data{{7.1, 3.0, 5.9, 2.1},
-        //                   {6.3, 3.3, 6.0, 2.5},
-        //                   {7.2, 3.6, 6.1, 2.5},
-        //                   {7.3, 2.9, 6.3, 1.8},
-        //                   {7.6, 3.0, 6.6, 2.1},
-        //                   {7.7, 3.8, 6.7, 2.2},
-        //                   {7.7, 2.8, 6.7, 2.0},
-        //                   {7.7, 2.6, 6.9, 2.3}};
-
-        // IdxVecType leaf_indices(8); leaf_indices<<102, 100, 109, 107, 105, 117, 122, 118;
-
-        // NNType nn = compute_distance(data, leaf_data, leaf_indices, 5); 
-
-        // for (auto n : nn) {
-        //     std::cout << n.first << " " << n.second << std::endl;
-        // }
-
-        // std::cout << res.first << std::endl;
-        // std::cout << res.second << std::endl;
-
-        // std::cout << leaf_indices;
-
-
-    };
-
+    const std::vector<std::vector<NNType>> query_radius(
+        const MatType& data, 
+        double radius) const {
+        
+        std::size_t num_samples = data.rows();
+        std::vector<std::vector<NNType>> knn;
+        for(std::size_t i = 0; i < num_samples; ++i) {
+            std::vector<NNType> nn;
+            nn = query_radius_single_data(data.row(i), radius);
+            if (!nn.empty()) {
+                knn.emplace_back(nn);
+            }
+        }
+        return knn;
+    }
 
 
 };
