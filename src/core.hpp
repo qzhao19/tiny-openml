@@ -30,6 +30,7 @@
 #include "../src/core/preprocessing/transaction_encoder.hpp"
 
 #include "../src/core/tree/hash_tree.hpp"
+#include "../src/core/tree/kd_tree.hpp"
 
 #include "../src/core/metric.hpp"
 
