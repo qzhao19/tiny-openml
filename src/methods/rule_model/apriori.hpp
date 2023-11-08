@@ -47,8 +47,6 @@ private:
                 candidates.emplace_back(c);
             } 
         }
-
-        
         return candidates;
     }
 

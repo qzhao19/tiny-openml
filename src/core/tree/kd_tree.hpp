@@ -441,7 +441,6 @@ public:
 
 };
 
-
 }
 }
 #endif /*CORE_TREE_KD_TREE_HPP*/
