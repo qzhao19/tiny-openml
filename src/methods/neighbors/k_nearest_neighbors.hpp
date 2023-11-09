@@ -13,8 +13,11 @@ class KNearestNeighbors {
 private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
-    using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
+    using RowVecType = Eigen::Matrix<DataType, 1, Eigen::Dynamic>;
+    using ColVecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
     using IdxVecType = Eigen::Vector<Eigen::Index, Eigen::Dynamic>;
+    using IdxMatType = Eigen::Matrix<Eigen::Index, Eigen::Dynamic, Eigen::Dynamic>;
+    using NNType = std::pair<DataType, std::size_t>;
 
     std::size_t p_;
     std::size_t num_neighbors_;
@@ -22,47 +25,7 @@ private:
     std::string metric_;          
 
 protected:
-    DataType brute_force(const std::vector<std::vector<DataType>>& X, 
-        const std::vector<DataType>& y, 
-        const std::vector<DataType>& sample) {
-        
-        std::vector<DataType> neighbors;
-        std::vector<std::pair<DataType, DataType>> distances;
-        for (std::size_t i = 0; i < X.size(); ++i) {
-            auto current = X.at(i);
-            auto label = y.at(i);
-            auto distance;
-            if (metric_ == "minkowski") {
-                distance = metric::euclidean_distance<DataType>(current, sample);
-            }
-            else if (metric_ == "manhattan") {
-                distance = metric::manhattan_distance<DataType>(current, sample);
-            }
-
-            distances.emplace_back(distance, label);
-        }
-        std::sort(distances.begin(), distances.end());
-        for (std::size_t i = 0; i < num_neighbors_; i++) {
-            auto label = distances.at(i).second;
-            neighbors.push_back(label);
-        }
-        std::unordered_map<DataType, std::size_t> frequency;
-        for (auto neighbor : neighbors) {
-            ++frequency[neighbor];
-        }
-        std::pair<DataType, DataType> predicted;
-        predicted.first = -1;
-        predicted.second = -1;
-        for (auto& kv : frequency) {
-            if (kv.second > predicted.second) {
-                predicted.second = kv.second;
-                predicted.first = kv.first;
-            }
-        }
-        return predicted.first;
-    }
-
-
+     
 
 public:
     KNearestNeighbors(): num_neighbors_(15), 
