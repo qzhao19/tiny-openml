@@ -19,28 +19,55 @@ private:
     using IdxMatType = Eigen::Matrix<Eigen::Index, Eigen::Dynamic, Eigen::Dynamic>;
     using NNType = std::pair<DataType, std::size_t>;
 
-    std::size_t p_;
+    std::size_t leaf_size_;
     std::size_t num_neighbors_;
     std::string solver_;
-    std::string metric_;          
+    std::string metric_;
 
-protected:
+    ColVecType y_;
+    std::unique_ptr<tree::KDTree<DataType>> tree_;       
+
+// protected:
      
 
 public:
-    KNearestNeighbors(): num_neighbors_(15), 
-        p_(1), 
-        solver_("brute"),
+    KNearestNeighbors(): leaf_size_(10),
+        num_neighbors_(15),  
+        solver_("kdtree"),
         metric_("minkowski") {};
     
 
-    KNearestNeighbors(std::size_t num_neighbors, 
-        std::size_t p, 
+    KNearestNeighbors(std::size_t leaf_size, 
+        std::size_t num_neighbors,
         std::string solver, 
-        std::string metric): num_neighbors_(num_neighbors), 
-            p_(p), 
+        std::string metric): leaf_size_(leaf_size), 
+            num_neighbors_(num_neighbors),
             solver_(solver),
             metric_(metric) {};
+
+    
+    void fit(const MatType& X, const ColVecType& y) {
+        // call kdTree via a function pionter
+        tree_ = std::make_unique<tree::KDTree<DataType>>(
+            X,
+            leaf_size_,
+            metric_,
+        );
+        y_ = y;
+    }
+
+    MatType predict(const MatType& X) {
+        
+        MatType distances;
+        IdxMatType indices;
+        std::tie(distances, indices) = tree_->query(X, num_neighbors);
+
+        
+
+    }
+
+
+
 
 };
 
