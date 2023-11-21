@@ -28,8 +28,26 @@ private:
     double gamma_;
     
     MatType centroids_;
+    MatType laplace_m_;
 
 protected:
+    void laplace_matrix(const MatType& X) {
+        std::size_t num_rows = X.rows(), num_cols = X.cols();
+        // build the matrix
+        MatType W(num_rows, num_rows);
+        for (std::size_t i = 0; i < num_rows; ++i) {
+            for (std::size_t j = i; j < num_rows; ++j) {
+                DataType w = std::exp((X.col(i) - X.cols(j)).array().pow(2.0).sum() / (-2.0 * gamma_ * gamma_));
+                W(i, j) = w;
+                W(j, i) = w;
+            }
+        }
+
+        MatType D;
+        D = W.colwise().sum().asDiagonal();
+        laplace_m_ = D - W;
+    }
+
 
 public:
     SpectralClustering(): init_("kmeans++"), 
