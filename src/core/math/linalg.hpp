@@ -331,6 +331,39 @@ MatType cholesky(const MatType& x, bool lower = true) {
     }
 };
 
+/**
+ * Compute the eigenvalues and right eigenvectors of a square array
+*/
+template<typename MatType, 
+    typename DataType = typename MatType::value_type>
+std::tuple<MatType, MatType> eig(const MatType& x) {
+    std::size_t num_rows = x.rows();
+    if (rows == 0) {
+        // If X is an empty matrix (0 rows, 0 col), X * X' == X.
+        // Therefore, we return X.
+        std::ostringstream err_msg;
+        err_msg << "Got an empty input matrix." << std::endl;
+        throw std::invalid_argument(err_msg.str());
+    } 
+
+    Eigen::EigenSolver<MatType> eigs(x);
+    if (eigs.info() != Eigen::Success) {
+        std::ostringstream err_msg;
+        err_msg << "Eigen decomposition was not successful"
+                << "The input might not be valid."
+                << std::endl;
+        throw std::runtime_error(err_msg.str());
+    }
+
+    MatType vals, vecs;
+    vals = eigs.eigenvalues().template cast<DataType>();
+    vecs = eigs.eigenvectors();
+
+    return std::make_tuple(vals, vecs);
+}
+
+
+
 
 }
 }
