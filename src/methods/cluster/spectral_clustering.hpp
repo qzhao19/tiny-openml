@@ -29,6 +29,8 @@ private:
     
     MatType centroids_;
     MatType laplace_m_;
+    MatType eig_vals_;
+    MatType eig_vecs_;
 
 protected:
     void laplace_matrix(const MatType& X) {
@@ -42,12 +44,10 @@ protected:
                 W(j, i) = w;
             }
         }
-
         MatType D;
         D = W.colwise().sum().asDiagonal();
         laplace_m_ = D - W;
     }
-
 
 public:
     SpectralClustering(): init_("kmeans++"), 
@@ -70,7 +70,8 @@ public:
     /**
      * fit dataset to compute k-means clustering
     */
-    void fit(const MatType& X) {
+    void fit_transform(const MatType& X) {
+        std::tie(eig_vals_, eig_vecs_) = math::eig<MatType>(laplace_m_);
     }
 
     /**
