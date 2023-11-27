@@ -18,9 +18,7 @@ double mean_absolute_error(const VecType& y_true,
     const VecType& y_pred) {
     
     std::size_t num_samples = y_true.rows();
-
     double sum_abs2 = (y_true - y_pred).array().abs2().sum();
-
     return sum_abs2 / static_cast<double>(num_samples);
 };
 
@@ -35,12 +33,15 @@ template<typename VecType>
 double explained_variance_score(const VecType& y_true, 
     const VecType& y_pred) {
 
+    // VecType y_diff = y_pred - y_true;
+    // VecType y_diff_var = math::var<VecType>(y_diff);
+    // VecType y_var = math::var<VecType>(y_true);
+    // auto retval = 1.0 -  static_cast<double>(y_diff_var / y_var);
+
     VecType y_diff = y_pred - y_true;
-    VecType y_diff_var = math::var<VecType>(y_diff);
-    VecType y_var = math::var<VecType>(y_true);
-    
-    auto retval = 1.0 -  y_diff_var.array() / y_var.array();
-    return static_cast<double>(retval(0, 0));
+    auto y_diff_var = y_diff.array().square().mean() - std::pow(y_diff.mean(), 2);
+    auto y_var = y_true.array().square().mean() - std::pow(y_true.mean(), 2);
+    return 1.0 - static_cast<double>(y_diff_var / y_var);
 };
 
 /**
