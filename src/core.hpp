@@ -3,6 +3,7 @@
 
 // #include "../src/methods/base.hpp"
 #include "../src/core/common.hpp"
+#include "../src/core/metric.hpp"
 
 #include "../src/core/math/ops.hpp"
 #include "../src/core/math/proba.hpp"
@@ -32,6 +33,6 @@
 #include "../src/core/tree/hash_tree.hpp"
 #include "../src/core/tree/kd_tree.hpp"
 
-#include "../src/core/metric.hpp"
+
 
 #endif /*CORE_HPP*/
