@@ -338,7 +338,7 @@ template<typename MatType,
     typename DataType = typename MatType::value_type>
 std::tuple<MatType, MatType> eig(const MatType& x) {
     std::size_t num_rows = x.rows();
-    if (rows == 0) {
+    if (num_rows == 0) {
         // If X is an empty matrix (0 rows, 0 col), X * X' == X.
         // Therefore, we return X.
         std::ostringstream err_msg;
