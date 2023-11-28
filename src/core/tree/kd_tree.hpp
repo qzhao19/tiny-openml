@@ -372,7 +372,8 @@ protected:
 
 public:
     KDTree(const MatType& data, 
-        std::size_t leaf_size, std::string metric): data_(data), 
+        std::size_t leaf_size, 
+        std::string metric): data_(data), 
             leaf_size_(leaf_size), metric_(metric) {
         if (metric == "manhattan") {
             ord_ = 1;
