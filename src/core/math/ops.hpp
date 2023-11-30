@@ -279,8 +279,66 @@ MatType cumsum(const MatType& x, int axis = 0) {
         return sum;
     }
     return cum_sum;
-}
+};
 
+/**
+ * Get the modal (most common) value in the passed array. 
+ * @param x the array
+ *      n-dimensional array of which to find mode(s).
+ * @param axis int, default: 0
+ *      the axis of the input along which to compute the statistic.
+*/
+template<typename MatType, 
+    typename DataType = typename MatType::value_type>
+std::tuple<MatType, MatType> mode(const MatType& x, int axis = 0) {
+    MatType mode, count;
+    std::size_t num_rows = x.rows(), num_cols = x.cols();
+    if (axis == 0) {
+        mode.resize(1, num_cols);
+        count.resize(1, num_cols);
+        for (std::size_t j = 0; j < num_cols; ++j) {
+            std::unordered_map<DataType, std::size_t> lookups;
+            std::size_t max_freqency = 0;
+            DataType most_frequent_elem;
+
+            for (const auto& elem : x.col(j)) {
+                std::size_t frequency = ++lookups[elem];
+                if (frequency > max_freqency) {
+                    max_freqency = frequency;
+                    most_frequent_elem = elem;
+                }
+            }
+            if (max_freqency == 1) {
+                most_frequent_elem = x.col(j).minCoeff();
+            }
+            mode(0, j) = most_frequent_elem;
+            count(0, j) = max_freqency;
+        }
+    }
+    else if (axis == 1) {
+        mode.resize(num_rows, 1);
+        count.resize(num_rows, 1);
+        for (std::size_t i = 0; i < num_rows; ++i) {
+            std::unordered_map<DataType, std::size_t> lookups;
+            std::size_t max_freqency = 0;
+            DataType most_frequent_elem;
+
+            for (const auto& elem : x.row(i)) {
+                std::size_t frequency = ++lookups[elem];
+                if (frequency > max_freqency) {
+                    max_freqency = frequency;
+                    most_frequent_elem = elem;
+                }
+            }
+            if (max_freqency == 1) {
+                most_frequent_elem = x.row(i).minCoeff();
+            }
+            mode(i, 0) = most_frequent_elem;
+            count(i, 0) = max_freqency;
+        }
+    }
+    return std::make_tuple(mode, count);
+};
 
 }
 }
