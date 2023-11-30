@@ -27,14 +27,11 @@ private:
     ColVecType y_;
     std::unique_ptr<tree::KDTree<DataType>> tree_;       
 
-// protected:
-     
-
 public:
     KNearestNeighbors(): leaf_size_(10),
         num_neighbors_(15),  
         solver_("kdtree"),
-        metric_("minkowski") {};
+        metric_("euclidean") {};
     
 
     KNearestNeighbors(std::size_t leaf_size, 
@@ -49,25 +46,25 @@ public:
     void fit(const MatType& X, const ColVecType& y) {
         // call kdTree via a function pionter
         tree_ = std::make_unique<tree::KDTree<DataType>>(
-            X,
-            leaf_size_,
-            metric_,
+            X, leaf_size_, metric_
         );
         y_ = y;
     }
 
-    MatType predict(const MatType& X) {
-        
-        MatType distances;
-        IdxMatType indices;
-        std::tie(distances, indices) = tree_->query(X, num_neighbors);
+    void predict(const MatType& X) {
+        MatType neighbor_dist;
+        IdxMatType neighbor_ind;
+        std::tie(neighbor_dist, neighbor_ind) = tree_->query(X, num_neighbors_);
 
-        
+        std::size_t num_samples = X.rows();
+        MatType pred_ind(num_samples, num_neighbors_);
+        for (std::size_t i = 0; i < num_samples; ++i) {
+            pred_ind.row(i) = y_(neighbor_ind.row(i), Eigen::all).transpose();
+        }
 
+
+    
     }
-
-
-
 
 };
 
