@@ -51,7 +51,7 @@ public:
         y_ = y;
     }
 
-    void predict(const MatType& X) {
+    const VecType predict(const MatType& X) {
         MatType neighbor_dist;
         IdxMatType neighbor_ind;
         std::tie(neighbor_dist, neighbor_ind) = tree_->query(X, num_neighbors_);
@@ -62,7 +62,10 @@ public:
             pred_ind.row(i) = y_(neighbor_ind.row(i), Eigen::all).transpose();
         }
 
+        MatType mode, count;
+        std::tie(mode, count) = math::mode<MatType>(pred_ind, 0);
 
+        return mode;
     
     }
 
