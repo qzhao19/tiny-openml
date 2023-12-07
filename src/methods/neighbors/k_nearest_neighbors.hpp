@@ -25,7 +25,47 @@ private:
     std::string metric_;
 
     ColVecType y_;
-    std::unique_ptr<tree::KDTree<DataType>> tree_;       
+    std::unique_ptr<tree::KDTree<DataType>> tree_;
+
+protected:
+    void brute_force(const MatType& X, const ColVecType& y, const MatType& samples) {
+        
+        std::vector<DataType> neighbors;
+        std::vector<std::pair<DataType, DataType>> dist_map;
+
+        for (std::size_t i = 0; i < X.row(); ++i) {
+            // auto current = X.rows(i);
+            // auto label = y(i, 0);
+            // auto distance;
+            for (std::size_t i = 0; i < samples.rows(); ++i) {
+                if (metric_ == "euclidean") {
+                    distance = (current - sample).template lpNorm<2>();
+                }
+                else if (metric_ == "manhattan") {
+                    distance = (current - sample).template lpNorm<1>();
+                }
+                else {
+                    std::ostringstream err_msg;
+                    err_msg << "Only support euclidean and manhattan distance." << std::endl;
+                    throw std::invalid_argument(err_msg.str());
+
+                }
+            }
+            dist_map.emplace_back(distance, label);
+        }
+
+        std::sort(dist_map.begin(), dist_map.end());
+        for (std::size_t i = 0; i < num_neighbors_; i++) {
+            auto label = dist_map.at(i).second;
+            neighbors.push_back(label);
+        }
+        std::unordered_map<DataType, std::size_t> frequency;
+        for (auto neighbor : neighbors) {
+            ++frequency[neighbor];
+        }
+
+    }
+      
 
 public:
     KNearestNeighbors(): leaf_size_(10),
@@ -51,7 +91,7 @@ public:
         y_ = y;
     }
 
-    const VecType predict(const MatType& X) {
+    const ColVecType predict(const MatType& X) {
         MatType neighbor_dist;
         IdxMatType neighbor_ind;
         std::tie(neighbor_dist, neighbor_ind) = tree_->query(X, num_neighbors_);
