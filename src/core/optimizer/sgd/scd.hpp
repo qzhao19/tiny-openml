@@ -12,9 +12,9 @@ namespace optimizer {
  * Stochastic coordinate descent algorithm
 */
 template<typename DataType, 
-    typename LossFuncionType>
+    typename LossFunctionType>
 class SCD: public BaseOptimizer<DataType, 
-    LossFuncionType> {
+    LossFunctionType> {
 private:
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
@@ -24,13 +24,13 @@ private:
     
 public:
     SCD(const VecType& x0,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const std::size_t max_iter = 5000, 
         const double l1_ratio = 1.0, 
         const double lambda = 0.0001,
         const bool shuffle = true,
         const bool verbose = true): BaseOptimizer<DataType, 
-            LossFuncionType>(x0, 
+            LossFunctionType>(x0, 
                 loss_func, 
                 max_iter, 
                 shuffle, 

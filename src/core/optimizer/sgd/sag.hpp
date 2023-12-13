@@ -9,11 +9,11 @@ namespace openml {
 namespace optimizer {
 
 template<typename DataType, 
-    typename LossFuncionType, 
+    typename LossFunctionType, 
     typename UpdatePolicyType,
     typename DecayPolicyType>
 class SAG: public BaseOptimizer<DataType, 
-    LossFuncionType, 
+    LossFunctionType, 
     UpdatePolicyType, 
     DecayPolicyType> {
 private:
@@ -22,7 +22,7 @@ private:
 
 public:
     SAG(const VecType& x0,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const UpdatePolicyType& w_update,
         const DecayPolicyType& lr_decay,
         const std::size_t max_iter = 2000, 
@@ -31,7 +31,7 @@ public:
         const double tol = 0.0001, 
         const bool shuffle = true, 
         const bool verbose = true): BaseOptimizer<DataType, 
-            LossFuncionType, 
+            LossFunctionType, 
             UpdatePolicyType, 
             DecayPolicyType>(x0, 
                 loss_func, 
