@@ -13,7 +13,7 @@ namespace openml {
 namespace optimizer {
 
 template<typename DataType, 
-    typename LossFuncionType, 
+    typename LossFunctionType, 
     typename UpdatePolicyType = optimizer::VanillaUpdate<DataType>,
     typename DecayPolicyType = optimizer::StepDecay<DataType>>
 class BaseOptimizer {
@@ -22,7 +22,7 @@ private:
     using VecType = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
 
 protected:
-    LossFuncionType loss_func_;
+    LossFunctionType loss_func_;
     UpdatePolicyType w_update_;
     DecayPolicyType lr_decay_;
 
@@ -42,7 +42,7 @@ protected:
 
 public:
     BaseOptimizer(const MatType& x0,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const UpdatePolicyType& w_update,
         const DecayPolicyType& lr_decay,
         const std::size_t max_iter = 2000,
@@ -64,7 +64,7 @@ public:
             multi_class_(multi_class) {};
     
     BaseOptimizer(const MatType& x0,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const std::size_t max_iter = 2000,
         const double tol = 1e-5,
         const bool shuffle = true, 
@@ -78,7 +78,7 @@ public:
             multi_class_(multi_class) {};
     
     BaseOptimizer(const MatType& x0,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const std::size_t max_iter = 2000,
         const bool shuffle = true, 
         const bool verbose = true,
