@@ -7,7 +7,7 @@ namespace openml {
 namespace optimizer {
 
 template <typename DataType,
-    typename LossFuncionType,
+    typename LossFunctionType,
     typename LineSearchParamType>
 class BaseLineSearch {
 private:
@@ -18,14 +18,14 @@ private:
 protected:
     MatType X_;
     VecType y_;
-    LossFuncionType loss_func_;
+    LossFunctionType loss_func_;
     LineSearchParamType linesearch_params_;
 
 public:
     BaseLineSearch() {};
     BaseLineSearch(const MatType& X, 
         const VecType& y,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const LineSearchParamType& linesearch_params): X_(X), 
             y_(y), 
             loss_func_(loss_func), 

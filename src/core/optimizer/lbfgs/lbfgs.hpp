@@ -13,10 +13,10 @@ namespace optimizer {
  * LBFGS algorithm
 */
 template<typename DataType, 
-    typename LossFuncionType,
+    typename LossFunctionType,
     typename LineSearchParamType>
 class LBFGS: public BaseOptimizer<DataType, 
-    LossFuncionType> {
+    LossFunctionType> {
 private:
     // define matrix and vector Eigen type
     using MatType = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
@@ -31,7 +31,7 @@ private:
 
 public:
     LBFGS(const VecType& x0,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const LineSearchParamType& linesearch_params,
         const std::size_t max_iter = 0, 
         const std::size_t mem_size = 8, 
@@ -41,7 +41,7 @@ public:
         const std::string linesearch_policy = "backtracking",
         const bool shuffle = true,
         const bool verbose = true): BaseOptimizer<DataType, 
-            LossFuncionType>(x0, 
+            LossFunctionType>(x0, 
                 loss_func, 
                 max_iter, 
                 tol,
@@ -74,14 +74,14 @@ public:
         VecType pfx(std::max(static_cast<std::size_t>(1), past_));
 
         // define step search policy
-        std::unique_ptr<BaseLineSearch<DataType, LossFuncionType, LineSearchParamType>> linesearch;
+        std::unique_ptr<BaseLineSearch<DataType, LossFunctionType, LineSearchParamType>> linesearch;
         if (linesearch_policy_ == "backtracking") {
-            linesearch = std::make_unique<LineSearchBacktracking<DataType, LossFuncionType, LineSearchParamType>>(
+            linesearch = std::make_unique<LineSearchBacktracking<DataType, LossFunctionType, LineSearchParamType>>(
                 X, y, this->loss_func_, linesearch_params_
             );
         }
         else if (linesearch_policy_ == "bracketing") {
-            linesearch = std::make_unique<LineSearchBracketing<DataType, LossFuncionType, LineSearchParamType>>(
+            linesearch = std::make_unique<LineSearchBracketing<DataType, LossFunctionType, LineSearchParamType>>(
                 X, y, this->loss_func_, linesearch_params_
             );
         }

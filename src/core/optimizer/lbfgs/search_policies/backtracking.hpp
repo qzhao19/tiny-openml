@@ -8,10 +8,10 @@ namespace openml {
 namespace optimizer {
 
 template <typename DataType,
-    typename LossFuncionType,
+    typename LossFunctionType,
     typename LineSearchParamType>
 class LineSearchBacktracking: public BaseLineSearch<DataType, 
-    LossFuncionType, 
+    LossFunctionType, 
     LineSearchParamType> {
 private:
     // define matrix and vector Eigen type
@@ -21,9 +21,9 @@ private:
 public:
     LineSearchBacktracking(const MatType& X, 
         const VecType& y,
-        const LossFuncionType& loss_func,
+        const LossFunctionType& loss_func,
         const LineSearchParamType& linesearch_params): BaseLineSearch<DataType, 
-            LossFuncionType, 
+            LossFunctionType, 
             LineSearchParamType>(
                 X, y, 
                 loss_func, 
