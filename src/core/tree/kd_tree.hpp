@@ -54,7 +54,7 @@ private:
         ~KDTreeNode() {};
     };
 
-    struct StackData {
+    struct NodeInfo {
         bool is_left;
         std::size_t depth;
         std::size_t index;
@@ -127,47 +127,47 @@ protected:
         tree_->emplace_back(node);
 
         // create a stack to restore data, indice, parent indice, depth and is_left
-        StackData init_stk_data1, init_stk_data2;
-        init_stk_data1.is_left = true;
-        init_stk_data1.depth = 1;
-        init_stk_data1.index = 0;
-        init_stk_data1.data = data.topRows(left_num_samples);
-        init_stk_data1.indices = indices.head(left_num_samples);
+        NodeInfo init_node_info1, init_node_info2;
+        init_node_info1.is_left = true;
+        init_node_info1.depth = 1;
+        init_node_info1.index = 0;
+        init_node_info1.data = data.topRows(left_num_samples);
+        init_node_info1.indices = indices.head(left_num_samples);
 
-        init_stk_data2.is_left = false;
-        init_stk_data2.depth = 1;
-        init_stk_data2.index = 0;
-        init_stk_data2.data = data.bottomRows(right_num_samples);
-        init_stk_data2.indices = indices.tail(right_num_samples);
+        init_node_info2.is_left = false;
+        init_node_info2.depth = 1;
+        init_node_info2.index = 0;
+        init_node_info2.data = data.bottomRows(right_num_samples);
+        init_node_info2.indices = indices.tail(right_num_samples);
 
-        std::stack<StackData> node_stk;
-        node_stk.push(init_stk_data1);
-        node_stk.push(init_stk_data2);
+        std::stack<NodeInfo> node_info_stk;
+        node_info_stk.push(init_node_info1);
+        node_info_stk.push(init_node_info2);
 
         // recursively split data in halves using hyper-rectangles:
-        while (!node_stk.empty()) {
+        while (!node_info_stk.empty()) {
             // pop data off stack
-            StackData curr_stk_data = node_stk.top();
-            node_stk.pop();
+            NodeInfo curr_node_info = node_info_stk.top();
+            node_info_stk.pop();
 
-            std::size_t curr_num_samples = curr_stk_data.data.rows();
+            std::size_t curr_num_samples = curr_node_info.data.rows();
             std::size_t node_ptr = tree_->size();
 
             // update parent node index
-            KDTreeNode curr_node = tree_->at(curr_stk_data.index);
-            if (curr_stk_data.is_left) {
-                tree_->at(curr_stk_data.index).left = node_ptr;
+            KDTreeNode curr_node = tree_->at(curr_node_info.index);
+            if (curr_node_info.is_left) {
+                tree_->at(curr_node_info.index).left = node_ptr;
             }
             else {
-                tree_->at(curr_stk_data.index).right = node_ptr;
+                tree_->at(curr_node_info.index).right = node_ptr;
             }
 
             // insert node in kd-tree
             // leaf node ? create leaf node
             if (curr_num_samples <= leaf_size_) {
                 KDTreeNode leaf_node;
-                leaf_node.data = std::make_shared<MatType>(curr_stk_data.data);
-                leaf_node.indices = std::make_shared<IdxVecType>(curr_stk_data.indices);
+                leaf_node.data = std::make_shared<MatType>(curr_node_info.data);
+                leaf_node.indices = std::make_shared<IdxVecType>(curr_node_info.indices);
                 leaf_node.left_hyper_rect = nullptr;
                 leaf_node.right_hyper_rect = nullptr;
                 leaf_node.left = 0;
@@ -183,17 +183,17 @@ protected:
                 std::size_t curr_right_num_samples = curr_num_samples - curr_mid_idx;
 
                 // find the partition axis, sort data along the partition axis
-                partition_axis = find_partition_axis(curr_stk_data.data);
+                partition_axis = find_partition_axis(curr_node_info.data);
                 indices = common::argsort<MatType, IdxMatType, IdxVecType>(
-                    curr_stk_data.data.col(partition_axis), 0
+                    curr_node_info.data.col(partition_axis), 0
                 );
-                data = curr_stk_data.data(indices, Eigen::all).eval();
-                data_indices = curr_stk_data.indices(indices);
+                data = curr_node_info.data(indices, Eigen::all).eval();
+                data_indices = curr_node_info.indices(indices);
                 partition_val = data(curr_mid_idx, partition_axis);
                 node_ptr = tree_->size();
 
                 // push updated data, indices, index and current depth into stack
-                StackData update_stk_data1, update_stk_data2;
+                NodeInfo update_stk_data1, update_stk_data2;
                 update_stk_data1.is_left = true;
                 update_stk_data1.depth++;
                 update_stk_data1.index = node_ptr;
@@ -206,10 +206,10 @@ protected:
                 update_stk_data2.data = data.bottomRows(curr_right_num_samples);
                 update_stk_data2.indices = data_indices.tail(curr_right_num_samples);
 
-                node_stk.push(update_stk_data1);
-                node_stk.push(update_stk_data2);
+                node_info_stk.push(update_stk_data1);
+                node_info_stk.push(update_stk_data2);
 
-                if (curr_stk_data.is_left) {
+                if (curr_node_info.is_left) {
                     left_hyper_rect = *curr_node.left_hyper_rect;
                     right_hyper_rect = *curr_node.left_hyper_rect;
                 }
